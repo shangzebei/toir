@@ -1,8 +1,8 @@
 package test
 
-var b int = 89
-
 func main() {
-	var a, b, c int = 8, 9, 4
-	//fmt.Println(a,b,c)
+	var a = 89
+	var b = 78
+	var c int
+	c = a + b
 }

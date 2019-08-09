@@ -159,7 +159,8 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 			//f.GetCurrentBlock().NewSelect()
 			fmt.Println("IncDecStmt not impl")
 		case *ast.AssignStmt:
-			fmt.Println("AssignStmt not impl")
+			assignStmt := value.(*ast.AssignStmt)
+			f.doAssignStmt(assignStmt)
 		case *ast.DeclStmt:
 			f.doDeclStmt(value.(*ast.DeclStmt))
 		default:
@@ -216,3 +217,9 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 func fieldToValue(f *ast.Field) value.Value {
 	return IdentToValue(f.Type.(*ast.Ident))
 }
+
+//func (f *FuncDecl)GetVarWithName(name string) value.Value {
+//	for key, value := range f.GetCurrentBlock().Insts {
+//
+//	}
+//}

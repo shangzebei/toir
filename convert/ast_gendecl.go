@@ -3,15 +3,10 @@ package convert
 import (
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
+	"github.com/llir/llvm/ir/value"
 	"go/ast"
 	"go/token"
 )
-
-type variable struct {
-	name  string
-	kind  types.Type
-	value constant.Constant
-}
 
 //glob is Glob def
 func (f *FuncDecl) DoGenDecl(glob bool, decl *ast.GenDecl) {
@@ -23,13 +18,24 @@ func (f *FuncDecl) DoGenDecl(glob bool, decl *ast.GenDecl) {
 				kind = GetTypeFromName(spec.Type.(*ast.Ident).Name)
 			}
 			for index, name := range spec.Names {
-				var value constant.Constant
+				var value value.Value
+				//get values
 				if len(spec.Values) > index {
-					value = BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
+					switch spec.Values[index].(type) {
+					case *ast.BasicLit:
+						value = BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
+
+					case *ast.BinaryExpr:
+						value = f.doBinary("", spec.Values[index].(*ast.BinaryExpr))
+					}
+					if kind == nil {
+						kind = value.Type()
+					}
 				}
+				////////////////////////////////
 				if glob {
 					if value != nil {
-						f.m.NewGlobalDef(name.Name, value)
+						f.m.NewGlobalDef(name.Name, value.(constant.Constant))
 					} else {
 						f.m.NewGlobal(name.Name, kind)
 					}

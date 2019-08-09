@@ -98,7 +98,24 @@ func IdentToValue(id *ast.Ident) value.Value {
 }
 
 func doValeSpec(spec *ast.ValueSpec) value.Value {
-	//name := GetIdentName(spec.Names[0])
-	expr := spec.Values[0].(ast.Expr)
-	return BasicLitToConstant(expr.(*ast.BasicLit))
+	name := GetIdentName(spec.Names[0])
+	var kind types.Type
+	for _, value := range spec.Values {
+		switch value.(type) {
+		case ast.Expr:
+			expr := value.(ast.Expr)
+			return BasicLitToConstant(expr.(*ast.BasicLit))
+		default:
+			fmt.Println("no impl doValeSpec")
+		}
+	}
+
+	if spec.Type != nil {
+		kind = GetTypeFromName(GetIdentName(spec.Type.(*ast.Ident)))
+	}
+	if len(spec.Values) == 0 {
+		return ir.NewParam(name, kind)
+	}
+	fmt.Println("doValeSpec return null")
+	return nil
 }
