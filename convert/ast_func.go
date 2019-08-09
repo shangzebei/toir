@@ -3,7 +3,6 @@ package convert
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
-	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
@@ -27,41 +26,6 @@ func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 		fset:         fset,
 		FuncHeap:     new([]*ir.Func),
 		blockPointer: make(map[*ir.Func]int),
-	}
-}
-
-func (f *FuncDecl) DoGenDecl(glob bool, decl *ast.GenDecl) {
-	if decl.Tok == token.VAR {
-		for _, v := range decl.Specs {
-			spec := v.(*ast.ValueSpec)
-			var name string
-			var kind types.Type
-			var value constant.Constant
-			if len(spec.Names) > 0 {
-				name = spec.Names[0].Name
-			}
-			if spec.Type != nil {
-				kind = GetTypeFromName(spec.Type.(*ast.Ident).Name)
-			}
-			if len(spec.Values) > 0 {
-				value = BasicLitToConstant(spec.Values[0].(*ast.BasicLit))
-			}
-			if glob {
-				if value != nil {
-					f.m.NewGlobalDef(name, value)
-				} else {
-					f.m.NewGlobal(name, kind)
-				}
-			} else {
-				if value != nil {
-					alloca := f.GetCurrentBlock().NewAlloca(kind)
-					f.GetCurrentBlock().NewStore(value, alloca)
-				} else {
-					f.GetCurrentBlock().NewAlloca(kind)
-				}
-			}
-
-		}
 	}
 }
 
