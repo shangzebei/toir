@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
@@ -29,14 +30,35 @@ func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 	}
 }
 
-func (f *FuncDecl) DoGenDecl(decl *ast.GenDecl) {
+func (f *FuncDecl) DoGenDecl(glob bool, decl *ast.GenDecl) {
 	if decl.Tok == token.VAR {
 		for _, v := range decl.Specs {
 			spec := v.(*ast.ValueSpec)
-			for _, value := range spec.Values {
-				basicLit := value.(*ast.BasicLit)
-				globName := spec.Names[0].String()
-				f.m.NewGlobalDef(globName, BasicLitToValue(basicLit))
+			var name string
+			var kind types.Type
+			var value constant.Constant
+			if len(spec.Names) > 0 {
+				name = spec.Names[0].Name
+			}
+			if spec.Type != nil {
+				kind = GetTypeFromName(spec.Type.(*ast.Ident).Name)
+			}
+			if len(spec.Values) > 0 {
+				value = BasicLitToConstant(spec.Values[0].(*ast.BasicLit))
+			}
+			if glob {
+				if value != nil {
+					f.m.NewGlobalDef(name, value)
+				} else {
+					f.m.NewGlobal(name, kind)
+				}
+			} else {
+				if value != nil {
+					alloca := f.GetCurrentBlock().NewAlloca(kind)
+					f.GetCurrentBlock().NewStore(value, alloca)
+				} else {
+					f.GetCurrentBlock().NewAlloca(kind)
+				}
 			}
 
 		}
@@ -50,7 +72,6 @@ func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 			paramKind := (value.Type.(*ast.Ident)).Name
 			f.GetCurrent().Params = append(f.GetCurrent().Params, ir.NewParam(paramName, GetTypeFromName(paramKind)))
 			logrus.Debug(paramKind)
-			//paramKinds = append(paramKinds, ir.NewParam(paramName, GetTypeFromName(paramKind)))
 			logrus.Debug(index, paramName, paramKind)
 		}
 	}
@@ -113,9 +134,9 @@ func (f *FuncDecl) pop() *ir.Func {
 }
 
 func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
+	//ast.Print(f.fset, block)
 	newBlock := f.newBlock()
 	defer f.popBlock()
-	//ast.Print(f.fset, block.List)
 	for _, value := range block.List {
 		switch value.(type) {
 		case *ast.ExprStmt:
@@ -133,7 +154,9 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 				doBinary := f.doBinary("return", binaryExpr)
 				trueBlock := f.doBlockStmt(expr.Body)
 				if expr.Else == nil {
-					newBlock.NewCondBr(doBinary, trueBlock, nil)
+					//i := f.newBlock()
+					//f.popBlock()
+					newBlock.NewCondBr(doBinary, trueBlock, ir.NewBlock(""))
 				} else {
 					falseBlock := f.doBlockStmt(expr.Else.(*ast.BlockStmt))
 					newBlock.NewCondBr(doBinary, trueBlock, falseBlock)
@@ -142,13 +165,13 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 		case *ast.ReturnStmt:
 			returnStmt := value.(*ast.ReturnStmt)
 			//ast.Print(f.fset, returnStmt)
-			//return 1 value
+			//TODO return 1 value
 			for _, value := range returnStmt.Results {
 				switch value.(type) {
 				case *ast.BasicLit:
 					basicLit := value.(*ast.BasicLit)
 					f.GetCurrent().Sig.RetType = GetTypes(basicLit.Kind)
-					newBlock.NewRet(BasicLitToValue(value.(*ast.BasicLit)))
+					newBlock.NewRet(BasicLitToConstant(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
 					binary := f.doBinary("return", value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()
@@ -157,10 +180,26 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 					callExpr := f.doCallExpr(value.(*ast.CallExpr))
 					f.GetCurrent().Sig.RetType = callExpr.Type()
 					newBlock.NewRet(callExpr)
+				case *ast.Ident:
+					identToValue := IdentToValue(value.(*ast.Ident))
+					f.GetCurrent().Sig.RetType = identToValue.Type()
+					newBlock.NewRet(identToValue)
+				default:
+					fmt.Println("doBlockStmt return not impl!")
 				}
 
 			}
-
+		case *ast.ForStmt:
+			fmt.Println("ForStmt not impl")
+		case *ast.IncDecStmt:
+			//f.GetCurrentBlock().NewSelect()
+			fmt.Println("IncDecStmt not impl")
+		case *ast.AssignStmt:
+			fmt.Println("AssignStmt not impl")
+		case *ast.DeclStmt:
+			f.doDeclStmt(value.(*ast.DeclStmt))
+		default:
+			fmt.Println("doBlockStmt not impl")
 		}
 	}
 	if f.GetCurrent() != nil && f.GetCurrent().Sig.RetType == nil {
@@ -170,6 +209,13 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 	return newBlock
 }
 
+func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
+	switch decl.Decl.(type) {
+	case *ast.GenDecl:
+		f.DoGenDecl(false, decl.Decl.(*ast.GenDecl))
+	}
+}
+
 func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	//get call param
 	var params []value.Value
@@ -177,19 +223,20 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		switch value.(type) {
 		case *ast.Ident:
 			ident := value.(*ast.Ident)
-			switch ident.Obj.Kind {
-			case ast.Var:
-				//ast.Print(f.fset, ident.Obj.Kind)
-				fmt.Println("no impl in doCallExpr")
+			if ident.Obj.Kind == ast.Var {
+				params = append(params, IdentToValue(ident))
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
-			params = append(params, BasicLitToValue(basicLit))
+			params = append(params, BasicLitToConstant(basicLit))
+		default:
+			fmt.Println("doCallExpr args not impl")
 		}
 	}
+
 	switch call.Fun.(type) {
 	case *ast.SelectorExpr:
-		fmt.Println("no impl")
+		fmt.Println("doCallExpr SelectorExpr no impl")
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
 	}
@@ -200,4 +247,8 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
 	funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
 	return block.NewCall(funDecl, values...)
+}
+
+func fieldToValue(f *ast.Field) value.Value {
+	return IdentToValue(f.Type.(*ast.Ident))
 }

@@ -1,19 +1,8 @@
-@shangzebe = global [25 x i8] c"\22asdfasdfasdfasdfsdfasdf\22"
-
-define i32 @show(i32 %t) {
-; <label>:0
-	%1 = icmp sgt i32 %t, 100
-	br i1 %1, label %2, label %3
-
-; <label>:2
-	ret i32 0
-
-; <label>:3
-	ret i32 1
-}
+@b = global i32 89
 
 define void @main() {
 ; <label>:0
-	%1 = call i32 @show(i32 100)
+	%1 = alloca i32
+	store i32 7, i32* %1
 	ret void
 }

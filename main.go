@@ -26,11 +26,11 @@ func main() {
 	}
 	m := ir.NewModule()
 	doFunc := convert.DoFunc(m, fset)
-
+	ast.Print(fset, f)
 	for _, value := range f.Decls {
 		switch value.(type) {
 		case *ast.GenDecl:
-			doFunc.DoGenDecl(value.(*ast.GenDecl))
+			doFunc.DoGenDecl(true, value.(*ast.GenDecl))
 		case *ast.FuncDecl:
 			doFunc.DoFunDecl(f.Name.Name, value.(*ast.FuncDecl))
 		}

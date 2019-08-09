@@ -1,12 +1,10 @@
-import "internal"
-func fib(num int) int {
-    if num < 2 {
-        return num
-    }
+package test
 
-    return fib(num-2) + fib(num-1)
+func main(){
+
 }
 
-func main() {
-    printf("%d\n", fib(34))
+func mai(a int) int {
+	a++
+	return a
 }

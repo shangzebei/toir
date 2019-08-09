@@ -56,7 +56,7 @@ func Toi8Ptr(block *ir.Block, src value.Value) *ir.InstGetElementPtr {
 	return block.NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
 }
 
-func BasicLitToValue(base *ast.BasicLit) constant.Constant {
+func BasicLitToConstant(base *ast.BasicLit) constant.Constant {
 	switch base.Kind {
 	case token.INT:
 		atoi, _ := strconv.Atoi(base.Value)
@@ -81,9 +81,24 @@ func IdentToValue(id *ast.Ident) value.Value {
 				return ir.NewParam(fName, types.I32)
 			case "float":
 				return ir.NewParam(fName, types.Float)
+			case "string":
+				return ir.NewParam(fName, types.I8Ptr)
+			default:
+				fmt.Println(fName)
 			}
+		case *ast.ValueSpec: //TODO warn !
+			valueSpec := id.Obj.Decl.(*ast.ValueSpec)
+			return doValeSpec(valueSpec)
+		default:
+			fmt.Println("id.Obj.Decl.(type)")
 		}
 	}
 	fmt.Println("IdentToValue no impl")
 	return nil
+}
+
+func doValeSpec(spec *ast.ValueSpec) value.Value {
+	//name := GetIdentName(spec.Names[0])
+	expr := spec.Values[0].(ast.Expr)
+	return BasicLitToConstant(expr.(*ast.BasicLit))
 }

@@ -1,15 +1,7 @@
 package test
 
-var shangzebe = "asdfasdfasdfasdfsdfasdf"
+var b int = 89
 
 func main() {
-	show(100)
-}
-
-func show(t int) int {
-	if t > 100 {
-		return 0
-	} else {
-		return 1
-	}
+	var a int = 7
 }
