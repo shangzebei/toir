@@ -13,7 +13,7 @@ func Push(context *[]*ir.Func, x *ir.Func) bool {
 		}
 	}
 	*context = append(*context, x)
-	fmt.Println("push =================")
+	fmt.Println("push Func =================")
 	return true
 }
 
@@ -22,6 +22,6 @@ func Pop(context *[]*ir.Func) *ir.Func {
 	n := len(old)
 	x := old[n-1]
 	*context = old[0 : n-1]
-	fmt.Println("pop=================")
+	fmt.Println("pop Func =================")
 	return x
 }

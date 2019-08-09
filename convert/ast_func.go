@@ -11,20 +11,21 @@ import (
 )
 
 type FuncDecl struct {
-	m         *ir.Module
-	fset      *token.FileSet
-	Funs      map[string]*ir.Func
-	FuncHeap  *[]*ir.Func
-	GlobDef   map[string]*ir.Func
-	FuncDecls []*ast.FuncDecl
+	m            *ir.Module
+	fset         *token.FileSet
+	Funs         map[string]*ir.Func
+	FuncHeap     *[]*ir.Func
+	GlobDef      map[string]*ir.Func
+	FuncDecls    []*ast.FuncDecl
+	blockPointer map[*ir.Func]int
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
-
 	return &FuncDecl{
-		m:        m,
-		fset:     fset,
-		FuncHeap: new([]*ir.Func),
+		m:            m,
+		fset:         fset,
+		FuncHeap:     new([]*ir.Func),
+		blockPointer: make(map[*ir.Func]int),
 	}
 }
 
@@ -112,7 +113,8 @@ func (f *FuncDecl) pop() *ir.Func {
 }
 
 func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
-	newBlock := f.GetCurrent().NewBlock("")
+	newBlock := f.newBlock()
+	defer f.popBlock()
 	//ast.Print(f.fset, block.List)
 	for _, value := range block.List {
 		switch value.(type) {
@@ -128,8 +130,8 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 			switch expr.Cond.(type) {
 			case *ast.BinaryExpr:
 				binaryExpr := expr.Cond.(*ast.BinaryExpr)
-				trueBlock := f.doBlockStmt(expr.Body)
 				doBinary := f.doBinary("return", binaryExpr)
+				trueBlock := f.doBlockStmt(expr.Body)
 				if expr.Else == nil {
 					newBlock.NewCondBr(doBinary, trueBlock, nil)
 				} else {
@@ -198,16 +200,4 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
 	funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
 	return block.NewCall(funDecl, values...)
-}
-
-func (f *FuncDecl) doBasicLit(flags string, base *ast.BasicLit) {
-	switch flags {
-	case "return":
-
-	}
-}
-
-func (f *FuncDecl) GetCurrentBlock() *ir.Block {
-	blocks := f.GetCurrent().Blocks
-	return blocks[len(blocks)-1]
 }
