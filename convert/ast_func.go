@@ -84,6 +84,8 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 		}
 	}
 	f.FuncDecls = append(f.FuncDecls, funDecl)
+	////////////////////////////method begin//////////////////////////////
+
 	//func name
 	funName := funDecl.Name.Name
 	Push(f.FuncHeap, f.CreatTempFunc(funName))
@@ -94,7 +96,9 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	blockStmt := funDecl.Body
 	f.doBlockStmt(blockStmt)
 	//body
+	////////////////////////////method end/////////////////////////
 	return f.pop()
+
 }
 
 func (f *FuncDecl) pop() *ir.Func {
@@ -110,8 +114,9 @@ func (f *FuncDecl) pop() *ir.Func {
 	return Pop(f.FuncHeap)
 }
 
-func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) {
-	f.GetCurrent().NewBlock("")
+func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
+	newBlock := f.GetCurrent().NewBlock("")
+	ast.Print(f.fset, block.List)
 	for _, value := range block.List {
 		switch value.(type) {
 		case *ast.ExprStmt:
@@ -121,10 +126,23 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) {
 				callExpr := exprStmt.X.(*ast.CallExpr)
 				f.doCallExpr(callExpr)
 			}
+		case *ast.IfStmt: //if
+			expr := value.(*ast.IfStmt)
+			switch expr.Cond.(type) {
+			case *ast.BinaryExpr:
+				binaryExpr := expr.Cond.(*ast.BinaryExpr)
+				trueBlock := f.doBlockStmt(expr.Body)
+				if expr.Else == nil {
+					newBlock.NewBr(trueBlock)
+				} else {
+					falseBlock := f.doBlockStmt(expr.Else.(*ast.BlockStmt))
+					newBlock.NewCondBr(f.doBinary("return", binaryExpr), trueBlock, falseBlock)
+				}
+			}
 		case *ast.ReturnStmt:
 			returnStmt := value.(*ast.ReturnStmt)
-			ast.Print(f.fset, returnStmt)
-			block := f.GetCurrent().Blocks[0]
+			//ast.Print(f.fset, returnStmt)
+			block := f.GetCurrentBlock()
 			//return 1 value
 			for _, value := range returnStmt.Results {
 				switch value.(type) {
@@ -134,6 +152,8 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) {
 					binary := f.doBinary("return", value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()
 					block.NewRet(binary)
+				case *ast.CallExpr:
+					block.NewRet(f.doCallExpr(value.(*ast.CallExpr)))
 				}
 
 			}
@@ -143,10 +163,10 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) {
 	if f.GetCurrent() != nil && f.GetCurrent().Sig.RetType == nil {
 		f.GetCurrent().Sig.RetType = types.Void
 	}
-
+	return newBlock
 }
 
-func (f *FuncDecl) doCallExpr(call *ast.CallExpr) {
+func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	fmt.Println("call", GetCallFunc(call))
 	//get call param
 	var params []value.Value
@@ -167,75 +187,30 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) {
 			}
 		}
 	}
-
-	//fmt.Println(len(f.GetCurrent().Blocks))
-	block := f.GetCurrent().Blocks[0]
-	//block.NewCall(stdlib.DV(f.m, "printf", types.I32, true, types.I8Ptr), Toi8Ptr(block, Get("shangzebe").(value.Value)))
-
 	switch call.Fun.(type) {
 	case *ast.SelectorExpr:
 		fmt.Println("fasdfasdfasdf")
 	case *ast.Ident:
-		f.doCallFunc(params, call.Fun.(*ast.Ident))
-	}
-	block.NewRet(nil)
-}
-
-func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) {
-	block := f.GetCurrent().Blocks[0]
-	funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
-	block.NewCall(funDecl, values...)
-}
-
-func (f *FuncDecl) doBinary(flags string, expr *ast.BinaryExpr) value.Value {
-	switch flags {
-	case "return":
-		block := f.GetCurrent().Blocks[0]
-		//get x
-		var x value.Value
-		var y value.Value
-		switch expr.X.(type) {
-		case *ast.Ident:
-			ident := expr.X.(*ast.Ident)
-			x = IdentToValue(ident)
-		case *ast.BasicLit:
-			basicLit := expr.X.(*ast.BasicLit)
-			x = BasicLitToValue(basicLit)
-		case *ast.BinaryExpr:
-			x = f.doBinary(flags, expr.X.(*ast.BinaryExpr))
-		}
-		//get y
-		switch expr.Y.(type) {
-		case *ast.Ident:
-			ident := expr.Y.(*ast.Ident)
-			y = IdentToValue(ident)
-		case *ast.BasicLit:
-			basicLit := expr.Y.(*ast.BasicLit)
-			y = BasicLitToValue(basicLit)
-		case *ast.BinaryExpr:
-			y = f.doBinary(flags, expr.Y.(*ast.BinaryExpr))
-		}
-		//get ops
-		switch expr.Op {
-		case token.ADD:
-			return block.NewAdd(x, y)
-		case token.SUB:
-			return block.NewSub(x, y)
-		case token.MUL:
-			return block.NewMul(x, y)
-		case token.QUO:
-			return block.NewUDiv(x, y)
-
-		}
-
+		return f.doCallFunc(params, call.Fun.(*ast.Ident))
 	}
 	return nil
+}
+
+func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
+	block := f.GetCurrentBlock()
+	funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
+	return block.NewCall(funDecl, values...)
 }
 
 func (f *FuncDecl) doBasicLit(flags string, base *ast.BasicLit) {
 	switch flags {
 	case "return":
 		f.GetCurrent().Sig.RetType = GetTypes(base.Kind)
-		f.GetCurrent().Blocks[0].NewRet(BasicLitToValue(base))
+		f.GetCurrentBlock().NewRet(BasicLitToValue(base))
 	}
+}
+
+func (f *FuncDecl) GetCurrentBlock() *ir.Block {
+	blocks := f.GetCurrent().Blocks
+	return blocks[len(blocks)-1]
 }

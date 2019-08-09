@@ -1,14 +1,15 @@
 @shangzebe = global [25 x i8] c"\22asdfasdfasdfasdfsdfasdf\22"
 
-define i32 @show(i32 %a, i32 %b) {
+define void @show(i8* %s) {
 ; <label>:0
-	%1 = add i32 %a, 1
-	%2 = add i32 %1, 9
-	ret i32 %2
+	ret void
 }
 
-define i32 @main() {
+define i32 @main(i32 %t) {
 ; <label>:0
-	%1 = call i32 @show(i32 1, i32 2)
+	br label %1
+
+; <label>:1
+	call void @show()
 	ret i32 0
 }
