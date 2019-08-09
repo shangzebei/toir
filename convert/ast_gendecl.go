@@ -24,7 +24,6 @@ func (f *FuncDecl) DoGenDecl(glob bool, decl *ast.GenDecl) {
 					switch spec.Values[index].(type) {
 					case *ast.BasicLit:
 						value = BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
-
 					case *ast.BinaryExpr:
 						value = f.doBinary("", spec.Values[index].(*ast.BinaryExpr))
 					}
@@ -43,8 +42,9 @@ func (f *FuncDecl) DoGenDecl(glob bool, decl *ast.GenDecl) {
 					if value != nil {
 						alloca := f.GetCurrentBlock().NewAlloca(kind)
 						f.GetCurrentBlock().NewStore(value, alloca)
+						f.PutVariable(name.Name, alloca)
 					} else {
-						f.GetCurrentBlock().NewAlloca(kind)
+						f.PutVariable(name.Name, f.GetCurrentBlock().NewAlloca(kind))
 					}
 				}
 			}

@@ -18,6 +18,7 @@ type FuncDecl struct {
 	GlobDef      map[string]*ir.Func
 	FuncDecls    []*ast.FuncDecl
 	blockPointer map[*ir.Func]int
+	Variables    map[*ir.Block]map[string]value.Value
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
@@ -26,6 +27,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 		fset:         fset,
 		FuncHeap:     new([]*ir.Func),
 		blockPointer: make(map[*ir.Func]int),
+		Variables:    make(map[*ir.Block]map[string]value.Value),
 	}
 }
 
@@ -218,8 +220,24 @@ func fieldToValue(f *ast.Field) value.Value {
 	return IdentToValue(f.Type.(*ast.Ident))
 }
 
-//func (f *FuncDecl)GetVarWithName(name string) value.Value {
-//	for key, value := range f.GetCurrentBlock().Insts {
-//
-//	}
-//}
+func (f *FuncDecl) GetVariable(name string) value.Value {
+	values, ok := f.Variables[f.GetCurrentBlock()]
+	if !ok {
+		fmt.Println("not find Variable", name)
+		return nil
+	}
+	i, ok := values[name]
+	if !ok {
+		fmt.Println("not find Variable", name)
+		return nil
+	}
+	return i
+}
+
+func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
+	_, ok := f.Variables[f.GetCurrentBlock()]
+	if !ok {
+		f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
+	}
+	f.Variables[f.GetCurrentBlock()][name] = value2
+}

@@ -16,16 +16,21 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) {
 		switch value.(type) {
 		case *ast.BinaryExpr:
 			r = append(r, f.doBinary("", value.(*ast.BinaryExpr)))
+		case *ast.Ident:
+			r = append(r, f.GetVariable(value.(*ast.Ident).Name))
+		default:
+			fmt.Println("not impl assignStmt.Rhs")
 		}
 	}
 	//c
 	for _, value := range assignStmt.Lhs {
 		switch value.(type) {
 		case *ast.Ident:
-			//FIXME
-			l = append(l, IdentToValue(value.(*ast.Ident)))
+			l = append(l, f.GetVariable(value.(*ast.Ident).Name))
+		case *ast.BinaryExpr:
+			l = append(l, f.doBinary("", value.(*ast.BinaryExpr)))
 		default:
-			fmt.Println("no impl c")
+			fmt.Println("no impl assignStmt.Lhs")
 		}
 	}
 
@@ -39,8 +44,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) {
 	case token.DEFINE:
 		fmt.Println("doAssignStmt no impl :=")
 	case token.ASSIGN:
-		if len(r) == 1 { //a=b+c
-			f.GetCurrentBlock().NewStore(r[0], l[0])
+		if len(r) == 1 {
+			//a=b+c
+			//a=b
+			load := f.GetCurrentBlock().NewLoad(r[0])
+			f.GetCurrentBlock().NewStore(load, l[0])
 		}
 	case token.EQL:
 
