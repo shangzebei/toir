@@ -3,13 +3,11 @@ package convert
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
-	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
-	"strconv"
 )
 
 type FuncDecl struct {
@@ -106,17 +104,16 @@ func (f *FuncDecl) pop() *ir.Func {
 	f.m.Funcs = append(f.m.Funcs, f.GetCurrent())
 	for index, value := range f.GetCurrent().Blocks {
 		if value.Term == nil {
-			logrus.Errorf("index %d block ret is nil", index)
+			logrus.Errorf("index %d %s block ret is nil", index, value.Name())
 			f.GetCurrent().Blocks[index].NewRet(nil)
 		}
 	}
-	fmt.Println(f.GetCurrent().Blocks)
 	return Pop(f.FuncHeap)
 }
 
 func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 	newBlock := f.GetCurrent().NewBlock("")
-	ast.Print(f.fset, block.List)
+	//ast.Print(f.fset, block.List)
 	for _, value := range block.List {
 		switch value.(type) {
 		case *ast.ExprStmt:
@@ -132,28 +129,32 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 			case *ast.BinaryExpr:
 				binaryExpr := expr.Cond.(*ast.BinaryExpr)
 				trueBlock := f.doBlockStmt(expr.Body)
+				doBinary := f.doBinary("return", binaryExpr)
 				if expr.Else == nil {
-					newBlock.NewBr(trueBlock)
+					newBlock.NewCondBr(doBinary, trueBlock, nil)
 				} else {
 					falseBlock := f.doBlockStmt(expr.Else.(*ast.BlockStmt))
-					newBlock.NewCondBr(f.doBinary("return", binaryExpr), trueBlock, falseBlock)
+					newBlock.NewCondBr(doBinary, trueBlock, falseBlock)
 				}
 			}
 		case *ast.ReturnStmt:
 			returnStmt := value.(*ast.ReturnStmt)
 			//ast.Print(f.fset, returnStmt)
-			block := f.GetCurrentBlock()
 			//return 1 value
 			for _, value := range returnStmt.Results {
 				switch value.(type) {
 				case *ast.BasicLit:
-					f.doBasicLit("return", value.(*ast.BasicLit))
+					basicLit := value.(*ast.BasicLit)
+					f.GetCurrent().Sig.RetType = GetTypes(basicLit.Kind)
+					newBlock.NewRet(BasicLitToValue(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
 					binary := f.doBinary("return", value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()
-					block.NewRet(binary)
+					newBlock.NewRet(binary)
 				case *ast.CallExpr:
-					block.NewRet(f.doCallExpr(value.(*ast.CallExpr)))
+					callExpr := f.doCallExpr(value.(*ast.CallExpr))
+					f.GetCurrent().Sig.RetType = callExpr.Type()
+					newBlock.NewRet(callExpr)
 				}
 
 			}
@@ -162,12 +163,12 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 	}
 	if f.GetCurrent() != nil && f.GetCurrent().Sig.RetType == nil {
 		f.GetCurrent().Sig.RetType = types.Void
+		newBlock.NewRet(nil)
 	}
 	return newBlock
 }
 
 func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
-	fmt.Println("call", GetCallFunc(call))
 	//get call param
 	var params []value.Value
 	for _, value := range call.Args {
@@ -176,20 +177,17 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			ident := value.(*ast.Ident)
 			switch ident.Obj.Kind {
 			case ast.Var:
-				ast.Print(f.fset, ident.Obj.Kind)
+				//ast.Print(f.fset, ident.Obj.Kind)
+				fmt.Println("no impl in doCallExpr")
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
-			switch basicLit.Kind {
-			case token.INT:
-				atoi, _ := strconv.Atoi(basicLit.Value)
-				params = append(params, constant.NewInt(types.I32, int64(atoi)))
-			}
+			params = append(params, BasicLitToValue(basicLit))
 		}
 	}
 	switch call.Fun.(type) {
 	case *ast.SelectorExpr:
-		fmt.Println("fasdfasdfasdf")
+		fmt.Println("no impl")
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
 	}
@@ -205,8 +203,7 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 func (f *FuncDecl) doBasicLit(flags string, base *ast.BasicLit) {
 	switch flags {
 	case "return":
-		f.GetCurrent().Sig.RetType = GetTypes(base.Kind)
-		f.GetCurrentBlock().NewRet(BasicLitToValue(base))
+
 	}
 }
 

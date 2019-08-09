@@ -2,12 +2,14 @@ package test
 
 var shangzebe = "asdfasdfasdfasdfsdfasdf"
 
-func main(t int) int {
-	if t > 100 {
-		show("ok")
-	}
-	return 0
+func main() {
+	show(100)
 }
-func show(s string) {
 
+func show(t int) int {
+	if t > 100 {
+		return 0
+	} else {
+		return 1
+	}
 }
