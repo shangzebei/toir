@@ -38,7 +38,7 @@ func (f *FuncDecl) DoGenDecl(decl *ast.GenDecl) {
 					case *ast.BasicLit:
 						value = BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
 					case *ast.BinaryExpr:
-						value = f.doBinary("", spec.Values[index].(*ast.BinaryExpr))
+						value = f.doBinary(spec.Values[index].(*ast.BinaryExpr))
 					case *ast.CompositeLit:
 						exprs := spec.Values[index].(*ast.CompositeLit).Elts
 						fmt.Println("array init no impl", exprs)

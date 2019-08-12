@@ -20,7 +20,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	for _, value := range assignStmt.Rhs {
 		switch value.(type) {
 		case *ast.BinaryExpr:
-			r = append(r, f.doBinary("", value.(*ast.BinaryExpr)))
+			r = append(r, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.Ident: //
 			variable := f.GetVariable(value.(*ast.Ident).Name)
 			if variable == nil {
@@ -32,6 +32,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			r = append(r, BasicLitToConstant(value.(*ast.BasicLit)))
 		case *ast.CallExpr:
 			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
+		case *ast.IndexExpr:
+			r = append(r, f.doIndexExpr(value.(*ast.IndexExpr)))
 		default:
 			fmt.Println("not impl assignStmt.Rhs")
 		}
@@ -47,11 +49,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 				l = append(l, f.GetVariable(value.(*ast.Ident).Name))
 			}
 		case *ast.BinaryExpr:
-			l = append(l, f.doBinary("", value.(*ast.BinaryExpr)))
+			l = append(l, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.BasicLit:
 			l = append(l, BasicLitToConstant(value.(*ast.BasicLit)))
 		case *ast.IndexExpr:
-			l = append(l, f.doIndex(value.(*ast.IndexExpr)))
+			l = append(l, f.doIndexExpr(value.(*ast.IndexExpr)))
 		default:
 			fmt.Println("no impl assignStmt.Lhs")
 		}
@@ -96,7 +98,7 @@ func (f *FuncDecl) doParam(v value.Value, tyt types.Type) value.Value {
 }
 
 //index array
-func (f *FuncDecl) doIndex(index *ast.IndexExpr) value.Value {
+func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	var kv value.Value
 	switch index.Index.(type) {
 	case *ast.BasicLit:
@@ -105,15 +107,18 @@ func (f *FuncDecl) doIndex(index *ast.IndexExpr) value.Value {
 		kv = f.doCallExpr(index.Index.(*ast.CallExpr))
 	case *ast.Ident:
 		kv = f.IdentToValue(index.Index.(*ast.Ident))
+	case *ast.BinaryExpr:
+		kv = f.doBinary(index.Index.(*ast.BinaryExpr))
 	default:
 		fmt.Println("doIndex not impl")
 	}
 	switch index.X.(type) {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
-		return f.GetCurrentBlock().NewGetElementPtr(f.GetVariable(ident.Name), constant.NewInt(types.I64, 1), kv)
+		ptr := f.GetCurrentBlock().NewGetElementPtr(f.GetVariable(ident.Name), constant.NewInt(types.I64, 1), kv)
+		return ptr
 	default:
-		fmt.Println("no impl doIndex")
+		fmt.Println("no impl index.X")
 	}
 	return nil
 }

@@ -8,7 +8,7 @@ import (
 	"go/token"
 )
 
-func (f *FuncDecl) doBinary(flags string, expr *ast.BinaryExpr) value.Value {
+func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	block := f.GetCurrentBlock()
 	//get x
 	var x value.Value
@@ -21,7 +21,13 @@ func (f *FuncDecl) doBinary(flags string, expr *ast.BinaryExpr) value.Value {
 		basicLit := expr.X.(*ast.BasicLit)
 		x = BasicLitToConstant(basicLit)
 	case *ast.BinaryExpr:
-		x = f.doBinary(flags, expr.X.(*ast.BinaryExpr))
+		x = f.doBinary(expr.X.(*ast.BinaryExpr))
+	case *ast.CallExpr:
+		x = f.doCallExpr(expr.X.(*ast.CallExpr))
+	case *ast.IndexExpr:
+		x = f.doIndexExpr(expr.X.(*ast.IndexExpr))
+	default:
+		fmt.Println("not impl doBinary")
 	}
 	//get y
 	switch expr.Y.(type) {
@@ -32,8 +38,19 @@ func (f *FuncDecl) doBinary(flags string, expr *ast.BinaryExpr) value.Value {
 		basicLit := expr.Y.(*ast.BasicLit)
 		y = BasicLitToConstant(basicLit)
 	case *ast.BinaryExpr:
-		y = f.doBinary(flags, expr.Y.(*ast.BinaryExpr))
+		y = f.doBinary(expr.Y.(*ast.BinaryExpr))
+	case *ast.CallExpr:
+		y = f.doCallExpr(expr.Y.(*ast.CallExpr))
+	case *ast.IndexExpr:
+		y = f.doIndexExpr(expr.Y.(*ast.IndexExpr))
+	default:
+		fmt.Println("not impl doBinary")
 	}
+
+	if x.Type() != y.Type() {
+		fmt.Println("warm type mismatch")
+	}
+
 	//get ops
 	switch expr.Op {
 	case token.ADD: // +
@@ -59,7 +76,7 @@ func (f *FuncDecl) doBinary(flags string, expr *ast.BinaryExpr) value.Value {
 	case token.GTR: // >
 		return block.NewICmp(enum.IPredSGT, x, y)
 	case token.LSS: // <
-		return block.NewICmp(enum.IPredSLE, x, y)
+		return block.NewICmp(enum.IPredSLT, x, y)
 	default:
 		fmt.Println("not impl doBinary ops")
 	}

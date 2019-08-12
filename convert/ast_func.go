@@ -111,23 +111,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 				f.doCallExpr(callExpr)
 			}
 		case *ast.IfStmt: //if
-			expr := value.(*ast.IfStmt)
-			switch expr.Cond.(type) {
-			case *ast.BinaryExpr:
-				binaryExpr := expr.Cond.(*ast.BinaryExpr)
-				doBinary := f.doBinary("return", binaryExpr)
-				//if body
-				trueBlock := f.doBlockStmt(expr.Body)
-
-				//else body
-				if expr.Else == nil {
-					newBlock.NewCondBr(doBinary, trueBlock, ir.NewBlock(""))
-				} else {
-					falseBlock := f.doBlockStmt(expr.Else.(*ast.BlockStmt))
-					newBlock.NewCondBr(doBinary, trueBlock, falseBlock)
-
-				}
-			}
+			f.doIfStmt(value.(*ast.IfStmt))
 		case *ast.ReturnStmt:
 			returnStmt := value.(*ast.ReturnStmt)
 			//ast.Print(f.fset, returnStmt)
@@ -139,7 +123,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 					f.GetCurrent().Sig.RetType = GetTypes(basicLit.Kind)
 					newBlock.NewRet(BasicLitToConstant(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
-					binary := f.doBinary("return", value.(*ast.BinaryExpr))
+					binary := f.doBinary(value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()
 					newBlock.NewRet(binary)
 				case *ast.CallExpr:
@@ -200,7 +184,9 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.CallExpr:
 			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.BinaryExpr:
-			params = append(params, f.doBinary("", value.(*ast.BinaryExpr)))
+			params = append(params, f.doBinary(value.(*ast.BinaryExpr)))
+		case *ast.IndexExpr:
+			params = append(params, f.doIndexExpr(value.(*ast.IndexExpr)))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}
