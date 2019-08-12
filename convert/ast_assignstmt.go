@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
@@ -49,6 +50,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			l = append(l, f.doBinary("", value.(*ast.BinaryExpr)))
 		case *ast.BasicLit:
 			l = append(l, BasicLitToConstant(value.(*ast.BasicLit)))
+		case *ast.IndexExpr:
+			l = append(l, f.doIndex(value.(*ast.IndexExpr)))
 		default:
 			fmt.Println("no impl assignStmt.Lhs")
 		}
@@ -80,6 +83,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	return r[0]
 }
 
+//fix param
 func (f *FuncDecl) doParam(v value.Value, tyt types.Type) value.Value {
 	if v.Type() == nil {
 		vName := v.(*ir.Param).Name()
@@ -91,6 +95,25 @@ func (f *FuncDecl) doParam(v value.Value, tyt types.Type) value.Value {
 	}
 }
 
-func (f *FuncDecl) doStore(src value.Value, des value.Value) {
-
+//index array
+func (f *FuncDecl) doIndex(index *ast.IndexExpr) value.Value {
+	var kv value.Value
+	switch index.Index.(type) {
+	case *ast.BasicLit:
+		kv = BasicLitToConstant(index.Index.(*ast.BasicLit))
+	case *ast.CallExpr:
+		kv = f.doCallExpr(index.Index.(*ast.CallExpr))
+	case *ast.Ident:
+		kv = f.IdentToValue(index.Index.(*ast.Ident))
+	default:
+		fmt.Println("doIndex not impl")
+	}
+	switch index.X.(type) {
+	case *ast.Ident:
+		ident := index.X.(*ast.Ident)
+		return f.GetCurrentBlock().NewGetElementPtr(f.GetVariable(ident.Name), constant.NewInt(types.I64, 1), kv)
+	default:
+		fmt.Println("no impl doIndex")
+	}
+	return nil
 }

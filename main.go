@@ -18,7 +18,7 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/var.go")
+	bytes, _ := ioutil.ReadFile("test/slice.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
@@ -30,7 +30,7 @@ func main() {
 	for _, value := range f.Decls {
 		switch value.(type) {
 		case *ast.GenDecl:
-			doFunc.DoGenDecl(true, value.(*ast.GenDecl))
+			doFunc.DoGenDecl(value.(*ast.GenDecl))
 		case *ast.FuncDecl:
 			doFunc.DoFunDecl(f.Name.Name, value.(*ast.FuncDecl))
 		}

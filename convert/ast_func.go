@@ -34,14 +34,11 @@ func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 
 func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 	if len(fields) > 0 {
-		for index, value := range fields {
+		for _, value := range fields {
 			paramName := value.Names[0].String()
 			paramKind := (value.Type.(*ast.Ident)).Name
 			newParam := ir.NewParam(paramName, GetTypeFromName(paramKind))
 			f.GetCurrent().Params = append(f.GetCurrent().Params, newParam)
-			//f.PutVariable(paramName, newParam)
-			logrus.Debug(paramKind)
-			logrus.Debug(index, paramName, paramKind)
 		}
 	}
 	paramTypes := make([]types.Type, len(f.GetCurrent().Params))
@@ -183,7 +180,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 	switch decl.Decl.(type) {
 	case *ast.GenDecl:
-		f.DoGenDecl(false, decl.Decl.(*ast.GenDecl))
+		f.DoGenDecl(decl.Decl.(*ast.GenDecl))
 	}
 }
 
@@ -200,6 +197,10 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
 			params = append(params, BasicLitToConstant(basicLit))
+		case *ast.CallExpr:
+			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
+		case *ast.BinaryExpr:
+			params = append(params, f.doBinary("", value.(*ast.BinaryExpr)))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}
@@ -210,6 +211,9 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		fmt.Println("doCallExpr SelectorExpr no impl")
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
+	default:
+		fmt.Println("doCallExpr call.Fun")
+
 	}
 	return nil
 }
@@ -221,6 +225,19 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
+	//find with param
+	for _, value := range f.GetCurrent().Params {
+		if value.Name() == name {
+			return value
+		}
+	}
+	//find which glob
+	for _, value := range f.m.Globals {
+		if value.Name() == name {
+			return value
+		}
+	}
+	//find with block
 	for _, block := range f.GetCurrent().Blocks {
 		values, ok := f.Variables[block]
 		if !ok {

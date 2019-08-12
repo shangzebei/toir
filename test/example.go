@@ -1,5 +1,7 @@
 package test
 
-func main(b int) {
-	a := b
+var kk = 100
+
+func main(c int) {
+	d := kk
 }

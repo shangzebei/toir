@@ -8,9 +8,9 @@ func add(a int, b int) int {
 
 func show(a int) {
 	b := 1
-	var d int
-	//c := b + d
+	var d int = 3
+	c := b + d
 	d = add(3, 4)
-	//f := tt //error
-	//c := a //error
+	f := tt
+	c := a
 }
