@@ -66,11 +66,13 @@ func BasicLitToConstant(base *ast.BasicLit) constant.Constant {
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)
+	default:
+		fmt.Println("BasicLitToConstant not impl")
 	}
 	return nil
 }
 
-func IdentToValue(id *ast.Ident) value.Value {
+func (f *FuncDecl) IdentToValue(id *ast.Ident) value.Value {
 	if id.Obj.Kind == ast.Var {
 		switch id.Obj.Decl.(type) {
 		case *ast.Field:
@@ -89,6 +91,8 @@ func IdentToValue(id *ast.Ident) value.Value {
 		case *ast.ValueSpec: //TODO warn !
 			valueSpec := id.Obj.Decl.(*ast.ValueSpec)
 			return doValeSpec(valueSpec)
+		case *ast.AssignStmt:
+			return f.doAssignStmt(id.Obj.Decl.(*ast.AssignStmt))
 		default:
 			fmt.Println("id.Obj.Decl.(type)")
 		}

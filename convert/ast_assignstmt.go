@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) {
+func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	//c:=a+b
 	//a+b
 	var r []value.Value
@@ -29,6 +29,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) {
 			}
 		case *ast.BasicLit:
 			r = append(r, BasicLitToConstant(value.(*ast.BasicLit)))
+		case *ast.CallExpr:
+			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
 		default:
 			fmt.Println("not impl assignStmt.Rhs")
 		}
@@ -75,7 +77,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) {
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}
-
+	return r[0]
 }
 
 func (f *FuncDecl) doParam(v value.Value, tyt types.Type) value.Value {

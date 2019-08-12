@@ -16,7 +16,7 @@ type FuncDecl struct {
 	Funs      map[string]*ir.Func
 	FuncHeap  *[]*ir.Func
 	GlobDef   map[string]*ir.Func
-	FuncDecls []*ast.FuncDecl
+	FuncDecls map[*ast.FuncDecl]*ir.Func
 	blockHeap map[*ir.Func][]*ir.Block
 	Variables map[*ir.Block]map[string]value.Value
 }
@@ -28,6 +28,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 		FuncHeap:  new([]*ir.Func),
 		Variables: make(map[*ir.Block]map[string]value.Value),
 		blockHeap: make(map[*ir.Func][]*ir.Block),
+		FuncDecls: make(map[*ast.FuncDecl]*ir.Func),
 	}
 }
 
@@ -36,7 +37,9 @@ func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 		for index, value := range fields {
 			paramName := value.Names[0].String()
 			paramKind := (value.Type.(*ast.Ident)).Name
-			f.GetCurrent().Params = append(f.GetCurrent().Params, ir.NewParam(paramName, GetTypeFromName(paramKind)))
+			newParam := ir.NewParam(paramName, GetTypeFromName(paramKind))
+			f.GetCurrent().Params = append(f.GetCurrent().Params, newParam)
+			//f.PutVariable(paramName, newParam)
 			logrus.Debug(paramKind)
 			logrus.Debug(index, paramName, paramKind)
 		}
@@ -63,15 +66,11 @@ func (f *FuncDecl) CreatTempFunc(name string) *ir.Func {
 }
 
 func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
-	for _, value := range f.FuncDecls {
-		if value == funDecl {
-			fmt.Println("has def func!!! ")
-			return nil
-		}
+	i, ok := f.FuncDecls[funDecl]
+	if ok {
+		return i
 	}
-	f.FuncDecls = append(f.FuncDecls, funDecl)
 	////////////////////////////method begin//////////////////////////////
-
 	//func name
 	funName := funDecl.Name.Name
 	Push(f.FuncHeap, f.CreatTempFunc(funName))
@@ -83,7 +82,9 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	f.doBlockStmt(blockStmt)
 	//body
 	////////////////////////////method end/////////////////////////
-	return f.pop()
+	pop := f.pop()
+	f.FuncDecls[funDecl] = pop
+	return pop
 
 }
 
@@ -149,7 +150,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 					f.GetCurrent().Sig.RetType = callExpr.Type()
 					newBlock.NewRet(callExpr)
 				case *ast.Ident:
-					identToValue := IdentToValue(value.(*ast.Ident))
+					identToValue := f.IdentToValue(value.(*ast.Ident))
 					f.GetCurrent().Sig.RetType = identToValue.Type()
 					newBlock.NewRet(identToValue)
 				default:
@@ -194,7 +195,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.Ident:
 			ident := value.(*ast.Ident)
 			if ident.Obj.Kind == ast.Var {
-				params = append(params, IdentToValue(ident))
+				params = append(params, f.IdentToValue(ident))
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
@@ -217,10 +218,6 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
 	funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
 	return block.NewCall(funDecl, values...)
-}
-
-func fieldToValue(f *ast.Field) value.Value {
-	return IdentToValue(f.Type.(*ast.Ident))
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {

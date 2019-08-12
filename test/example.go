@@ -1,5 +1,5 @@
 package test
 
-func main() {
-	a := 90
+func main(b int) {
+	a := b
 }
