@@ -11,23 +11,23 @@ import (
 )
 
 type FuncDecl struct {
-	m            *ir.Module
-	fset         *token.FileSet
-	Funs         map[string]*ir.Func
-	FuncHeap     *[]*ir.Func
-	GlobDef      map[string]*ir.Func
-	FuncDecls    []*ast.FuncDecl
-	blockPointer map[*ir.Func]int
-	Variables    map[*ir.Block]map[string]value.Value
+	m         *ir.Module
+	fset      *token.FileSet
+	Funs      map[string]*ir.Func
+	FuncHeap  *[]*ir.Func
+	GlobDef   map[string]*ir.Func
+	FuncDecls []*ast.FuncDecl
+	blockHeap map[*ir.Func][]*ir.Block
+	Variables map[*ir.Block]map[string]value.Value
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 	return &FuncDecl{
-		m:            m,
-		fset:         fset,
-		FuncHeap:     new([]*ir.Func),
-		blockPointer: make(map[*ir.Func]int),
-		Variables:    make(map[*ir.Block]map[string]value.Value),
+		m:         m,
+		fset:      fset,
+		FuncHeap:  new([]*ir.Func),
+		Variables: make(map[*ir.Block]map[string]value.Value),
+		blockHeap: make(map[*ir.Func][]*ir.Block),
 	}
 }
 
@@ -118,14 +118,16 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 			case *ast.BinaryExpr:
 				binaryExpr := expr.Cond.(*ast.BinaryExpr)
 				doBinary := f.doBinary("return", binaryExpr)
+				//if body
 				trueBlock := f.doBlockStmt(expr.Body)
+
+				//else body
 				if expr.Else == nil {
-					//i := f.newBlock()
-					//f.popBlock()
 					newBlock.NewCondBr(doBinary, trueBlock, ir.NewBlock(""))
 				} else {
 					falseBlock := f.doBlockStmt(expr.Else.(*ast.BlockStmt))
 					newBlock.NewCondBr(doBinary, trueBlock, falseBlock)
+
 				}
 			}
 		case *ast.ReturnStmt:
@@ -173,6 +175,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 		f.GetCurrent().Sig.RetType = types.Void
 		newBlock.NewRet(nil)
 	}
+
 	return newBlock
 }
 
@@ -221,17 +224,21 @@ func fieldToValue(f *ast.Field) value.Value {
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
-	values, ok := f.Variables[f.GetCurrentBlock()]
-	if !ok {
-		fmt.Println("not find Variable", name)
-		return nil
+	for _, block := range f.GetCurrent().Blocks {
+		values, ok := f.Variables[block]
+		if !ok {
+			fmt.Println("not find Variable", name)
+			continue
+		}
+		i, ok := values[name]
+		if ok {
+			return i
+		}
+		if block == f.GetCurrentBlock() {
+			break
+		}
 	}
-	i, ok := values[name]
-	if !ok {
-		fmt.Println("not find Variable", name)
-		return nil
-	}
-	return i
+	return nil
 }
 
 func (f *FuncDecl) PutVariable(name string, value2 value.Value) {

@@ -9,31 +9,22 @@ import (
 
 func (f *FuncDecl) popBlock() {
 	fmt.Println("pop block ###### ")
-	//f.blockPointer[f.GetCurrent().ID()]=
-	f.blockPointer[f.GetCurrent()] = f.blockPointer[f.GetCurrent()] - 1
+	blocks := f.blockHeap[f.GetCurrent()]
+	f.blockHeap[f.GetCurrent()] = f.blockHeap[f.GetCurrent()][0 : len(blocks)-1]
 
 }
 
 func (f *FuncDecl) newBlock() *ir.Block {
-	fmt.Println("push block ###### ")
+	//ul := uuid.NewV4()
 	newBlock := f.GetCurrent().NewBlock("")
-	f.blockPointer[f.GetCurrent()] = f.blockPointer[f.GetCurrent()] + 1
+	fmt.Println("push block ###### ")
+	f.blockHeap[f.GetCurrent()] = append(f.blockHeap[f.GetCurrent()], newBlock)
 	return newBlock
 }
 
 func (f *FuncDecl) GetCurrentBlock() *ir.Block {
-	blocks := f.GetCurrent().Blocks
-	if len(blocks) == 0 {
-		fmt.Println("this fun is no block!")
-		return nil
-	}
-	i, ok := f.blockPointer[f.GetCurrent()]
-	if ok {
-		return blocks[i-1]
-	} else {
-		return blocks[0]
-	}
-
+	blocks := f.blockHeap[f.GetCurrent()]
+	return f.blockHeap[f.GetCurrent()][len(blocks)-1]
 }
 
 /////////////////////////////////////////////////////
