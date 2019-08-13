@@ -7,26 +7,32 @@ import (
 func (f *FuncDecl) doForStmt(st *ast.ForStmt) {
 
 	// INIT
-	f.doAssignStmt(st.Init.(*ast.AssignStmt))
+	dd := f.doAssignStmt(st.Init.(*ast.AssignStmt))
 
 	// ADD
-	postBlock := f.newBlock()
+	addBlock := f.newBlock()
 	switch st.Post.(type) {
 	case *ast.IncDecStmt:
-		f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
+		doIncDecStmt := f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
+		addBlock.NewStore(doIncDecStmt, dd)
 	}
 	f.popBlock()
 
-	//
-	body := f.doBlockStmt(postBlock, st.Body)
+	//body
+	body := f.doBlockStmt(addBlock, st.Body)
 
 	// COND
-	newBlock := f.newBlock()
+	condBlock := f.newBlock() //---begin
 	doBinary := f.doBinary(st.Cond.(*ast.BinaryExpr))
-	f.GetCurrentBlock().NewCondBr(doBinary, body, postBlock)
-	f.popBlock()
-	//
 
-	f.GetCurrentBlock().NewBr(newBlock)
+	empty := f.newBlock()
+	f.popBlock()
+
+	f.GetCurrentBlock().NewCondBr(doBinary, body, empty)
+	f.popBlock() //---end
+	//
+	addBlock.NewBr(condBlock)
+
+	f.GetCurrentBlock().NewBr(condBlock)
 
 }

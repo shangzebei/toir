@@ -114,6 +114,8 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 			case *ast.CallExpr:
 				callExpr := exprStmt.X.(*ast.CallExpr)
 				f.doCallExpr(callExpr)
+			default:
+				fmt.Println("aaaaaaaaaaa")
 			}
 		case *ast.IfStmt: //if
 			f.doIfStmt(value.(*ast.IfStmt))
@@ -147,8 +149,7 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 		case *ast.ForStmt:
 			f.doForStmt(value.(*ast.ForStmt))
 		case *ast.IncDecStmt:
-			//f.GetCurrentBlock().NewSelect()
-			fmt.Println("IncDecStmt not impl")
+			f.doIncDecStmt(value.(*ast.IncDecStmt))
 		case *ast.AssignStmt:
 			assignStmt := value.(*ast.AssignStmt)
 			f.doAssignStmt(assignStmt)
@@ -176,6 +177,9 @@ func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 	default:
 		fmt.Println("not impl")
 	}
+
+	x = f.checkType(x)
+
 	switch decl.Tok {
 	case token.INC: //++
 		return f.GetCurrentBlock().NewAdd(x, constant.NewInt(types.I32, 1))
@@ -200,7 +204,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.Ident:
 			ident := value.(*ast.Ident)
 			if ident.Obj.Kind == ast.Var {
-				params = append(params, f.IdentToValue(ident))
+				params = append(params, f.GetCurrentBlock().NewLoad(f.GetVariable(ident.Name)))
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)

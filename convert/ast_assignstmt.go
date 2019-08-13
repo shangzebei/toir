@@ -16,7 +16,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	//a+b
 	var r []value.Value
 	var l []value.Value
-	//right
+	//0
 	for _, value := range assignStmt.Rhs {
 		switch value.(type) {
 		case *ast.BinaryExpr:
@@ -38,7 +38,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			fmt.Println("not impl assignStmt.Rhs")
 		}
 	}
-	//c
+	//V
 	for _, value := range assignStmt.Lhs {
 		switch value.(type) {
 		case *ast.Ident:
@@ -60,11 +60,13 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	}
 
 	//check
+	r[0] = f.doCorrect(r[0], l[0].Type())
+	l[0] = f.doCorrect(l[0], r[0].Type())
 
 	//ops
 	switch assignStmt.Tok {
 	case token.DEFINE: // :=
-		f.GetCurrentBlock().NewStore(r[0], f.doParam(l[0], r[0].Type()))
+		f.GetCurrentBlock().NewStore(r[0], l[0])
 	case token.ASSIGN: // =
 		//TODO
 		if len(r) == 1 {
@@ -73,7 +75,6 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			if strings.HasSuffix(r[0].Type().String(), "*") {
 				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[0]), l[0])
 			} else {
-				//
 				f.GetCurrentBlock().NewStore(r[0], l[0])
 			}
 		}
@@ -82,11 +83,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}
-	return r[0]
+	return l[0]
 }
 
 //fix param
-func (f *FuncDecl) doParam(v value.Value, tyt types.Type) value.Value {
+func (f *FuncDecl) doCorrect(v value.Value, tyt types.Type) value.Value {
 	if v.Type() == nil {
 		vName := v.(*ir.Param).Name()
 		nv := f.GetCurrentBlock().NewAlloca(tyt)

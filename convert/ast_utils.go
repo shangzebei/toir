@@ -91,8 +91,13 @@ func (f *FuncDecl) IdentToValue(id *ast.Ident) value.Value {
 		case *ast.ValueSpec: //TODO warn !
 			valueSpec := id.Obj.Decl.(*ast.ValueSpec)
 			return doValeSpec(valueSpec)
-		case *ast.AssignStmt:
-			return f.doAssignStmt(id.Obj.Decl.(*ast.AssignStmt))
+		case *ast.AssignStmt: //TODO create new variable
+			variable := f.GetVariable(id.Name)
+			if variable == nil {
+				return f.doAssignStmt(id.Obj.Decl.(*ast.AssignStmt))
+			} else {
+				return variable
+			}
 		default:
 			fmt.Println("id.Obj.Decl.(type)")
 		}
@@ -122,4 +127,12 @@ func doValeSpec(spec *ast.ValueSpec) value.Value {
 	}
 	fmt.Println("doValeSpec return null")
 	return nil
+}
+
+func (f *FuncDecl) checkType(v value.Value) value.Value {
+	if strings.HasSuffix(v.String(), "*") {
+		return f.GetCurrentBlock().NewLoad(v)
+	} else {
+		return f.GetCurrentBlock().NewLoad(v)
+	}
 }
