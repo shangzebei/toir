@@ -1,18 +1,25 @@
-define void @main(i32 %c) {
+define void @show(i32 %a) {
 ; <label>:0
-	%1 = alloca [2 x i32]
-	%2 = getelementptr [2 x i32], [2 x i32]* %1, i64 1, i32 0
-	store i32 23, i32* %2
-	%3 = getelementptr [2 x i32], [2 x i32]* %1, i64 1, i32 1
-	store i32 32, i32* %3
-	%4 = getelementptr [2 x i32], [2 x i32]* %1, i64 1, i32 0
-	%5 = getelementptr [2 x i32], [2 x i32]* %1, i64 1, i32 1
-	%6 = icmp slt i32* %4, %5
-	br i1 %6, label %7, label %8
+	ret void
+}
 
-; <label>:7
+define void @main() {
+; <label>:0
+	%1 = alloca i32
+	store i32 0, i32* %1
+	br label %5
+
+; <label>:2
+	%3 = add i32* %1, 1
 	ret void
 
-; <label>:8
-	ret void
+; <label>:4
+	store i32 0, i32* %1
+	call void @show(i32 0)
+	br label %2
+
+; <label>:5
+	store i32 0, i32* %1
+	%6 = icmp slt i32 0, 100
+	br i1 %6, label %4, label %2
 }

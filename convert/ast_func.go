@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
@@ -76,9 +77,13 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	f.doFunType(funName, funcType)
 	//func body
 	blockStmt := funDecl.Body
-	f.doBlockStmt(blockStmt)
+	f.doBlockStmt(nil, blockStmt)
 	//body
 	////////////////////////////method end/////////////////////////
+
+	if f.GetCurrent() != nil && f.GetCurrent().Sig.RetType == nil {
+		f.GetCurrent().Sig.RetType = types.Void
+	}
 	pop := f.pop()
 	f.FuncDecls[funDecl] = pop
 	return pop
@@ -97,7 +102,7 @@ func (f *FuncDecl) pop() *ir.Func {
 	return Pop(f.FuncHeap)
 }
 
-func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
+func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Block {
 	//ast.Print(f.fset, block)
 	newBlock := f.newBlock()
 	defer f.popBlock()
@@ -140,7 +145,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 
 			}
 		case *ast.ForStmt:
-			fmt.Println("ForStmt not impl")
+			f.doForStmt(value.(*ast.ForStmt))
 		case *ast.IncDecStmt:
 			//f.GetCurrentBlock().NewSelect()
 			fmt.Println("IncDecStmt not impl")
@@ -153,12 +158,31 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 			fmt.Println("doBlockStmt not impl")
 		}
 	}
-	if f.GetCurrent() != nil && f.GetCurrent().Sig.RetType == nil {
-		f.GetCurrent().Sig.RetType = types.Void
+	if retblock != nil {
+		f.GetCurrentBlock().NewBr(retblock)
+	}
+	if f.GetCurrentBlock().Term == nil {
 		newBlock.NewRet(nil)
 	}
-
 	return newBlock
+}
+
+func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
+	var x value.Value
+	switch decl.X.(type) {
+	case *ast.Ident:
+		ident := decl.X.(*ast.Ident)
+		x = f.GetVariable(GetIdentName(ident))
+	default:
+		fmt.Println("not impl")
+	}
+	switch decl.Tok {
+	case token.INC: //++
+		return f.GetCurrentBlock().NewAdd(x, constant.NewInt(types.I32, 1))
+	case token.DEC: //--
+		return f.GetCurrentBlock().NewSub(x, constant.NewInt(types.I32, 1))
+	}
+	return nil
 }
 
 func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
@@ -206,8 +230,14 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 
 func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
-	funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
-	return block.NewCall(funDecl, values...)
+	if id.Obj != nil {
+		funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
+		return block.NewCall(funDecl, values...)
+	} else {
+		logrus.Panicln("not find fun", id.Name)
+		return nil
+	}
+
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
@@ -224,7 +254,7 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 		}
 	}
 	//find with block
-	for _, block := range f.GetCurrent().Blocks {
+	for _, block := range f.blockHeap[f.GetCurrent()] {
 		values, ok := f.Variables[block]
 		if !ok {
 			fmt.Println("not find Variable", name)
@@ -233,9 +263,6 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 		i, ok := values[name]
 		if ok {
 			return i
-		}
-		if block == f.GetCurrentBlock() {
-			break
 		}
 	}
 	return nil
@@ -247,4 +274,14 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 		f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
 	}
 	f.Variables[f.GetCurrentBlock()][name] = value2
+}
+
+func (f *FuncDecl) GetFunc(name string) *ir.Func {
+	for _, value := range f.FuncDecls {
+		if value.Name() == name {
+			return value
+		}
+	}
+	fmt.Println("not find func", name)
+	return nil
 }
