@@ -8,7 +8,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
-	"learn/convert"
+	"learn/compile"
 )
 
 func init() {
@@ -25,7 +25,7 @@ func main() {
 		return
 	}
 	m := ir.NewModule()
-	doFunc := convert.DoFunc(m, fset)
+	doFunc := compile.DoFunc(m, fset)
 	//ast.Print(fset, f)
 	for _, value := range f.Decls {
 		switch value.(type) {

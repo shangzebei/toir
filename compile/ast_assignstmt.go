@@ -1,4 +1,4 @@
-package convert
+package compile
 
 import (
 	"fmt"
@@ -61,7 +61,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			selectorExpr := value.(*ast.SelectorExpr)
 			varName := GetIdentName(selectorExpr.X.(*ast.Ident))
 			variable := f.GetVariable(varName)
-			structDefs := f.StructDefs[doSymbolia(variable.Type().String())]
+			structDefs := f.StructDefs[doSymbol(variable.Type().String())]
 			def := structDefs[GetIdentName(selectorExpr.Sel)]
 			load := f.GetCurrentBlock().NewLoad(variable)
 			return f.GetCurrentBlock().NewGetElementPtr(load, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(def.Order)))

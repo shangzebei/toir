@@ -1,4 +1,4 @@
-package convert
+package compile
 
 import (
 	"fmt"
@@ -134,7 +134,7 @@ func (f *FuncDecl) checkType(v value.Value) value.Value {
 	return f.GetCurrentBlock().NewLoad(v)
 }
 
-func doSymbolia(name string) string {
+func doSymbol(name string) string {
 	compile, _ := regexp.Compile("[*%]")
 	return compile.ReplaceAllString(name, "")
 }
