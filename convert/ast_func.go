@@ -11,25 +11,34 @@ import (
 	"go/token"
 )
 
+type StructDef struct {
+	Name  string
+	Order int
+	Typ   types.Type
+}
+
 type FuncDecl struct {
-	m         *ir.Module
-	fset      *token.FileSet
-	Funs      map[string]*ir.Func
-	FuncHeap  *[]*ir.Func
-	GlobDef   map[string]*ir.Func
-	FuncDecls map[*ast.FuncDecl]*ir.Func
-	blockHeap map[*ir.Func][]*ir.Block
-	Variables map[*ir.Block]map[string]value.Value
+	m          *ir.Module
+	fset       *token.FileSet
+	Funs       map[string]*ir.Func
+	FuncHeap   *[]*ir.Func
+	GlobDef    map[string]types.Type //for type
+	FuncDecls  map[*ast.FuncDecl]*ir.Func
+	blockHeap  map[*ir.Func][]*ir.Block
+	Variables  map[*ir.Block]map[string]value.Value
+	StructDefs map[string]map[string]StructDef
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 	return &FuncDecl{
-		m:         m,
-		fset:      fset,
-		FuncHeap:  new([]*ir.Func),
-		Variables: make(map[*ir.Block]map[string]value.Value),
-		blockHeap: make(map[*ir.Func][]*ir.Block),
-		FuncDecls: make(map[*ast.FuncDecl]*ir.Func),
+		m:          m,
+		fset:       fset,
+		FuncHeap:   new([]*ir.Func),
+		Variables:  make(map[*ir.Block]map[string]value.Value),
+		blockHeap:  make(map[*ir.Func][]*ir.Block),
+		FuncDecls:  make(map[*ast.FuncDecl]*ir.Func),
+		GlobDef:    make(map[string]types.Type),
+		StructDefs: make(map[string]map[string]StructDef),
 	}
 }
 
@@ -155,6 +164,8 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 			f.doAssignStmt(assignStmt)
 		case *ast.DeclStmt:
 			f.doDeclStmt(value.(*ast.DeclStmt))
+		case *ast.RangeStmt:
+			f.doRangeStmt(value.(*ast.RangeStmt))
 		default:
 			fmt.Println("doBlockStmt not impl")
 		}
@@ -175,7 +186,7 @@ func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 		ident := decl.X.(*ast.Ident)
 		x = f.GetVariable(GetIdentName(ident))
 	default:
-		fmt.Println("not impl")
+		fmt.Println("doIncDecStmt not impl")
 	}
 
 	x = f.checkType(x)
@@ -237,7 +248,7 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	if id.Obj != nil {
 		funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
 		return block.NewCall(funDecl, values...)
-	} else {
+	} else { //Custom func
 		logrus.Panicln("not find fun", id.Name)
 		return nil
 	}
@@ -257,6 +268,13 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 			return value
 		}
 	}
+	//find which types
+	//for _, value := range f.m.TypeDefs {
+	//	if value.Name()==name {
+	//		return value
+	//	}
+	//}
+
 	//find with block
 	for _, block := range f.blockHeap[f.GetCurrent()] {
 		values, ok := f.Variables[block]
@@ -287,5 +305,19 @@ func (f *FuncDecl) GetFunc(name string) *ir.Func {
 		}
 	}
 	fmt.Println("not find func", name)
+	return nil
+}
+
+//only for
+func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
+	fmt.Println("doCompositeLit")
+	name := GetIdentName(lit.Type.(*ast.Ident))
+	if lit.Elts == nil {
+		i, ok := f.GlobDef[name]
+		if !ok {
+			f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
+		}
+		return f.GetCurrentBlock().NewAlloca(i)
+	}
 	return nil
 }

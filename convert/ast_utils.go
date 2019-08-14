@@ -8,6 +8,7 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
 	"go/token"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -130,9 +131,10 @@ func doValeSpec(spec *ast.ValueSpec) value.Value {
 }
 
 func (f *FuncDecl) checkType(v value.Value) value.Value {
-	if strings.HasSuffix(v.String(), "*") {
-		return f.GetCurrentBlock().NewLoad(v)
-	} else {
-		return f.GetCurrentBlock().NewLoad(v)
-	}
+	return f.GetCurrentBlock().NewLoad(v)
+}
+
+func doSymbolia(name string) string {
+	compile, _ := regexp.Compile("[*%]")
+	return compile.ReplaceAllString(name, "")
 }

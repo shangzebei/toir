@@ -6,7 +6,6 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
 	"go/token"
-	"strings"
 )
 
 func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
@@ -48,12 +47,12 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		fmt.Println("not impl doBinary")
 	}
 
-	if x.Type() != y.Type() { //TODO mismatch
-		fmt.Println("warm type mismatch")
-		if strings.HasSuffix(x.Type().String(), "*") {
-			x = f.GetCurrentBlock().NewLoad(x)
-		}
-	}
+	//if x.Type() != y.Type() { //TODO mismatch
+	//	fmt.Println("warm type mismatch")
+	//	if strings.HasSuffix(x.Type().String(), "*") {
+	//		x = f.GetCurrentBlock().NewLoad(x)
+	//	}
+	//}
 
 	//get ops
 	switch expr.Op {
@@ -83,6 +82,10 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		return block.NewICmp(enum.IPredSLT, x, y)
 	case token.EQL: //==
 		return block.NewICmp(enum.IPredEQ, x, y)
+	case token.LEQ: //<=
+		return block.NewICmp(enum.IPredSLE, x, y)
+	case token.GEQ: //>=
+		return block.NewICmp(enum.IPredSGE, x, y)
 	default:
 		fmt.Println("not impl doBinary ops")
 	}

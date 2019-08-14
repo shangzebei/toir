@@ -34,6 +34,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.IndexExpr:
 			r = append(r, f.doIndexExpr(value.(*ast.IndexExpr)))
+		case *ast.CompositeLit:
+			r = append(r, f.doCompositeLit(value.(*ast.CompositeLit)))
 		default:
 			fmt.Println("not impl assignStmt.Rhs")
 		}
@@ -54,6 +56,16 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			l = append(l, BasicLitToConstant(value.(*ast.BasicLit)))
 		case *ast.IndexExpr:
 			l = append(l, f.doIndexExpr(value.(*ast.IndexExpr)))
+		case *ast.CompositeLit:
+			l = append(l, f.doCompositeLit(value.(*ast.CompositeLit)))
+		case *ast.SelectorExpr: //TODO struts
+			selectorExpr := value.(*ast.SelectorExpr)
+			varName := GetIdentName(selectorExpr.X.(*ast.Ident))
+			variable := f.GetVariable(varName)
+			structDefs := f.StructDefs[doSymbolia(variable.Type().String())]
+			def := structDefs[GetIdentName(selectorExpr.Sel)]
+			load := f.GetCurrentBlock().NewLoad(variable)
+			return f.GetCurrentBlock().NewGetElementPtr(load, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(def.Order)))
 		default:
 			fmt.Println("no impl assignStmt.Lhs")
 		}
@@ -78,8 +90,6 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 				f.GetCurrentBlock().NewStore(r[0], l[0])
 			}
 		}
-	case token.EQL: // ==
-
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}
@@ -90,6 +100,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 func (f *FuncDecl) doCorrect(v value.Value, tyt types.Type) value.Value {
 	if v.Type() == nil {
 		vName := v.(*ir.Param).Name()
+		fmt.Println(vName, tyt.String())
+		//FIXME ERROR TYPE
 		nv := f.GetCurrentBlock().NewAlloca(tyt)
 		f.PutVariable(vName, nv)
 		return nv
@@ -113,10 +125,13 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	default:
 		fmt.Println("doIndex not impl")
 	}
+	if _, ok := kv.Type().(*types.PointerType); ok {
+		kv = f.GetCurrentBlock().NewLoad(kv)
+	}
 	switch index.X.(type) {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
-		ptr := f.GetCurrentBlock().NewGetElementPtr(f.GetVariable(ident.Name), constant.NewInt(types.I64, 1), kv)
+		ptr := f.GetCurrentBlock().NewGetElementPtr(f.GetVariable(ident.Name), constant.NewInt(types.I32, 0), kv)
 		return ptr
 	default:
 		fmt.Println("no impl index.X")

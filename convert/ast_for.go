@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"fmt"
 	"go/ast"
 )
 
@@ -15,6 +16,8 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) {
 	case *ast.IncDecStmt:
 		doIncDecStmt := f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
 		addBlock.NewStore(doIncDecStmt, dd)
+	default:
+		fmt.Println("doForStmt not impl")
 	}
 	f.popBlock()
 
