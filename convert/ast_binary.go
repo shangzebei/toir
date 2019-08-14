@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"github.com/llir/llvm/ir/enum"
+	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
 	"go/token"
@@ -29,6 +30,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	default:
 		fmt.Println("not impl doBinary")
 	}
+
 	//get y
 	switch expr.Y.(type) {
 	case *ast.Ident:
@@ -47,12 +49,14 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		fmt.Println("not impl doBinary")
 	}
 
-	//if x.Type() != y.Type() { //TODO mismatch
-	//	fmt.Println("warm type mismatch")
-	//	if strings.HasSuffix(x.Type().String(), "*") {
-	//		x = f.GetCurrentBlock().NewLoad(x)
-	//	}
-	//}
+	// change x type
+	if _, ok := x.Type().(*types.PointerType); ok {
+		x = f.GetCurrentBlock().NewLoad(x)
+	}
+	// change y type
+	if _, ok := y.Type().(*types.PointerType); ok {
+		y = f.GetCurrentBlock().NewLoad(y)
+	}
 
 	//get ops
 	switch expr.Op {
@@ -80,11 +84,11 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		return block.NewICmp(enum.IPredSGT, x, y)
 	case token.LSS: // <
 		return block.NewICmp(enum.IPredSLT, x, y)
-	case token.EQL: //==
+	case token.EQL: // ==
 		return block.NewICmp(enum.IPredEQ, x, y)
-	case token.LEQ: //<=
+	case token.LEQ: // <=
 		return block.NewICmp(enum.IPredSLE, x, y)
-	case token.GEQ: //>=
+	case token.GEQ: // >=
 		return block.NewICmp(enum.IPredSGE, x, y)
 	default:
 		fmt.Println("not impl doBinary ops")

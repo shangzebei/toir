@@ -26,7 +26,7 @@ func main() {
 	}
 	m := ir.NewModule()
 	doFunc := convert.DoFunc(m, fset)
-	ast.Print(fset, f)
+	//ast.Print(fset, f)
 	for _, value := range f.Decls {
 		switch value.(type) {
 		case *ast.GenDecl:

@@ -8,7 +8,6 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
 	"go/token"
-	"strings"
 )
 
 func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
@@ -84,11 +83,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		if len(r) == 1 {
 			//a=b+c
 			//a=b
-			if strings.HasSuffix(r[0].Type().String(), "*") {
-				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[0]), l[0])
-			} else {
-				f.GetCurrentBlock().NewStore(r[0], l[0])
-			}
+			f.GetCurrentBlock().NewStore(r[0], l[0])
 		}
 	default:
 		fmt.Println("doAssignStmt no impl")
@@ -125,9 +120,11 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	default:
 		fmt.Println("doIndex not impl")
 	}
+
 	if _, ok := kv.Type().(*types.PointerType); ok {
 		kv = f.GetCurrentBlock().NewLoad(kv)
 	}
+
 	switch index.X.(type) {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)

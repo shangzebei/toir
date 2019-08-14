@@ -1,7 +1,12 @@
 package test
 
 func main() {
-	a := 1
-	b := 9
-	c := a + b
+	var d [4]int
+	d[0] = 90
+	d[1] = 89
+	//show(d[1])
+}
+
+func show(c int) {
+
 }
