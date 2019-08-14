@@ -27,6 +27,7 @@ type FuncDecl struct {
 	blockHeap  map[*ir.Func][]*ir.Block
 	Variables  map[*ir.Block]map[string]value.Value
 	StructDefs map[string]map[string]StructDef
+	Constants  []constant.Constant
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
@@ -137,7 +138,7 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 				case *ast.BasicLit:
 					basicLit := value.(*ast.BasicLit)
 					f.GetCurrent().Sig.RetType = GetTypes(basicLit.Kind)
-					newBlock.NewRet(BasicLitToConstant(value.(*ast.BasicLit)))
+					newBlock.NewRet(f.BasicLitToConstant(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
 					binary := f.doBinary(value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()

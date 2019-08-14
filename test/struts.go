@@ -11,4 +11,9 @@ func main() {
 	ad.Name = "wang"
 	ad.Sex = "man"
 	ad.Age = 12
+	//show(ad.Age)
+}
+
+func show(a int) {
+
 }

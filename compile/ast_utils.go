@@ -57,13 +57,16 @@ func Toi8Ptr(block *ir.Block, src value.Value) *ir.InstGetElementPtr {
 	return block.NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
 }
 
-func BasicLitToConstant(base *ast.BasicLit) constant.Constant {
+func (f *FuncDecl) BasicLitToConstant(base *ast.BasicLit) value.Value {
 	switch base.Kind {
 	case token.INT:
 		atoi, _ := strconv.Atoi(base.Value)
 		return constant.NewInt(types.I32, int64(atoi))
 	case token.STRING:
-		return constant.NewCharArrayFromString(base.Value)
+		itoa := strconv.Itoa(len(f.Constants))
+		globalDef := f.m.NewGlobalDef("str."+itoa, constant.NewCharArrayFromString(base.Value))
+		f.Constants = append(f.Constants, globalDef)
+		return f.GetCurrentBlock().NewGetElementPtr(globalDef, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, 0))
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)
@@ -91,7 +94,7 @@ func (f *FuncDecl) IdentToValue(id *ast.Ident) value.Value {
 			}
 		case *ast.ValueSpec: //TODO warn !
 			valueSpec := id.Obj.Decl.(*ast.ValueSpec)
-			return doValeSpec(valueSpec)
+			return f.doValeSpec(valueSpec)
 		case *ast.AssignStmt: //TODO create new variable
 			variable := f.GetVariable(id.Name)
 			if variable == nil {
@@ -107,14 +110,14 @@ func (f *FuncDecl) IdentToValue(id *ast.Ident) value.Value {
 	return nil
 }
 
-func doValeSpec(spec *ast.ValueSpec) value.Value {
+func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
 	name := GetIdentName(spec.Names[0])
 	var kind types.Type
 	for _, value := range spec.Values {
 		switch value.(type) {
 		case ast.Expr:
 			expr := value.(ast.Expr)
-			return BasicLitToConstant(expr.(*ast.BasicLit))
+			return f.BasicLitToConstant(expr.(*ast.BasicLit))
 		default:
 			fmt.Println("no impl doValeSpec")
 		}

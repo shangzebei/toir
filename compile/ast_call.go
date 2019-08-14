@@ -20,7 +20,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
-			params = append(params, BasicLitToConstant(basicLit))
+			params = append(params, f.BasicLitToConstant(basicLit))
 		case *ast.CallExpr:
 			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.BinaryExpr:

@@ -37,7 +37,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 			kind = GetTypeFromName(spec.Type.(*ast.Ident).Name)
 		case *ast.ArrayType:
 			arrayType := spec.Type.(*ast.ArrayType)
-			toConstant := BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
+			toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
 			len, _ := strconv.Atoi(toConstant.Ident())
 			kind = types.NewArray(uint64(len), toConstant.Type())
 		default:
@@ -51,7 +51,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 		if len(spec.Values) > index {
 			switch spec.Values[index].(type) {
 			case *ast.BasicLit:
-				value = BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
+				value = f.BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
 			case *ast.BinaryExpr:
 				value = f.doBinary(spec.Values[index].(*ast.BinaryExpr))
 			case *ast.CompositeLit:
