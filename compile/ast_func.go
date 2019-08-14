@@ -27,7 +27,7 @@ type FuncDecl struct {
 	blockHeap  map[*ir.Func][]*ir.Block
 	Variables  map[*ir.Block]map[string]value.Value
 	StructDefs map[string]map[string]StructDef
-	Constants  []constant.Constant
+	Constants  []constant.Constant //for constant
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
@@ -195,6 +195,8 @@ func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 		return f.GetCurrentBlock().NewAdd(x, constant.NewInt(types.I32, 1))
 	case token.DEC: //--
 		return f.GetCurrentBlock().NewSub(x, constant.NewInt(types.I32, 1))
+	default:
+		fmt.Println("decl.Tok not impl")
 	}
 	return nil
 }
@@ -213,18 +215,13 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 			return value
 		}
 	}
+
 	//find which glob
 	for _, value := range f.m.Globals {
 		if value.Name() == name {
 			return value
 		}
 	}
-	//find which types
-	//for _, value := range f.m.TypeDefs {
-	//	if value.Name()==name {
-	//		return value
-	//	}
-	//}
 
 	//find with block
 	for _, block := range f.blockHeap[f.GetCurrent()] {

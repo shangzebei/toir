@@ -27,6 +27,8 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			params = append(params, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.IndexExpr:
 			params = append(params, f.doIndexExpr(value.(*ast.IndexExpr)))
+		case *ast.SelectorExpr:
+			params = append(params, f.doSelectorExpr(value.(*ast.SelectorExpr)))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}

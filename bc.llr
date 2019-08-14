@@ -3,6 +3,11 @@
 @str.0 = global [6 x i8] c"\22wang\22"
 @str.1 = global [5 x i8] c"\22man\22"
 
+define void @show(i32 %a) {
+; <label>:0
+	ret void
+}
+
 define void @main() {
 ; <label>:0
 	%1 = alloca %Person
@@ -19,10 +24,9 @@ define void @main() {
 	%9 = load %Person*, %Person** %2
 	%10 = getelementptr %Person, %Person* %9, i32 0, i32 2
 	store i32 12, i32* %10
-	ret void
-}
-
-define void @show(i32 %a) {
-; <label>:0
+	%11 = load %Person*, %Person** %2
+	%12 = getelementptr %Person, %Person* %11, i32 0, i32 2
+	%13 = load i32, i32* %12
+	call void @show(i32 %13)
 	ret void
 }
