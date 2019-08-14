@@ -1,3 +1,8 @@
+define void @show(i32 %c) {
+; <label>:0
+	ret void
+}
+
 define void @main() {
 ; <label>:0
 	%1 = alloca [4 x i32]
@@ -5,10 +10,8 @@ define void @main() {
 	store i32 90, i32* %2
 	%3 = getelementptr [4 x i32], [4 x i32]* %1, i32 0, i32 1
 	store i32 89, i32* %3
-	ret void
-}
-
-define void @show(i32 %c) {
-; <label>:0
+	%4 = getelementptr [4 x i32], [4 x i32]* %1, i32 0, i32 1
+	%5 = load i32, i32* %4
+	call void @show(i32 %5)
 	ret void
 }

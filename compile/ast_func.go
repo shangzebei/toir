@@ -188,9 +188,7 @@ func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 	default:
 		fmt.Println("doIncDecStmt not impl")
 	}
-
 	x = f.checkType(x)
-
 	switch decl.Tok {
 	case token.INC: //++
 		return f.GetCurrentBlock().NewAdd(x, constant.NewInt(types.I32, 1))
@@ -205,54 +203,6 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 	case *ast.GenDecl:
 		f.DoGenDecl(decl.Decl.(*ast.GenDecl))
 	}
-}
-
-func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
-	//get call param
-	var params []value.Value
-	for _, value := range call.Args {
-		switch value.(type) {
-		case *ast.Ident:
-			ident := value.(*ast.Ident)
-			if ident.Obj.Kind == ast.Var {
-				params = append(params, f.GetCurrentBlock().NewLoad(f.GetVariable(ident.Name)))
-			}
-		case *ast.BasicLit: //param
-			basicLit := value.(*ast.BasicLit)
-			params = append(params, BasicLitToConstant(basicLit))
-		case *ast.CallExpr:
-			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
-		case *ast.BinaryExpr:
-			params = append(params, f.doBinary(value.(*ast.BinaryExpr)))
-		case *ast.IndexExpr:
-			params = append(params, f.doIndexExpr(value.(*ast.IndexExpr)))
-		default:
-			fmt.Println("doCallExpr args not impl")
-		}
-	}
-
-	switch call.Fun.(type) {
-	case *ast.SelectorExpr:
-		fmt.Println("doCallExpr SelectorExpr no impl")
-	case *ast.Ident:
-		return f.doCallFunc(params, call.Fun.(*ast.Ident))
-	default:
-		fmt.Println("doCallExpr call.Fun")
-
-	}
-	return nil
-}
-
-func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
-	block := f.GetCurrentBlock()
-	if id.Obj != nil {
-		funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
-		return block.NewCall(funDecl, values...)
-	} else { //Custom func
-		logrus.Panicln("not find fun", id.Name)
-		return nil
-	}
-
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {

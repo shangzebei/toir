@@ -82,6 +82,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 	}
 }
 
+//for struts info reg
 func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 	var strums []types.Type
 	name := spec.Name.Name

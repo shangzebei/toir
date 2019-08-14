@@ -138,3 +138,23 @@ func doSymbol(name string) string {
 	compile, _ := regexp.Compile("[*%]")
 	return compile.ReplaceAllString(name, "")
 }
+
+func (f *FuncDecl) convertTypeTo(from value.Value, to types.Type) value.Value {
+	if from.Type() != to {
+		if _, ok := to.(*types.IntType); ok {
+			if _, ok := from.Type().(*types.PointerType); ok {
+				return f.GetCurrentBlock().NewLoad(from)
+			} else {
+				fmt.Println("convertTypeTo unknown type")
+			}
+		}
+		if _, ok := to.(*types.PointerType); ok {
+			if _, ok := from.Type().(*types.IntType); ok {
+				return f.GetCurrentBlock().NewGetElementPtr(from, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
+			} else {
+				fmt.Println("convertTypeTo unknown type")
+			}
+		}
+	}
+	return nil
+}
