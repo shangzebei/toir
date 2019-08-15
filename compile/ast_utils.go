@@ -13,14 +13,8 @@ import (
 	"strings"
 )
 
-func GetCallFunc(call *ast.CallExpr) string {
-	switch call.Fun.(type) {
-	case *ast.SelectorExpr:
-		return GetIdentName(call.Fun.(*ast.SelectorExpr).X.(*ast.Ident)) + "." + GetIdentName(call.Fun.(*ast.SelectorExpr).Sel)
-	case *ast.Ident:
-		return call.Fun.(*ast.Ident).Name
-	}
-	return ""
+func GetCallFuncName(call *ast.SelectorExpr) string {
+	return GetIdentName(call.X.(*ast.Ident)) + "." + GetIdentName(call.Sel)
 }
 
 func GetIdentName(i *ast.Ident) string {
@@ -53,25 +47,23 @@ func GetTypeFromName(name string) types.Type {
 	return nil
 }
 
-func Toi8Ptr(block *ir.Block, src value.Value) *ir.InstGetElementPtr {
-	return block.NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
-}
-
-func (f *FuncDecl) BasicLitToConstant(base *ast.BasicLit) value.Value {
+func (f *FuncDecl) BasicLitToValue(base *ast.BasicLit) value.Value {
 	switch base.Kind {
 	case token.INT:
 		atoi, _ := strconv.Atoi(base.Value)
 		return constant.NewInt(types.I32, int64(atoi))
 	case token.STRING:
 		itoa := strconv.Itoa(len(f.Constants))
-		globalDef := f.m.NewGlobalDef("str."+itoa, constant.NewCharArrayFromString(base.Value))
+		str, _ := strconv.Unquote(base.Value)
+		globalDef := f.m.NewGlobalDef("str."+itoa, constant.NewCharArrayFromString(str))
+		globalDef.Immutable = true
 		f.Constants = append(f.Constants, globalDef)
 		return f.GetCurrentBlock().NewGetElementPtr(globalDef, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, 0))
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)
 	default:
-		fmt.Println("BasicLitToConstant not impl")
+		fmt.Println("BasicLitToValue not impl")
 	}
 	return nil
 }
@@ -117,7 +109,7 @@ func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
 		switch value.(type) {
 		case ast.Expr:
 			expr := value.(ast.Expr)
-			return f.BasicLitToConstant(expr.(*ast.BasicLit))
+			return f.BasicLitToValue(expr.(*ast.BasicLit))
 		default:
 			fmt.Println("no impl doValeSpec")
 		}
@@ -160,4 +152,35 @@ func (f *FuncDecl) convertTypeTo(from value.Value, to types.Type) value.Value {
 		}
 	}
 	return nil
+}
+
+func (f *FuncDecl) StdCall(v value.Value, args ...value.Value) {
+	typ := v.Type()
+	if p, ok := v.Type().(*types.PointerType); ok {
+		typ = p.ElemType
+	}
+	if _, ok := typ.(*types.FuncType); ok {
+		ex := false
+		i := v.(*ir.Func)
+		for _, value := range f.m.Funcs {
+			if i.GlobalName == value.GlobalName {
+				ex = true
+				break
+			}
+		}
+		if !ex {
+			f.m.Funcs = append(f.m.Funcs, v.(*ir.Func))
+		}
+		f.GetCurrentBlock().NewCall(v, args...)
+	} else {
+		fmt.Println("type error")
+	}
+}
+
+func GetRealType(value2 types.Type) types.Type {
+	typ := value2
+	if t, ok := value2.(*types.PointerType); ok {
+		typ = t.ElemType
+	}
+	return typ
 }

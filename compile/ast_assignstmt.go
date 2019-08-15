@@ -28,7 +28,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 				r = append(r, f.GetVariable(value.(*ast.Ident).Name))
 			}
 		case *ast.BasicLit:
-			r = append(r, f.BasicLitToConstant(value.(*ast.BasicLit)))
+			r = append(r, f.BasicLitToValue(value.(*ast.BasicLit)))
 		case *ast.CallExpr:
 			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.IndexExpr:
@@ -52,7 +52,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		case *ast.BinaryExpr:
 			l = append(l, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.BasicLit:
-			l = append(l, f.BasicLitToConstant(value.(*ast.BasicLit)))
+			l = append(l, f.BasicLitToValue(value.(*ast.BasicLit)))
 		case *ast.IndexExpr:
 			l = append(l, f.doIndexExpr(value.(*ast.IndexExpr)))
 		case *ast.CompositeLit:
@@ -116,7 +116,7 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	var kv value.Value
 	switch index.Index.(type) {
 	case *ast.BasicLit:
-		kv = f.BasicLitToConstant(index.Index.(*ast.BasicLit))
+		kv = f.BasicLitToValue(index.Index.(*ast.BasicLit))
 	case *ast.CallExpr:
 		kv = f.doCallExpr(index.Index.(*ast.CallExpr))
 	case *ast.Ident:
@@ -126,7 +126,6 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	default:
 		fmt.Println("doIndex not impl")
 	}
-
 	if _, ok := kv.Type().(*types.PointerType); ok {
 		kv = f.GetCurrentBlock().NewLoad(kv)
 	}

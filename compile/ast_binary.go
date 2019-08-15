@@ -20,7 +20,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		x = f.IdentToValue(ident)
 	case *ast.BasicLit:
 		basicLit := expr.X.(*ast.BasicLit)
-		x = f.BasicLitToConstant(basicLit)
+		x = f.BasicLitToValue(basicLit)
 	case *ast.BinaryExpr:
 		x = f.doBinary(expr.X.(*ast.BinaryExpr))
 	case *ast.CallExpr:
@@ -38,7 +38,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		y = f.IdentToValue(ident)
 	case *ast.BasicLit:
 		basicLit := expr.Y.(*ast.BasicLit)
-		y = f.BasicLitToConstant(basicLit)
+		y = f.BasicLitToValue(basicLit)
 	case *ast.BinaryExpr:
 		y = f.doBinary(expr.Y.(*ast.BinaryExpr))
 	case *ast.CallExpr:

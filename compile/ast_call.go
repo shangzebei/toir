@@ -6,6 +6,7 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
+	"learn/stdlib"
 )
 
 func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
@@ -16,11 +17,11 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.Ident:
 			ident := value.(*ast.Ident)
 			if ident.Obj.Kind == ast.Var {
-				params = append(params, f.GetCurrentBlock().NewLoad(f.GetVariable(ident.Name)))
+				params = append(params, f.GetVariable(ident.Name))
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
-			params = append(params, f.BasicLitToConstant(basicLit))
+			params = append(params, f.BasicLitToValue(basicLit))
 		case *ast.CallExpr:
 			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.BinaryExpr:
@@ -35,7 +36,12 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	}
 	switch call.Fun.(type) {
 	case *ast.SelectorExpr:
-		fmt.Println("doCallExpr SelectorExpr no impl")
+		switch GetCallFuncName(call.Fun.(*ast.SelectorExpr)) {
+		case "fmt.Printf":
+			f.StdCall(stdlib.Printf, params...)
+		default:
+			fmt.Println("doCallExpr SelectorExpr no impl")
+		}
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
 	default:

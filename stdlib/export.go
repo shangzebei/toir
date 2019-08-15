@@ -16,10 +16,12 @@ func VE(name string, ret types.Type, va bool, p ...types.Type) *ir.Func {
 	return newFunc
 }
 
+//
 func V(name string, ret types.Type, p ...types.Type) *ir.Func {
 	return VE(name, ret, false, p...)
 }
 
+//declare and invoke
 func DV(m *ir.Module, name string, ret types.Type, va bool, p ...types.Type) *ir.Func {
 	ve := VE(name, ret, va, p...)
 	m.Funcs = append(m.Funcs, ve)

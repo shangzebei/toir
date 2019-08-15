@@ -124,6 +124,9 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 			case *ast.CallExpr:
 				callExpr := exprStmt.X.(*ast.CallExpr)
 				f.doCallExpr(callExpr)
+			case *ast.IndexExpr:
+				callExpr := exprStmt.X.(*ast.IndexExpr)
+				f.doIndexExpr(callExpr)
 			default:
 				fmt.Println("aaaaaaaaaaa")
 			}
@@ -138,7 +141,7 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 				case *ast.BasicLit:
 					basicLit := value.(*ast.BasicLit)
 					f.GetCurrent().Sig.RetType = GetTypes(basicLit.Kind)
-					newBlock.NewRet(f.BasicLitToConstant(value.(*ast.BasicLit)))
+					newBlock.NewRet(f.BasicLitToValue(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
 					binary := f.doBinary(value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()
@@ -258,14 +261,24 @@ func (f *FuncDecl) GetFunc(name string) *ir.Func {
 
 //only for
 func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
-	fmt.Println("doCompositeLit")
-	name := GetIdentName(lit.Type.(*ast.Ident))
-	if lit.Elts == nil {
-		i, ok := f.GlobDef[name]
-		if !ok {
-			f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
+	switch lit.Type.(type) {
+	case *ast.ArrayType:
+		var c []constant.Constant
+		for _, value := range lit.Elts {
+			c = append(c, f.BasicLitToValue(value.(*ast.BasicLit)).(constant.Constant))
 		}
-		return f.GetCurrentBlock().NewAlloca(i)
+		def := f.m.NewGlobalDef("", constant.NewArray(c...))
+		def.Immutable = true
+		return def
+	case *ast.Ident:
+		name := GetIdentName(lit.Type.(*ast.Ident))
+		if lit.Elts == nil {
+			i, ok := f.GlobDef[name]
+			if !ok {
+				f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
+			}
+			return f.GetCurrentBlock().NewAlloca(i)
+		}
 	}
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
+	"learn/llvm"
 	"strconv"
 )
 
@@ -24,8 +25,10 @@ func (f *FuncDecl) DoGenDecl(decl *ast.GenDecl) {
 			spec := v.(*ast.TypeSpec)
 			f.typeSpec(spec)
 		}
+	case token.IMPORT:
+		fmt.Println("not impl import")
 	default:
-		fmt.Println("not type")
+		fmt.Println("DoGenDecl not type")
 	}
 }
 
@@ -37,7 +40,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 			kind = GetTypeFromName(spec.Type.(*ast.Ident).Name)
 		case *ast.ArrayType:
 			arrayType := spec.Type.(*ast.ArrayType)
-			toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
+			toConstant := f.BasicLitToValue(arrayType.Len.(*ast.BasicLit))
 			len, _ := strconv.Atoi(toConstant.Ident())
 			kind = types.NewArray(uint64(len), toConstant.Type())
 		default:
@@ -51,11 +54,13 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 		if len(spec.Values) > index {
 			switch spec.Values[index].(type) {
 			case *ast.BasicLit:
-				value = f.BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
+				value = f.BasicLitToValue(spec.Values[index].(*ast.BasicLit))
 			case *ast.BinaryExpr:
 				value = f.doBinary(spec.Values[index].(*ast.BinaryExpr))
 			case *ast.CompositeLit:
 				value = f.doCompositeLit(spec.Values[index].(*ast.CompositeLit))
+			case *ast.IndexExpr:
+				value = f.doIndexExpr(spec.Values[index].(*ast.IndexExpr))
 			default:
 				fmt.Println("doGenDecl spec.Names not impl")
 			}
@@ -72,14 +77,35 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 			}
 		} else {
 			if value != nil {
-				alloca := f.GetCurrentBlock().NewAlloca(kind)
-				f.GetCurrentBlock().NewStore(value, alloca)
-				f.PutVariable(name.Name, alloca)
+				f.InitValue(name.Name, kind, value)
 			} else {
 				f.PutVariable(name.Name, f.GetCurrentBlock().NewAlloca(kind))
 			}
 		}
 	}
+}
+
+func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
+	alloca := f.GetCurrentBlock().NewAlloca(GetRealType(kind))
+	if p, ok := kind.(*types.PointerType); ok {
+		kind = p.ElemType
+	}
+	switch kind.(type) {
+	case *types.ArrayType:
+		f.StdCall(
+			llvm.Mencpy,
+			f.GetCurrentBlock().NewBitCast(alloca, types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(value2, types.I8Ptr),
+			constant.NewInt(types.I32, 2),
+			constant.NewBool(false),
+		)
+	case *types.IntType:
+		f.GetCurrentBlock().NewStore(value2, alloca)
+	default:
+		fmt.Println("not find types")
+	}
+	f.PutVariable(name, alloca)
+
 }
 
 //for struts info reg
