@@ -3,18 +3,18 @@ package test
 func main() {
 	//d := 1
 	//var b int
-	var a [4]int
-	a[0] = 52
-	//b := a[2]
+	//var a [4]int
+	//a[0] = 52
+	//b := a[0]
 	//a[i()] = 90
 	//a[d] = 80
 	//a[2] = 81
 	//a[3] = d + 777
 	//b = a[2+1]
 	//ff(a[2])
-	//var a = []int{100, 2}
-	//var b int = a[0]
-	//fmt.Printf("%d\n", a[0])
+	//var aa = []string{"asaaa", "bbbbb"}
+	//	//var b int = a[0]
+	//	//fmt.Printf("%d\n", a[0])
 	//show(a[1])
 }
 
@@ -28,5 +28,5 @@ func main() {
 //}
 
 //func show(a int)  {
-//	fmt.Printf("%d\n",a)
+//fmt.Printf("%d\n",a)
 //}

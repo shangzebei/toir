@@ -141,7 +141,7 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 				case *ast.BasicLit:
 					basicLit := value.(*ast.BasicLit)
 					f.GetCurrent().Sig.RetType = GetTypes(basicLit.Kind)
-					newBlock.NewRet(f.BasicLitToValue(value.(*ast.BasicLit)))
+					newBlock.NewRet(f.BasicLitToConstant(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
 					binary := f.doBinary(value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()
@@ -265,7 +265,7 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	case *ast.ArrayType:
 		var c []constant.Constant
 		for _, value := range lit.Elts {
-			c = append(c, f.BasicLitToValue(value.(*ast.BasicLit)).(constant.Constant))
+			c = append(c, f.BasicLitToConstant(value.(*ast.BasicLit)))
 		}
 		def := f.m.NewGlobalDef("", constant.NewArray(c...))
 		def.Immutable = true

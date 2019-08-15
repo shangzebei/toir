@@ -47,7 +47,7 @@ func GetTypeFromName(name string) types.Type {
 	return nil
 }
 
-func (f *FuncDecl) BasicLitToValue(base *ast.BasicLit) value.Value {
+func (f *FuncDecl) BasicLitToConstant(base *ast.BasicLit) constant.Constant {
 	switch base.Kind {
 	case token.INT:
 		atoi, _ := strconv.Atoi(base.Value)
@@ -58,12 +58,12 @@ func (f *FuncDecl) BasicLitToValue(base *ast.BasicLit) value.Value {
 		globalDef := f.m.NewGlobalDef("str."+itoa, constant.NewCharArrayFromString(str))
 		globalDef.Immutable = true
 		f.Constants = append(f.Constants, globalDef)
-		return f.GetCurrentBlock().NewGetElementPtr(globalDef, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, 0))
+		return globalDef
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)
 	default:
-		fmt.Println("BasicLitToValue not impl")
+		fmt.Println("BasicLitToConstant not impl")
 	}
 	return nil
 }
@@ -109,7 +109,7 @@ func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
 		switch value.(type) {
 		case ast.Expr:
 			expr := value.(ast.Expr)
-			return f.BasicLitToValue(expr.(*ast.BasicLit))
+			return f.BasicLitToConstant(expr.(*ast.BasicLit))
 		default:
 			fmt.Println("no impl doValeSpec")
 		}
@@ -175,6 +175,10 @@ func (f *FuncDecl) StdCall(v value.Value, args ...value.Value) {
 	} else {
 		fmt.Println("type error")
 	}
+}
+
+func (f *FuncDecl) Toi8Ptr(src value.Value) *ir.InstGetElementPtr {
+	return f.GetCurrentBlock().NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
 }
 
 func GetRealType(value2 types.Type) types.Type {

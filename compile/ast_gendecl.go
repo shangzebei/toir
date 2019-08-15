@@ -40,7 +40,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 			kind = GetTypeFromName(spec.Type.(*ast.Ident).Name)
 		case *ast.ArrayType:
 			arrayType := spec.Type.(*ast.ArrayType)
-			toConstant := f.BasicLitToValue(arrayType.Len.(*ast.BasicLit))
+			toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
 			len, _ := strconv.Atoi(toConstant.Ident())
 			kind = types.NewArray(uint64(len), toConstant.Type())
 		default:
@@ -54,7 +54,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 		if len(spec.Values) > index {
 			switch spec.Values[index].(type) {
 			case *ast.BasicLit:
-				value = f.BasicLitToValue(spec.Values[index].(*ast.BasicLit))
+				value = f.BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
 			case *ast.BinaryExpr:
 				value = f.doBinary(spec.Values[index].(*ast.BinaryExpr))
 			case *ast.CompositeLit:
@@ -92,11 +92,24 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 	}
 	switch kind.(type) {
 	case *types.ArrayType:
+		var l int64
+		arrayType := kind.(*types.ArrayType)
+		fmt.Println(arrayType)
+		switch arrayType.ElemType.(type) {
+		case *types.IntType:
+			intType := arrayType.ElemType.(*types.IntType)
+			l = int64(arrayType.Len * (intType.BitSize / 8))
+		case *types.PointerType:
+			l = int64(arrayType.Len * 8)
+		default:
+			fmt.Println("unkonw types size")
+
+		}
 		f.StdCall(
 			llvm.Mencpy,
 			f.GetCurrentBlock().NewBitCast(alloca, types.I8Ptr),
 			f.GetCurrentBlock().NewBitCast(value2, types.I8Ptr),
-			constant.NewInt(types.I32, 2),
+			constant.NewInt(types.I32, l),
 			constant.NewBool(false),
 		)
 	case *types.IntType:

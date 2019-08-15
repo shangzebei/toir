@@ -1,7 +1,18 @@
+%Person = type { i8*, i8*, i32 }
+
+@str.0 = constant [3 x i8] c"man"
+
 define void @main() {
 ; <label>:0
-	%1 = alloca [4 x i32]
-	%2 = getelementptr [4 x i32], [4 x i32]* %1, i32 0, i32 0
-	store i32 52, i32* %2
+	%1 = alloca %Person
+	%2 = alloca %Person
+	%3 = getelementptr [3 x i8], [3 x i8]* @str.0, i64 0, i64 0
+	%4 = getelementptr %Person, %Person* %2, i32 0, i32 1
+	store i8* %3, i8** %4
+	ret void
+}
+
+define void @show(i32 %a) {
+; <label>:0
 	ret void
 }
