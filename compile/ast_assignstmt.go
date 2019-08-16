@@ -11,6 +11,7 @@ import (
 )
 
 func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
+	//ast.Print(f.fset, assignStmt)
 	//c:=a+b
 	//a+b
 	var r []value.Value
@@ -72,7 +73,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 
 	//check
 	r[0] = f.doCorrect(r[0], l[0].Type())
-	l[0] = f.doCorrect(l[0], r[0].Type())
+	//l[0] = f.doCorrect(l[0], r[0].Type())
 
 	//if _, ok := r[0].Type().(*types.PointerType); ok {
 	//	r[0] = f.GetCurrentBlock().NewLoad(r[0])
@@ -90,7 +91,10 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	switch assignStmt.Tok {
 	//TODO rebuild
 	case token.DEFINE: // :=
-		//f.GetCurrentBlock().NewStore(r[0], l[0])
+		if l[0].Type() == nil {
+			vName := l[0].(*ir.Param).Name()
+			f.PutVariable(vName, r[0])
+		}
 	case token.ASSIGN: // =
 		//TODO
 		if len(r) == 1 {

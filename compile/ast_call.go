@@ -21,7 +21,12 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
-			params = append(params, f.BasicLitToConstant(basicLit))
+			constant := f.BasicLitToConstant(basicLit)
+			if _, ok := constant.(*ir.Global); ok {
+				params = append(params, f.Toi8Ptr(constant))
+			} else {
+				params = append(params, constant)
+			}
 		case *ast.CallExpr:
 			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.BinaryExpr:

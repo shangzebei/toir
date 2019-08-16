@@ -1,18 +1,17 @@
-%Person = type { i8*, i8*, i32 }
+@tt = global i32 90
 
-@str.0 = constant [3 x i8] c"man"
-
-define void @main() {
+define i32 @add(i32 %a, i32 %b) {
 ; <label>:0
-	%1 = alloca %Person
-	%2 = alloca %Person
-	%3 = getelementptr [3 x i8], [3 x i8]* @str.0, i64 0, i64 0
-	%4 = getelementptr %Person, %Person* %2, i32 0, i32 1
-	store i8* %3, i8** %4
-	ret void
+	%1 = add i32 %a, %b
+	ret i32 %1
 }
 
 define void @show(i32 %a) {
 ; <label>:0
+	%1 = alloca i32
+	store i32 3, i32* %1
+	%2 = add i32 1, 3
+	%3 = call i32 @add(i32 3, i32 4)
+	store i32 %3, i32* %1
 	ret void
 }
