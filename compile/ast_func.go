@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
+	"strconv"
 )
 
 type StructDef struct {
@@ -265,9 +266,12 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	case *ast.ArrayType:
 		var c []constant.Constant
 		for _, value := range lit.Elts {
-			c = append(c, f.BasicLitToConstant(value.(*ast.BasicLit)))
+			toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
+			c = append(c, toConstant)
 		}
-		def := f.m.NewGlobalDef("", constant.NewArray(c...))
+		name := f.GetCurrent().Name()
+		array := constant.NewArray(c...)
+		def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), array)
 		def.Immutable = true
 		return def
 	case *ast.Ident:

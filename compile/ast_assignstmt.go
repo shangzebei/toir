@@ -6,8 +6,10 @@ import (
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
+	"reflect"
 )
 
 func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
@@ -38,9 +40,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		case *ast.CallExpr:
 			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.IndexExpr:
-			r = append(r, f.doIndexExpr(value.(*ast.IndexExpr)))
+			r = append(r, f.GetCurrentBlock().NewLoad(f.doIndexExpr(value.(*ast.IndexExpr))))
 		case *ast.CompositeLit:
 			r = append(r, f.doCompositeLit(value.(*ast.CompositeLit)))
+		case *ast.SelectorExpr:
+			r = append(r, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
 		default:
 			fmt.Println("not impl assignStmt.Rhs")
 		}
@@ -75,29 +79,26 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	r[0] = f.doCorrect(r[0], l[0].Type())
 	//l[0] = f.doCorrect(l[0], r[0].Type())
 
-	//if _, ok := r[0].Type().(*types.PointerType); ok {
-	//	r[0] = f.GetCurrentBlock().NewLoad(r[0])
-	//}
-	//if _, ok := r[0].Type().(*types.StructType); ok {
-	//	r[0] = f.Toi8Ptr(r[0])
-	//}
-	//if _, ok := l[0].Type().(*types.IntType); ok {
-	//	l[0] = f.GetCurrentBlock().NewGetElementPtr(l[0],constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(0)))
-	//}
-
-	fmt.Println(l[0], " === ", r[0])
-
 	//ops
 	switch assignStmt.Tok {
 	//TODO rebuild
 	case token.DEFINE: // :=
-		if l[0].Type() == nil {
-			vName := l[0].(*ir.Param).Name()
+		vName := l[0].(*ir.Param).Name()
+		if _, ok := r[0].(constant.Constant); ok {
+			newAlloca := f.GetCurrentBlock().NewAlloca(r[0].Type())
+			f.GetCurrentBlock().NewStore(r[0], newAlloca)
+			f.PutVariable(vName, newAlloca)
+		} else {
 			f.PutVariable(vName, r[0])
 		}
 	case token.ASSIGN: // =
 		//TODO
 		if len(r) == 1 {
+			lt, ok := l[0].Type().(*types.PointerType)
+			if ok && !reflect.TypeOf(r[0].Type()).ConvertibleTo(reflect.TypeOf(lt.ElemType)) {
+				//r[0] = f.GetCurrentBlock().NewLoad(r[0])
+				logrus.Warn(l[0].Type(), r[0].Type())
+			}
 			f.GetCurrentBlock().NewStore(r[0], l[0])
 		}
 	default:
@@ -106,6 +107,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	return l[0]
 }
 
+//struts.v
 func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	varName := GetIdentName(selectorExpr.X.(*ast.Ident))
 	variable := f.GetVariable(varName)
@@ -142,13 +144,17 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 		kv = f.IdentToValue(index.Index.(*ast.Ident))
 	case *ast.BinaryExpr:
 		kv = f.doBinary(index.Index.(*ast.BinaryExpr))
+	case *ast.IndexExpr:
+		kv = f.GetCurrentBlock().NewLoad(f.doIndexExpr(index.Index.(*ast.IndexExpr)))
+	case *ast.SelectorExpr:
+		kv = f.GetCurrentBlock().NewLoad(f.doSelectorExpr(index.Index.(*ast.SelectorExpr)))
 	default:
 		fmt.Println("doIndex not impl")
 	}
 
-	if _, ok := kv.Type().(*types.PointerType); ok {
-		kv = f.GetCurrentBlock().NewLoad(kv)
-	}
+	//if _, ok := kv.Type().(*types.PointerType); ok {
+	//	kv = f.GetCurrentBlock().NewLoad(kv)
+	//}
 
 	switch index.X.(type) {
 	case *ast.Ident:

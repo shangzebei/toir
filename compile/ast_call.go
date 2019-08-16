@@ -16,8 +16,15 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		switch value.(type) {
 		case *ast.Ident:
 			ident := value.(*ast.Ident)
-			if ident.Obj.Kind == ast.Var {
-				params = append(params, f.GetVariable(ident.Name))
+			if ident.Obj.Kind == ast.Var { //constant,Glob,alloa,param
+				variable := f.GetVariable(ident.Name)
+				switch variable.(type) {
+				case *ir.InstAlloca:
+					params = append(params, f.GetCurrentBlock().NewLoad(variable))
+				default:
+					params = append(params, variable)
+
+				}
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
@@ -32,9 +39,9 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.BinaryExpr:
 			params = append(params, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.IndexExpr:
-			params = append(params, f.doIndexExpr(value.(*ast.IndexExpr)))
+			params = append(params, f.GetCurrentBlock().NewLoad(f.doIndexExpr(value.(*ast.IndexExpr))))
 		case *ast.SelectorExpr:
-			params = append(params, f.doSelectorExpr(value.(*ast.SelectorExpr)))
+			params = append(params, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}
@@ -72,7 +79,7 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
 	if id.Obj != nil {
 		funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
-		return block.NewCall(funDecl, f.checkAndConvert(funDecl.Params, values)...)
+		return block.NewCall(funDecl, values...)
 	} else { //Custom func
 		logrus.Panicln("not find fun", id.Name)
 		return nil

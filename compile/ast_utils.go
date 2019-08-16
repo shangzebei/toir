@@ -55,10 +55,13 @@ func (f *FuncDecl) BasicLitToConstant(base *ast.BasicLit) constant.Constant {
 	case token.STRING:
 		itoa := strconv.Itoa(len(f.Constants))
 		str, _ := strconv.Unquote(base.Value)
-		globalDef := f.m.NewGlobalDef("str."+itoa, constant.NewCharArrayFromString(str))
+		globalDef := f.m.NewGlobalDef("str."+itoa, constant.NewCharArrayFromString(str+"\x00"))
 		globalDef.Immutable = true
 		f.Constants = append(f.Constants, globalDef)
-		return globalDef
+		ptr := constant.NewGetElementPtr(globalDef, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
+		ptr.Typ = types.I8Ptr
+		ptr.InBounds = true
+		return ptr
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)

@@ -1,17 +1,20 @@
-@tt = global i32 90
+@str.0 = constant [2 x i8] c"3\00"
+@str.1 = constant [2 x i8] c"4\00"
+@main.2 = constant [2 x i8*] [i8* getelementptr inbounds ([2 x i8], [2 x i8]* @str.0, i64 0, i64 0), i8* getelementptr inbounds ([2 x i8], [2 x i8]* @str.1, i64 0, i64 0)]
+@str.2 = constant [4 x i8] c"%s\0A\00"
 
-define i32 @add(i32 %a, i32 %b) {
-; <label>:0
-	%1 = add i32 %a, %b
-	ret i32 %1
-}
+declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i1)
 
-define void @show(i32 %a) {
+declare i32 @printf(i8*, ...)
+
+define void @main() {
 ; <label>:0
-	%1 = alloca i32
-	store i32 3, i32* %1
-	%2 = add i32 1, 3
-	%3 = call i32 @add(i32 3, i32 4)
-	store i32 %3, i32* %1
+	%1 = alloca [2 x i8*]
+	%2 = bitcast [2 x i8*]* %1 to i8*
+	%3 = bitcast [2 x i8*]* @main.2 to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %2, i8* %3, i32 16, i1 false)
+	%4 = getelementptr [2 x i8*], [2 x i8*]* %1, i32 0, i32 0
+	%5 = load i8*, i8** %4
+	%6 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0), i8* %5)
 	ret void
 }

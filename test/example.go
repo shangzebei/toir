@@ -1,12 +1,9 @@
 package test
 
+import "fmt"
+
 func main() {
-	var d [4]int
-	d[0] = 90
-	d[1] = 89
-	show(d[1])
-}
-
-func show(c int) {
-
+	var e = []string{"3", "4"}
+	//e[0]="shang"
+	fmt.Printf("%s\n", e[0])
 }

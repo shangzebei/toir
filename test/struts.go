@@ -10,9 +10,10 @@ type Person struct {
 
 func main() {
 	ad := Person{}
-	//ad.Name = "wang"
+	ad.Name = "wang"
 	ad.Sex = "man"
 	ad.Age = 12
+	d := ad.Age
 	show(ad.Age)
 }
 
