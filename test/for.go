@@ -1,12 +1,14 @@
 package test
 
+import "fmt"
+
 func main() {
 	for i := 0; i <= max()+1; i++ {
 		show(i)
 	}
 }
 func show(a int) {
-	//println("aaaaa")
+	fmt.Printf("%d\n", a)
 }
 
 func max() int {

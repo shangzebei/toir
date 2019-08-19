@@ -32,11 +32,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			}
 		case *ast.BasicLit:
 			toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
-			if _, ok := toConstant.(*ir.Global); ok {
-				r = append(r, f.Toi8Ptr(toConstant))
-			} else {
-				r = append(r, toConstant)
-			}
+			r = append(r, toConstant)
 		case *ast.CallExpr:
 			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.IndexExpr:
@@ -91,6 +87,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		} else {
 			f.PutVariable(vName, r[0])
 		}
+		//f.Toi8Ptr(r[0])
+		return f.GetVariable(vName)
 	case token.ASSIGN: // =
 		//TODO
 		if len(r) == 1 {
@@ -101,10 +99,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 			}
 			f.GetCurrentBlock().NewStore(r[0], l[0])
 		}
+		return l[0]
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}
-	return l[0]
+	return nil
 }
 
 //struts.v
