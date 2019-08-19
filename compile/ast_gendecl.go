@@ -37,7 +37,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 	if spec.Type != nil {
 		switch spec.Type.(type) {
 		case *ast.Ident:
-			kind = GetTypeFromName(spec.Type.(*ast.Ident).Name)
+			kind = f.GetTypeFromName(spec.Type.(*ast.Ident).Name)
 		case *ast.ArrayType:
 			arrayType := spec.Type.(*ast.ArrayType)
 			toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
@@ -143,6 +143,10 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 
 }
 
+func (f *FuncDecl) doStructType(typ *types.StructType) {
+
+}
+
 //for struts info reg
 func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 	var strums []types.Type
@@ -156,7 +160,7 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 
 	for index, value := range structType.Fields.List {
 		fname := value.Names[0].Name
-		ftyp := GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
+		ftyp := f.GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
 		f.StructDefs[name][fname] = StructDef{
 			Name:  fname,
 			Order: index,

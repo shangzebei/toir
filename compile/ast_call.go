@@ -37,6 +37,12 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			params = append(params, f.GetCurrentBlock().NewLoad(f.doIndexExpr(value.(*ast.IndexExpr))))
 		case *ast.SelectorExpr:
 			params = append(params, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
+		case *ast.UnaryExpr: //get addr
+			unaryExpr := value.(*ast.UnaryExpr)
+			params = append(params, f.doUnaryExpr(unaryExpr))
+		case *ast.CompositeLit:
+			//TODO
+			params = append(params, f.doCompositeLit(value.(*ast.CompositeLit)))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}

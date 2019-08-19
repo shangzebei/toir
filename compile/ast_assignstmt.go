@@ -66,6 +66,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		case *ast.SelectorExpr: //TODO struts
 			selectorExpr := value.(*ast.SelectorExpr)
 			l = append(l, f.doSelectorExpr(selectorExpr))
+		case *ast.StarExpr:
+			l = append(l, f.doStartExpr(value.(*ast.StarExpr)))
 		default:
 			fmt.Println("no impl assignStmt.Lhs")
 		}
@@ -80,12 +82,17 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	//TODO rebuild
 	case token.DEFINE: // :=
 		vName := l[0].(*ir.Param).Name()
-		switch r[0].(type) {
-		case constant.Constant:
-			newAlloca := f.GetCurrentBlock().NewAlloca(r[0].Type())
-			f.GetCurrentBlock().NewStore(r[0], newAlloca)
-			f.PutVariable(vName, newAlloca)
-		default:
+		if con, ok := r[0].(constant.Constant); ok {
+			realType := GetRealType(con.Type())
+			switch realType.(type) {
+			case *types.StructType, *types.ArrayType:
+				f.InitValue(vName, realType, r[0])
+			default:
+				newAlloc := f.GetCurrentBlock().NewAlloca(GetRealType(r[0].Type()))
+				f.GetCurrentBlock().NewStore(r[0], newAlloc)
+				f.PutVariable(vName, newAlloc)
+			}
+		} else {
 			f.PutVariable(vName, r[0])
 		}
 		return f.GetVariable(vName)

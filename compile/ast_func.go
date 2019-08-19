@@ -48,9 +48,17 @@ func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 	if len(fields) > 0 {
 		for _, value := range fields {
 			paramName := value.Names[0].String()
-			paramKind := (value.Type.(*ast.Ident)).Name
-			newParam := ir.NewParam(paramName, GetTypeFromName(paramKind))
+			var paramKind types.Type
+			switch value.Type.(type) {
+			case *ast.Ident:
+				param := (value.Type.(*ast.Ident)).Name
+				paramKind = f.GetTypeFromName(param)
+			case *ast.StarExpr:
+				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr)).Type()
+			}
+			newParam := ir.NewParam(paramName, paramKind)
 			f.GetCurrent().Params = append(f.GetCurrent().Params, newParam)
+			//
 		}
 	}
 	paramTypes := make([]types.Type, len(f.GetCurrent().Params))
@@ -58,6 +66,36 @@ func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 		paramTypes[i] = param.Type()
 	}
 	f.GetCurrent().Sig.Params = paramTypes
+}
+
+//&
+func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
+	name := GetIdentName(unaryExpr.X.(*ast.Ident))
+	variable := f.GetVariable(name)
+	switch unaryExpr.Op {
+	case token.AND:
+		return variable
+	default:
+		fmt.Println("doUnaryExpr not impl")
+	}
+	return nil
+
+}
+
+//*
+func (f *FuncDecl) doStartExpr(x *ast.StarExpr) value.Value {
+	if x.X.(*ast.Ident).Obj == nil { //func param
+		return ir.NewParam("", types.NewPointer(f.GetTypeFromName(GetIdentName(x.X.(*ast.Ident)))))
+	} else {
+		name := GetIdentName(x.X.(*ast.Ident))
+		if p := f.GetVariable(name); p != nil {
+			return f.GetCurrentBlock().NewLoad(p)
+		} else {
+			fmt.Println("not find in doStartExpr")
+		}
+	}
+	fmt.Println("not impl doStartExpr")
+	return nil
 }
 
 func (f *FuncDecl) GetCurrent() *ir.Func {
@@ -116,6 +154,10 @@ func (f *FuncDecl) pop() *ir.Func {
 func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Block {
 	//ast.Print(f.fset, block)
 	newBlock := f.newBlock()
+	//copy func param
+	if len(f.GetCurrent().Blocks) == 1 {
+		f.initFuncParam()
+	}
 	defer f.popBlock()
 	for _, value := range block.List {
 		switch value.(type) {
@@ -141,7 +183,7 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 				switch value.(type) {
 				case *ast.BasicLit:
 					basicLit := value.(*ast.BasicLit)
-					f.GetCurrent().Sig.RetType = GetTypes(basicLit.Kind)
+					f.GetCurrent().Sig.RetType = f.GetTypes(basicLit.Kind)
 					newBlock.NewRet(f.BasicLitToConstant(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
 					binary := f.doBinary(value.(*ast.BinaryExpr))
@@ -184,6 +226,14 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 	return newBlock
 }
 
+func (f *FuncDecl) initFuncParam() {
+	for _, value := range f.GetCurrent().Params {
+		newAlloca := f.GetCurrentBlock().NewAlloca(value.Typ)
+		f.GetCurrentBlock().NewStore(value, newAlloca)
+		f.PutVariable(value.Name(), newAlloca)
+	}
+}
+
 func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 	var x value.Value
 	switch decl.X.(type) {
@@ -214,11 +264,11 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
 	//find with param
-	for _, value := range f.GetCurrent().Params {
-		if value.Name() == name {
-			return value
-		}
-	}
+	//for _, value := range f.GetCurrent().Params {
+	//	if value.Name() == name {
+	//		return value
+	//	}
+	//}
 
 	//find which glob
 	for _, value := range f.m.Globals {

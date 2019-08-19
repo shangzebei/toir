@@ -27,6 +27,8 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		x = f.doCallExpr(expr.X.(*ast.CallExpr))
 	case *ast.IndexExpr:
 		x = f.doIndexExpr(expr.X.(*ast.IndexExpr))
+	case *ast.ParenExpr:
+		x = f.doParenExpr(expr.X.(*ast.ParenExpr))
 	default:
 		fmt.Println("not impl doBinary")
 	}

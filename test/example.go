@@ -2,9 +2,10 @@ package test
 
 import "fmt"
 
-var tt = 90
-
+//type A struct {
+//	Name string
+//}
 func main() {
-	tt = 79
-	fmt.Printf("%d\n", tt)
+	a := 1 + ((5+6)*10)/2
+	fmt.Printf("%d\n", a)
 }

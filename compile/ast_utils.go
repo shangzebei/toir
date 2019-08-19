@@ -22,28 +22,34 @@ func GetIdentName(i *ast.Ident) string {
 }
 
 var MapNamesTypes = map[string]types.Type{
+	"bool":    types.I8,
 	"int":     types.I32,
+	"int64":   types.I64,
 	"string":  types.I8Ptr,
 	"float32": types.Float,
+	"float64": types.Float,
 }
 
-func GetTypes(typ token.Token) types.Type {
-	v, ok := MapNamesTypes[strings.ToLower(typ.String())]
-	if ok {
+func (f *FuncDecl) GetTypes(typ token.Token) types.Type {
+
+	if v, ok := MapNamesTypes[strings.ToLower(typ.String())]; ok {
 		return v
-	} else {
-		fmt.Println("error", typ)
 	}
+	if g, ok := f.GlobDef[typ.String()]; ok {
+		return g
+	}
+	fmt.Println("GetTypes error", typ)
 	return nil
 }
 
-func GetTypeFromName(name string) types.Type {
-	v, ok := MapNamesTypes[strings.ToLower(name)]
-	if ok {
+func (f *FuncDecl) GetTypeFromName(name string) types.Type {
+	if v, ok := MapNamesTypes[strings.ToLower(name)]; ok {
 		return v
-	} else {
-		fmt.Println("error", name)
 	}
+	if g, ok := f.GlobDef[name]; ok {
+		return g
+	}
+	fmt.Println("GetTypeFromName error", name)
 	return nil
 }
 
@@ -119,7 +125,7 @@ func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
 	}
 
 	if spec.Type != nil {
-		kind = GetTypeFromName(GetIdentName(spec.Type.(*ast.Ident)))
+		kind = f.GetTypeFromName(GetIdentName(spec.Type.(*ast.Ident)))
 	}
 	if len(spec.Values) == 0 {
 		return ir.NewParam(name, kind)
