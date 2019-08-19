@@ -191,3 +191,17 @@ func GetRealType(value2 types.Type) types.Type {
 	}
 	return typ
 }
+
+func InitZeroConstant(typ types.Type) constant.Constant {
+	switch typ {
+	case types.I8Ptr:
+		return constant.NewNull(types.I8Ptr)
+	case types.I8, types.I32, types.I16, types.I64:
+		return constant.NewInt(types.I32, int64(0))
+	case types.Float:
+		return constant.NewFloat(types.Float, float64(0))
+	default:
+		fmt.Println("InitZeroValue type not impl")
+	}
+	return nil
+}

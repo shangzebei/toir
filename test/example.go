@@ -2,8 +2,9 @@ package test
 
 import "fmt"
 
+var tt = 90
+
 func main() {
-	var e = []string{"3", "4"}
-	//e[0]="shang"
-	fmt.Printf("%s\n", e[0])
+	tt = 79
+	fmt.Printf("%d\n", tt)
 }

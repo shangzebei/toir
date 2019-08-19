@@ -3,6 +3,7 @@ package compile
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
@@ -18,22 +19,16 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			ident := value.(*ast.Ident)
 			if ident.Obj.Kind == ast.Var { //constant,Glob,alloa,param
 				variable := f.GetVariable(ident.Name)
-				switch variable.(type) {
-				case *ir.InstAlloca:
-					params = append(params, f.GetCurrentBlock().NewLoad(variable))
-				default:
-					params = append(params, variable)
-
+				if _, ok := variable.Type().(*types.PointerType); ok {
+					params = append(params, f.GetCurrentBlock().NewLoad(variable)) //f.GetCurrentBlock().NewLoad(
+				} else {
+					params = append(params, variable) //f.GetCurrentBlock().NewLoad(
 				}
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
 			constant := f.BasicLitToConstant(basicLit)
-			if _, ok := constant.(*ir.Global); ok {
-				params = append(params, f.Toi8Ptr(constant))
-			} else {
-				params = append(params, constant)
-			}
+			params = append(params, constant)
 		case *ast.CallExpr:
 			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.BinaryExpr:

@@ -27,8 +27,8 @@ type FuncDecl struct {
 	FuncDecls  map[*ast.FuncDecl]*ir.Func
 	blockHeap  map[*ir.Func][]*ir.Block
 	Variables  map[*ir.Block]map[string]value.Value
-	StructDefs map[string]map[string]StructDef
-	Constants  []constant.Constant //for constant
+	StructDefs map[string]map[string]StructDef //for type info
+	Constants  []constant.Constant             //for constant
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
@@ -284,9 +284,19 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 			return f.GetCurrentBlock().NewAlloca(i)
 		} else {
 			var s []constant.Constant
-			for _, value := range lit.Elts {
-				keyValueExpr := value.(*ast.KeyValueExpr)
-				s = append(s, f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit)))
+			for key, value := range f.StructDefs[name] {
+				find := false
+				for _, value := range lit.Elts { //
+					keyValueExpr := value.(*ast.KeyValueExpr)
+					if key == GetIdentName(keyValueExpr.Key.(*ast.Ident)) {
+						s = append(s, f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit)))
+						find = true
+						break
+					}
+				}
+				if !find {
+					s = append(s, InitZeroConstant(value.Typ))
+				}
 			}
 			def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), constant.NewStruct(s...))
 			def.ContentType = i

@@ -10,7 +10,7 @@ type Person struct {
 
 func main() {
 	//var pp Person
-	var ad = Person{Name: "wang", Sex: "man", Age: 12}
+	var ad = Person{Sex: "man", Age: 12}
 	//ad := Person{}
 	//ad.Name = "asdf"
 	//ad.Age = 45
