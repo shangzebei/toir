@@ -112,6 +112,28 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 			constant.NewInt(types.I32, l),
 			constant.NewBool(false),
 		)
+	case *types.StructType:
+		var l int64
+		structType := kind.(*types.StructType)
+		fmt.Println(structType)
+		for _, value := range structType.Fields {
+			switch value.(type) {
+			case *types.IntType:
+				intType := value.(*types.IntType)
+				l += int64(intType.BitSize / 8)
+			case *types.PointerType:
+				l += int64(8)
+			default:
+				fmt.Println("unkonw types size")
+			}
+		}
+		f.StdCall(
+			llvm.Mencpy,
+			f.GetCurrentBlock().NewBitCast(alloca, types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(value2, types.I8Ptr),
+			constant.NewInt(types.I32, l),
+			constant.NewBool(false),
+		)
 	case *types.IntType:
 		f.GetCurrentBlock().NewStore(value2, alloca)
 	default:

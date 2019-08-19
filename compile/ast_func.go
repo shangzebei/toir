@@ -260,10 +260,10 @@ func (f *FuncDecl) GetFunc(name string) *ir.Func {
 	return nil
 }
 
-//only for
+//only for array and struts
 func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	switch lit.Type.(type) {
-	case *ast.ArrayType:
+	case *ast.ArrayType: //array
 		var c []constant.Constant
 		for _, value := range lit.Elts {
 			toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
@@ -274,15 +274,28 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), array)
 		def.Immutable = true
 		return def
-	case *ast.Ident:
+	case *ast.Ident: //struct
 		name := GetIdentName(lit.Type.(*ast.Ident))
+		i, ok := f.GlobDef[name]
 		if lit.Elts == nil {
-			i, ok := f.GlobDef[name]
 			if !ok {
 				f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
 			}
 			return f.GetCurrentBlock().NewAlloca(i)
+		} else {
+			var s []constant.Constant
+			for _, value := range lit.Elts {
+				keyValueExpr := value.(*ast.KeyValueExpr)
+				s = append(s, f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit)))
+			}
+			def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), constant.NewStruct(s...))
+			def.ContentType = i
+			def.Typ = types.NewPointer(i)
+			def.Immutable = true
+			return def
 		}
+	default:
+		fmt.Println("not impl doCompositeLit")
 	}
 	return nil
 }

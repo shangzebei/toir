@@ -80,14 +80,14 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	//TODO rebuild
 	case token.DEFINE: // :=
 		vName := l[0].(*ir.Param).Name()
-		if _, ok := r[0].(constant.Constant); ok {
+		switch r[0].(type) {
+		case constant.Constant:
 			newAlloca := f.GetCurrentBlock().NewAlloca(r[0].Type())
 			f.GetCurrentBlock().NewStore(r[0], newAlloca)
 			f.PutVariable(vName, newAlloca)
-		} else {
+		default:
 			f.PutVariable(vName, r[0])
 		}
-		//f.Toi8Ptr(r[0])
 		return f.GetVariable(vName)
 	case token.ASSIGN: // =
 		//TODO
@@ -150,10 +150,6 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	default:
 		fmt.Println("doIndex not impl")
 	}
-
-	//if _, ok := kv.Type().(*types.PointerType); ok {
-	//	kv = f.GetCurrentBlock().NewLoad(kv)
-	//}
 
 	switch index.X.(type) {
 	case *ast.Ident:

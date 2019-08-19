@@ -7,6 +7,7 @@ func main() {
 		show(i)
 	}
 }
+
 func show(a int) {
 	fmt.Printf("%d\n", a)
 }

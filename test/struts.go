@@ -9,11 +9,15 @@ type Person struct {
 }
 
 func main() {
-	ad := Person{}
-	ad.Name = "wang"
-	ad.Sex = "man"
-	ad.Age = 12
-	d := ad.Age
+	//var pp Person
+	var ad = Person{Name: "wang", Sex: "man", Age: 12}
+	//ad := Person{}
+	//ad.Name = "asdf"
+	//ad.Age = 45
+	fmt.Printf("%s\n", ad.Name)
+
+	//pp = ad
+
 	show(ad.Age)
 }
 
