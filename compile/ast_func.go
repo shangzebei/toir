@@ -300,15 +300,15 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 	f.Variables[f.GetCurrentBlock()][name] = value2
 }
 
-func (f *FuncDecl) GetFunc(name string) *ir.Func {
-	for _, value := range f.FuncDecls {
-		if value.Name() == name {
-			return value
-		}
-	}
-	fmt.Println("not find func", name)
-	return nil
-}
+//func (f *FuncDecl) GetFunc(name string) *ir.Func {
+//	for _, value := range f.FuncDecls {
+//		if value.Name() == name {
+//			return value
+//		}
+//	}
+//	fmt.Println("not find func", name)
+//	return nil
+//}
 
 //only for array and struts
 func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {

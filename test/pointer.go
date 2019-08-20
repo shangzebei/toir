@@ -11,7 +11,7 @@ func main() {
 	b := 80
 	swap(&a, &b)
 	fmt.Printf("%d-%d\n", a, b)
-	var i = A{Name: "ttttt"}
+	i := A{Name: "ttttt"}
 	do(i)
 }
 

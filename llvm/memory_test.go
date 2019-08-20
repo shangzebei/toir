@@ -5,9 +5,14 @@ import (
 	"testing"
 )
 
+func dd(a int32) {
+
+}
+
 func TestName(t *testing.T) {
-	a := 89
-	var b int = a
-	fmt.Printf("%p===%p", &a, &b)
-	//fmt.Printf(a,b)
+	b := int32(1236)
+	var a = int8(b)
+	dd(int32(a))
+	fmt.Printf("%d\n", a)
+
 }

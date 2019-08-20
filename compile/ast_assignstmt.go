@@ -79,7 +79,6 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 
 	//ops
 	switch assignStmt.Tok {
-	//TODO rebuild
 	case token.DEFINE: // :=
 		vName := l[0].(*ir.Param).Name()
 		if con, ok := r[0].(constant.Constant); ok {
@@ -126,16 +125,11 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 func (f *FuncDecl) doCorrect(v value.Value, tyt types.Type) value.Value {
 	if v.Type() == nil {
 		vName := v.(*ir.Param).Name()
-		//FIXME ERROR TYPE
 		nv := f.GetCurrentBlock().NewAlloca(GetRealType(tyt))
 		f.PutVariable(vName, nv)
 		return nv
-	} else {
-		//if v.Type()== {
-		//
-		//}
-		return v
 	}
+	return v
 }
 
 //index array

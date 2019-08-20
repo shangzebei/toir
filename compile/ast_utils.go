@@ -24,6 +24,8 @@ func GetIdentName(i *ast.Ident) string {
 var MapNamesTypes = map[string]types.Type{
 	"bool":    types.I8,
 	"int":     types.I32,
+	"int8":    types.I8,
+	"int32":   types.I32,
 	"int64":   types.I64,
 	"string":  types.I8Ptr,
 	"float32": types.Float,

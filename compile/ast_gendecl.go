@@ -61,6 +61,8 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 				value = f.doCompositeLit(spec.Values[index].(*ast.CompositeLit))
 			case *ast.IndexExpr:
 				value = f.doIndexExpr(spec.Values[index].(*ast.IndexExpr))
+			case *ast.CallExpr:
+				value = f.doCallExpr(spec.Values[index].(*ast.CallExpr))
 			default:
 				fmt.Println("doGenDecl spec.Names not impl")
 			}
