@@ -6,13 +6,17 @@ import (
 )
 
 func dd(a int32) {
-
+	fmt.Println("cccc")
+	a++
+	if a < 5 {
+		fmt.Println("aaaa")
+		dd(a)
+		fmt.Println("bbbb")
+	}
+	fmt.Println("ddddddd")
 }
 
 func TestName(t *testing.T) {
-	b := int32(1236)
-	var a = int8(b)
-	dd(int32(a))
-	fmt.Printf("%d\n", a)
+	dd(0)
 
 }

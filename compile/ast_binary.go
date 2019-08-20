@@ -2,6 +2,7 @@ package compile
 
 import (
 	"fmt"
+	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/enum"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
@@ -11,6 +12,12 @@ import (
 
 func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	block := f.GetCurrentBlock()
+
+	ifS := false
+	var ifBr *ir.Block
+	if expr.Op == token.LAND || expr.Op == token.LOR {
+		ifS = true
+	}
 	//get x
 	var x value.Value
 	var y value.Value
@@ -33,6 +40,9 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		fmt.Println("not impl doBinary")
 	}
 
+	if ifS {
+		ifBr = f.newBlock()
+	}
 	//get y
 	switch expr.Y.(type) {
 	case *ast.Ident:
@@ -49,6 +59,10 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		y = f.doIndexExpr(expr.Y.(*ast.IndexExpr))
 	default:
 		fmt.Println("not impl doBinary")
+	}
+
+	if ifS {
+		f.popBlock()
 	}
 
 	// change x type
@@ -92,6 +106,10 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		return block.NewICmp(enum.IPredSLE, x, y)
 	case token.GEQ: // >=
 		return block.NewICmp(enum.IPredSGE, x, y)
+	case token.LAND:
+		return NewIFValue(x, y, ifBr, token.LAND)
+	case token.LOR:
+		return NewIFValue(x, y, ifBr, token.LOR)
 	default:
 		fmt.Println("not impl doBinary ops")
 	}

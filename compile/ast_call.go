@@ -86,7 +86,6 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	} else { //Custom func
 		in := &buildin.BuildIn{Block: f.GetCurrentBlock()}
 		valueOf := reflect.ValueOf(in)
-		//fmt.Println(valueOf, "aaaaaaaa")
 		name := valueOf.MethodByName(FastCharToLower(id.Name))
 		if name.IsNil() || name.IsZero() {
 			fmt.Println("not buildin", id.Name)

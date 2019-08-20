@@ -18,15 +18,16 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/types.go")
+	bytes, _ := ioutil.ReadFile("test/example.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
 		return
 	}
+
+	ast.Print(fset, f)
 	m := ir.NewModule()
 	doFunc := compile.DoFunc(m, fset)
-	ast.Print(fset, f)
 	for _, value := range f.Decls {
 		switch value.(type) {
 		case *ast.GenDecl:

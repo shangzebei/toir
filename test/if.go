@@ -1,25 +1,59 @@
 package test
 
-func show(a int) {
-	if a > fff() {
-		c := 90
-		if a < 100 {
-			d := 99
-		}
-	} else {
-		d := a
-	}
+import "fmt"
 
-	if true {
+func main() {
+	f2()
+	if1(101)    // yes
+	if1else(12) //yes
+	if3()       //this is true
+	if4And()    //
+	if5()
+}
 
+func f2() {
+	a := 23
+	b := 100
+	if a > 10 || b < 10 {
+		fmt.Printf("this is true\n")
 	}
 }
 
-func fff() int {
-	var i [1]int
-	i[0] = 90
-	if i[0] > 500 {
-		return 66
+func if1(a int) {
+	if a > 100 {
+		fmt.Printf("f2 yes\n")
 	}
-	return 100
+}
+
+func if1else(a int) {
+	if a > 100 {
+		fmt.Printf("yes\n")
+	} else {
+		fmt.Printf("no\n")
+	}
+}
+
+func if3() {
+	a := 23
+	b := 100
+	c := 80
+	if a > 40 || b < 10 || c < 100 {
+		fmt.Printf("this is true\n")
+	}
+}
+
+func if4And() {
+	a := 23
+	b := 100
+	c := 80
+	if a < 40 && b < 101 && c < 100 {
+		fmt.Printf("if4And\n")
+	}
+}
+
+func if5() {
+	var a int
+	if a = 90; a > 50 {
+		fmt.Printf("%d\n", a)
+	}
 }

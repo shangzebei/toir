@@ -83,22 +83,13 @@ func (f *FuncDecl) IdentToValue(id *ast.Ident) value.Value {
 	if id.Obj.Kind == ast.Var {
 		switch id.Obj.Decl.(type) {
 		case *ast.Field:
-			field := id.Obj.Decl.(*ast.Field)
+			//field := id.Obj.Decl.(*ast.Field)
 			fName := id.Name
-			switch GetIdentName(field.Type.(*ast.Ident)) {
-			case "int":
-				return ir.NewParam(fName, types.I32)
-			case "float":
-				return ir.NewParam(fName, types.Float)
-			case "string":
-				return ir.NewParam(fName, types.I8Ptr)
-			default:
-				fmt.Println(fName)
-			}
-		case *ast.ValueSpec: //TODO warn !
+			return f.GetVariable(fName)
+		case *ast.ValueSpec:
 			valueSpec := id.Obj.Decl.(*ast.ValueSpec)
 			return f.doValeSpec(valueSpec)
-		case *ast.AssignStmt: //TODO create new variable
+		case *ast.AssignStmt:
 			variable := f.GetVariable(id.Name)
 			if variable == nil {
 				return f.doAssignStmt(id.Obj.Decl.(*ast.AssignStmt))
@@ -115,7 +106,6 @@ func (f *FuncDecl) IdentToValue(id *ast.Ident) value.Value {
 
 func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
 	name := GetIdentName(spec.Names[0])
-	var kind types.Type
 	for _, value := range spec.Values {
 		switch value.(type) {
 		case ast.Expr:
@@ -125,12 +115,8 @@ func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
 			fmt.Println("no impl doValeSpec")
 		}
 	}
-
-	if spec.Type != nil {
-		kind = f.GetTypeFromName(GetIdentName(spec.Type.(*ast.Ident)))
-	}
 	if len(spec.Values) == 0 {
-		return ir.NewParam(name, kind)
+		return f.GetVariable(name)
 	}
 	fmt.Println("doValeSpec return null")
 	return nil
