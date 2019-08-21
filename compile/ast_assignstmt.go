@@ -10,6 +10,7 @@ import (
 	"go/ast"
 	"go/token"
 	"reflect"
+	"strconv"
 )
 
 func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
@@ -24,11 +25,12 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		case *ast.BinaryExpr:
 			r = append(r, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.Ident: //
+			//f.IdentToValue(value.(*ast.Ident))
 			variable := f.GetVariable(value.(*ast.Ident).Name)
 			if variable == nil {
 				r = append(r, ir.NewParam(value.(*ast.Ident).Name, nil))
 			} else {
-				r = append(r, f.GetVariable(value.(*ast.Ident).Name))
+				r = append(r, variable)
 			}
 		case *ast.BasicLit:
 			toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
@@ -74,8 +76,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 	}
 
 	//check
-	r[0] = f.doCorrect(r[0], l[0].Type())
-	//l[0] = f.doCorrect(l[0], r[0].Type())
+	r[0] = f.doBoolean(r[0], l[0].Type())
 
 	//ops
 	switch assignStmt.Tok {
@@ -121,13 +122,18 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	return f.GetCurrentBlock().NewGetElementPtr(variable, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(def.Order)))
 }
 
-//fix param
-func (f *FuncDecl) doCorrect(v value.Value, tyt types.Type) value.Value {
-	if v.Type() == nil {
-		vName := v.(*ir.Param).Name()
-		nv := f.GetCurrentBlock().NewAlloca(GetRealType(tyt))
-		f.PutVariable(vName, nv)
-		return nv
+//do Boolean
+func (f *FuncDecl) doBoolean(v value.Value, tyt types.Type) value.Value {
+	if p, ok := v.(*ir.Param); ok && IsKeyWord(p.Name()) {
+		parseBool, e := strconv.ParseBool(p.Name())
+		if e != nil {
+			return v
+		}
+		if parseBool {
+			return constant.NewInt(types.I8, 1)
+		} else {
+			return constant.NewInt(types.I8, 0)
+		}
 	}
 	return v
 }

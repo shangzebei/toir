@@ -30,3 +30,7 @@ func tt(a int64) {
 func ff(float322 float32) {
 	fmt.Printf("%f\n", float322)
 }
+
+func b() {
+	a := true
+}

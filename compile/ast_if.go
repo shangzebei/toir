@@ -32,6 +32,7 @@ func (i *IFValue) String() string {
 func (i *IFValue) Ident() string {
 	return i.X.Ident()
 }
+
 func (f *FuncDecl) setOpts(cru *ir.Block, opts *IFValue, ifBodyBlock *ir.Block, elseBlock *ir.Block) {
 	switch opts.Token {
 	case token.LOR:
@@ -50,8 +51,6 @@ func (f *FuncDecl) mulCond(iv *IFValue, ifBodyBlock *ir.Block, elseBlock *ir.Blo
 		f.setOpts(f.GetCurrentBlock(), iv, ifBodyBlock, elseBlock)
 		return iv.Br
 	}
-	//iv.Br.NewCondBr(iv.Y, ifBodyBlock, elseBlock)
-	//ifBodyBlock.NewBr(elseBlock)
 
 }
 

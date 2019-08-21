@@ -1,10 +1,13 @@
 package test
 
-import "fmt"
-
 func main() {
-	var a int
-	if a = 90; a > 50 {
-		fmt.Printf("%d\n", a)
-	}
+	pp := true
+	//fmt.Printf("%d\n",name)
+
+	//var aa int
+	//aa = 90
+	//fmt.Printf("%d", aa)
+
+	//var bb string
+	//bb="asdfasdfasd"
 }

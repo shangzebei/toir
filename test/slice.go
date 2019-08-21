@@ -25,14 +25,6 @@ func main() {
 	//show(a[1])
 }
 
-//func ff(int2 int) {
-//	fmt.Printf("%d\n",int2)
-//}
+func app() {
 
-//func i() int {
-//	return 0
-//}
-
-//func show(a int)  {
-//fmt.Printf("%d\n",a)
-//}
+}

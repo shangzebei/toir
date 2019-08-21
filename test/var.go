@@ -12,8 +12,20 @@ func main() {
 	b := 4
 	var d = 3
 	fmt.Printf("%d-%d=%d\n", b, d, tt)
-	//c := b + d
-	//d = add(b, d)
-	//f := tt
-	//c = a
+}
+
+func varBool() bool {
+	a := 90
+	b := 78
+	c := 12
+	d := a > 1 && b > 50 && c < 50 //ERROR
+	return d
+}
+
+func varBool1() {
+	var name bool
+	name = true
+}
+func varBool2() {
+	b := true
 }

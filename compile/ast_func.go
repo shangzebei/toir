@@ -293,6 +293,10 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 }
 
 func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
+	if IsKeyWord(name) {
+		logrus.Errorf("%d is keyword", name)
+		return
+	}
 	_, ok := f.Variables[f.GetCurrentBlock()]
 	if !ok {
 		f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
