@@ -19,16 +19,19 @@ type StructDef struct {
 }
 
 type FuncDecl struct {
-	m          *ir.Module
-	fset       *token.FileSet
-	Funs       map[string]*ir.Func
-	FuncHeap   *[]*ir.Func
-	GlobDef    map[string]types.Type //for type
-	FuncDecls  map[*ast.FuncDecl]*ir.Func
-	blockHeap  map[*ir.Func][]*ir.Block
-	Variables  map[*ir.Block]map[string]value.Value
+	m         *ir.Module
+	fset      *token.FileSet
+	Funs      map[string]*ir.Func
+	FuncHeap  *[]*ir.Func
+	FuncDecls map[*ast.FuncDecl]*ir.Func
+	blockHeap map[*ir.Func][]*ir.Block
+	//variables
+	Variables map[*ir.Block]map[string]value.Value
+	//struct---
+	GlobDef    map[string]types.Type           //for type
 	StructDefs map[string]map[string]StructDef //for type info
-	Constants  []constant.Constant             //for constant
+	//struct---
+	Constants []constant.Constant //for constant
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {

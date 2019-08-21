@@ -2,7 +2,9 @@ package stdlib
 
 import "github.com/llir/llvm/ir/types"
 
-//declare i32 @printf(i8*, ...)
 var (
+	//i32 @printf(i8*, ...)
 	Printf = VE("printf", types.I32, true, types.I8Ptr)
+	//i8* @malloc(i64 24)
+	Malloc = VE("malloc", types.I8Ptr, false, types.I32)
 )

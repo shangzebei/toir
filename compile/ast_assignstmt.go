@@ -161,7 +161,11 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	switch index.X.(type) {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
-		ptr := f.GetCurrentBlock().NewGetElementPtr(f.GetVariable(ident.Name), constant.NewInt(types.I32, 0), kv)
+		variable := f.GetVariable(ident.Name)
+		if _, ok := variable.(*SliceValue); ok {
+			return f.GetCurrentBlock().NewGetElementPtr(f.GetCurrentBlock().NewLoad(variable), kv)
+		}
+		ptr := f.GetCurrentBlock().NewGetElementPtr(variable, constant.NewInt(types.I32, 0), kv)
 		return ptr
 	default:
 		fmt.Println("no impl index.X")

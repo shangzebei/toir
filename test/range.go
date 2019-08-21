@@ -5,7 +5,7 @@ func main() {
 	a[0] = 90
 	a[1] = 80
 	for key, value := range a {
-		show(key, value)
+		//show(key, value)
 	}
 }
 

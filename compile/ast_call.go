@@ -6,7 +6,6 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
-	"learn/buildin"
 	"learn/stdlib"
 	"reflect"
 	"strings"
@@ -21,10 +20,14 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			ident := value.(*ast.Ident)
 			if ident.Obj.Kind == ast.Var { //constant,Glob,alloa,param
 				variable := f.GetVariable(ident.Name)
-				if _, ok := variable.Type().(*types.PointerType); ok {
-					params = append(params, f.GetCurrentBlock().NewLoad(variable)) //f.GetCurrentBlock().NewLoad(
+				if _, ok := variable.(*SliceValue); ok {
+					params = append(params, variable)
 				} else {
-					params = append(params, variable) //f.GetCurrentBlock().NewLoad(
+					if _, ok := variable.Type().(*types.PointerType); ok {
+						params = append(params, f.GetCurrentBlock().NewLoad(variable)) //f.GetCurrentBlock().NewLoad(
+					} else {
+						params = append(params, variable) //f.GetCurrentBlock().NewLoad(
+					}
 				}
 			}
 		case *ast.BasicLit: //param
@@ -84,13 +87,16 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 		funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
 		return block.NewCall(funDecl, values...)
 	} else { //Custom func
-		in := &buildin.BuildIn{Block: f.GetCurrentBlock()}
-		valueOf := reflect.ValueOf(in)
+		valueOf := reflect.ValueOf(f)
 		name := valueOf.MethodByName(FastCharToLower(id.Name))
 		if name.IsNil() || name.IsZero() {
 			fmt.Println("not buildin", id.Name)
 		}
-		call := name.Call([]reflect.Value{reflect.ValueOf(values[0])})
+		var params []reflect.Value
+		for _, value := range values {
+			params = append(params, reflect.ValueOf(value))
+		}
+		call := name.Call(params)
 		return call[0].Interface().(value.Value)
 	}
 

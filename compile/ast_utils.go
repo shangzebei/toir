@@ -151,7 +151,11 @@ func (f *FuncDecl) convertTypeTo(from value.Value, to types.Type) value.Value {
 	return nil
 }
 
-func (f *FuncDecl) StdCall(v value.Value, args ...value.Value) {
+func (f *FuncDecl) StdCall(v value.Value, args ...value.Value) value.Value {
+	return f.Call(f.GetCurrentBlock(), v, args...)
+}
+
+func (f *FuncDecl) Call(b *ir.Block, v value.Value, args ...value.Value) value.Value {
 	typ := v.Type()
 	if p, ok := v.Type().(*types.PointerType); ok {
 		typ = p.ElemType
@@ -168,10 +172,11 @@ func (f *FuncDecl) StdCall(v value.Value, args ...value.Value) {
 		if !ex {
 			f.m.Funcs = append(f.m.Funcs, v.(*ir.Func))
 		}
-		f.GetCurrentBlock().NewCall(v, args...)
+		return b.NewCall(v, args...)
 	} else {
 		fmt.Println("type error")
 	}
+	return nil
 }
 
 func (f *FuncDecl) Toi8Ptr(src value.Value) *ir.InstGetElementPtr {
@@ -184,6 +189,20 @@ func GetRealType(value2 types.Type) types.Type {
 		typ = t.ElemType
 	}
 	return typ
+}
+
+func GetSliceBytes(arrayType *types.ArrayType) int64 {
+	var l int64
+	switch arrayType.ElemType.(type) {
+	case *types.IntType:
+		intType := arrayType.ElemType.(*types.IntType)
+		l = int64(intType.BitSize / 8)
+	case *types.PointerType:
+		l = int64(1)
+	default:
+		fmt.Println("unkonw types size")
+	}
+	return l * int64(arrayType.Len)
 }
 
 func InitZeroConstant(typ types.Type) constant.Constant {

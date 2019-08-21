@@ -17,6 +17,7 @@ func dd(a int32) {
 }
 
 func TestName(t *testing.T) {
-	dd(0)
+	a := [3]int{1, 2, 3}
+	var b [3]int
 
 }

@@ -2,6 +2,8 @@ package test
 
 import "fmt"
 
+//import "fmt"
+
 func main() {
 	for i := 0; i <= max()+1; i++ {
 		show(i)

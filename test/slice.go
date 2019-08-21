@@ -2,6 +2,7 @@ package test
 
 import "fmt"
 
+// %len|%cap|%offset|%backing
 func main() {
 	//d := 1
 	var b int
