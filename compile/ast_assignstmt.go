@@ -158,6 +158,10 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 		fmt.Println("doIndex not impl")
 	}
 
+	if _, ok := kv.Type().(*types.PointerType); ok {
+		kv = f.GetCurrentBlock().NewLoad(kv)
+	}
+
 	switch index.X.(type) {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
@@ -167,6 +171,8 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 		}
 		ptr := f.GetCurrentBlock().NewGetElementPtr(variable, constant.NewInt(types.I32, 0), kv)
 		return ptr
+	case *ast.CallExpr:
+		return f.doCallExpr(index.X.(*ast.CallExpr))
 	default:
 		fmt.Println("no impl index.X")
 	}

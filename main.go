@@ -9,6 +9,7 @@ import (
 	"go/token"
 	"io/ioutil"
 	"learn/compile"
+	"os/exec"
 )
 
 func init() {
@@ -35,5 +36,24 @@ func main() {
 			doFunc.DoFunDecl(f.Name.Name, value.(*ast.FuncDecl))
 		}
 	}
-	ioutil.WriteFile("bc.llr", []byte(m.String()), 0644)
+	ioutil.WriteFile("bc.ll", []byte(m.String()), 0644)
+
+	outputBinaryPath := "binary"
+
+	clangArgs := []string{
+		"-Wno-override-module", // Disable override target triple warnings
+		"bc.ll",                // Path to LLVM IR
+		"-o", outputBinaryPath, // Output path
+	}
+
+	// Invoke clang compiler to compile LLVM IR to a binary executable
+	cmd := exec.Command("clang", clangArgs...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(string(output))
+	}
+
+	if len(output) > 0 {
+		fmt.Println(string(output))
+	}
 }

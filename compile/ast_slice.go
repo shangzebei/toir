@@ -36,19 +36,18 @@ func NewAllocSlice(block *ir.Block, elemType types.Type) *SliceValue {
 		sliceValue.SPtr = block.NewAlloca(types.NewPointer(t.ElemType))
 		ptr := block.NewGetElementPtr(block.NewAlloca(elemType), constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
 		block.NewStore(ptr, sliceValue.SPtr)
-		sliceValue.initSlice(block)
+		sliceValue.initSlice(block, a)
 		return sliceValue
 	}
 	return nil
 }
 
-func (f *SliceValue) initSlice(block *ir.Block) {
-	f.SInfoValue = block.NewAlloca(types.NewStruct(types.I32, types.I32, types.I32, types.I32))
-	index0 := utils.Index(block, f.SInfoValue, 0)
-	index1 := utils.Index(block, f.SInfoValue, 1)
-	index2 := utils.Index(block, f.SInfoValue, 2)
+func (f *SliceValue) initSlice(block *ir.Block, bytes *types.ArrayType) {
+	f.SInfoValue = block.NewAlloca(types.NewArray(uint64(3), types.I32))
+	index0 := utils.Index(block, f.SInfoValue, 0) //len
+	index1 := utils.Index(block, f.SInfoValue, 1) //cap
+	index2 := utils.Index(block, f.SInfoValue, 2) //bytes
 	block.NewStore(constant.NewInt(types.I32, f.SLen), index0)
 	block.NewStore(constant.NewInt(types.I32, f.SCap), index1)
-	block.NewStore(constant.NewInt(types.I32, f.SOffset), index2)
-	//f.GetCurrentBlock().NewStore(constant.NewInt(types.I32, len), f.Index(alloca, 3))
+	block.NewStore(constant.NewInt(types.I32, GetSliceBytes(bytes)), index2)
 }

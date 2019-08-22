@@ -180,7 +180,11 @@ func (f *FuncDecl) Call(b *ir.Block, v value.Value, args ...value.Value) value.V
 }
 
 func (f *FuncDecl) Toi8Ptr(src value.Value) *ir.InstGetElementPtr {
-	return f.GetCurrentBlock().NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
+	return Toi8Ptr(f.GetCurrentBlock(), src)
+}
+
+func Toi8Ptr(b *ir.Block, src value.Value) *ir.InstGetElementPtr {
+	return b.NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
 }
 
 func GetRealType(value2 types.Type) types.Type {
