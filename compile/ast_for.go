@@ -1,8 +1,8 @@
 package compile
 
 import (
-	"fmt"
 	"github.com/llir/llvm/ir"
+	"github.com/sirupsen/logrus"
 	"go/ast"
 )
 
@@ -17,8 +17,11 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) *ir.Block {
 	case *ast.IncDecStmt:
 		doIncDecStmt := f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
 		addBlock.NewStore(doIncDecStmt, dd)
+	case *ast.AssignStmt:
+		f.doAssignStmt(st.Post.(*ast.AssignStmt))
+		//addBlock.NewStore(assignStmt, dd)
 	default:
-		fmt.Println("doForStmt not impl")
+		logrus.Error("doForStmt not impl")
 	}
 	f.popBlock() //end ADD
 

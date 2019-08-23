@@ -3,7 +3,7 @@ package test
 import "fmt"
 
 func main() {
-	sli3()
+	stringSli()
 }
 
 func sli1() {
@@ -32,5 +32,18 @@ func sli3() {
 		name = append(name, i)
 		fmt.Printf("len-%d cap-%d\n", len(name), cap(name))
 	}
+
+}
+
+func othSli() {
+	var f = []float32{1.0, 2.0, 3.0}
+	f = append(f, 5.355234234)
+	fmt.Printf("%.2g\n", f[3])
+}
+
+func stringSli() {
+	var s = []string{"aaaaa", "bbbbb", "ccccc"}
+	s = append(s, "eeeeee")
+	fmt.Printf("%s\n", s[3])
 
 }

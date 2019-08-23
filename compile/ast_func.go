@@ -18,6 +18,11 @@ type StructDef struct {
 	Typ   types.Type
 }
 
+type KVVariable struct {
+	Key string
+	V   value.Value
+}
+
 type FuncDecl struct {
 	m         *ir.Module
 	fset      *token.FileSet
@@ -156,7 +161,7 @@ func (f *FuncDecl) pop() *ir.Func {
 
 func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 	//ast.Print(f.fset, block)
-	newBlock := f.newBlock()
+	f.newBlock()
 	//copy func param
 	if len(f.GetCurrent().Blocks) == 1 {
 		f.initFuncParam()
@@ -187,19 +192,25 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 				case *ast.BasicLit:
 					basicLit := value.(*ast.BasicLit)
 					f.GetCurrent().Sig.RetType = f.GetTypes(basicLit.Kind)
-					newBlock.NewRet(f.BasicLitToConstant(value.(*ast.BasicLit)))
+					f.GetCurrentBlock().NewRet(f.BasicLitToConstant(value.(*ast.BasicLit)))
 				case *ast.BinaryExpr:
 					binary := f.doBinary(value.(*ast.BinaryExpr))
 					f.GetCurrent().Sig.RetType = binary.Type()
-					newBlock.NewRet(binary)
+					f.GetCurrentBlock().NewRet(binary)
 				case *ast.CallExpr:
 					callExpr := f.doCallExpr(value.(*ast.CallExpr))
 					f.GetCurrent().Sig.RetType = callExpr.Type()
-					newBlock.NewRet(callExpr)
+					f.GetCurrentBlock().NewRet(callExpr)
 				case *ast.Ident:
 					identToValue := f.IdentToValue(value.(*ast.Ident))
-					f.GetCurrent().Sig.RetType = identToValue.Type()
-					newBlock.NewRet(identToValue)
+					if _, ok := identToValue.(*ir.InstAlloca); ok {
+						load := f.GetCurrentBlock().NewLoad(identToValue)
+						f.GetCurrent().Sig.RetType = load.Type()
+						f.GetCurrentBlock().NewRet(load)
+					} else {
+						f.GetCurrent().Sig.RetType = identToValue.Type()
+						f.GetCurrentBlock().NewRet(identToValue)
+					}
 				default:
 					fmt.Println("doBlockStmt return not impl!")
 				}
@@ -227,6 +238,7 @@ func (f *FuncDecl) initFuncParam() {
 	for _, value := range f.GetCurrent().Params {
 		newAlloca := f.GetCurrentBlock().NewAlloca(value.Typ)
 		f.GetCurrentBlock().NewStore(value, newAlloca)
+		logrus.Debugf("put Variable %s", value.Name())
 		f.PutVariable(value.Name(), newAlloca)
 	}
 }
@@ -260,13 +272,6 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
-	//find with param
-	//for _, value := range f.GetCurrent().Params {
-	//	if value.Name() == name {
-	//		return value
-	//	}
-	//}
-
 	//find which glob
 	for _, value := range f.m.Globals {
 		if value.Name() == name {
@@ -275,10 +280,10 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 	}
 
 	//find with block
-	for _, block := range f.blockHeap[f.GetCurrent()] {
+	for _, block := range f.GetCurrent().Blocks {
 		values, ok := f.Variables[block]
 		if !ok {
-			fmt.Println("not find Variable", name)
+			logrus.Debugf("not find Variable %s", name)
 			continue
 		}
 		i, ok := values[name]
@@ -294,11 +299,7 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 		logrus.Errorf("%d is keyword", name)
 		return
 	}
-	_, ok := f.Variables[f.GetCurrentBlock()]
-	if !ok {
-		f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
-	}
-	f.Variables[f.GetCurrentBlock()][name] = value2
+	f.Variables[f.GetCurrentBlock()] = map[string]value.Value{name: value2}
 }
 
 //func (f *FuncDecl) GetFunc(name string) *ir.Func {

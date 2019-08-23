@@ -5,6 +5,7 @@ import (
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
 	"strconv"
@@ -56,13 +57,14 @@ func (f *FuncDecl) mulCond(iv *IFValue, ifBodyBlock *ir.Block, elseBlock *ir.Blo
 
 func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 	//init
-	switch expr.Init.(type) {
-	case *ast.AssignStmt:
-		f.doAssignStmt(expr.Init.(*ast.AssignStmt))
-	default:
-		fmt.Println("expr.Init doIfStmt")
+	if expr.Init != nil {
+		switch expr.Init.(type) {
+		case *ast.AssignStmt:
+			f.doAssignStmt(expr.Init.(*ast.AssignStmt))
+		default:
+			logrus.Debug("expr.Init doIfStmt not impl")
+		}
 	}
-
 	//Cond
 	switch expr.Cond.(type) {
 	case *ast.BinaryExpr:
@@ -86,10 +88,16 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 		} else {
 			f.GetCurrentBlock().NewCondBr(doCond, ifBodyBlock, elseBlock)
 		}
-		f.popBlock() //Close main
-		newBlock := f.newBlock()
-		ifBodyBlock.NewBr(newBlock)
-		elseBlock.NewBr(newBlock)
+		if ifBodyBlock.Term == nil || elseBlock.Term == nil {
+			f.popBlock() //Close main
+			newBlock := f.newBlock()
+			if ifBodyBlock.Term == nil {
+				ifBodyBlock.NewBr(newBlock)
+			}
+			if elseBlock.Term == nil {
+				elseBlock.NewBr(newBlock)
+			}
+		}
 	case *ast.Ident:
 		identName := GetIdentName(expr.Cond.(*ast.Ident))
 		parseBool, _ := strconv.ParseBool(identName)

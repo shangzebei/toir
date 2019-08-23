@@ -55,7 +55,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	switch call.Fun.(type) {
 	case *ast.SelectorExpr:
 		switch GetCallFuncName(call.Fun.(*ast.SelectorExpr)) {
-		case "fmt.Printf":
+		case "fmt.Printf", "external.Printf":
 			f.StdCall(stdlib.Printf, params...)
 		default:
 			fmt.Println("doCallExpr SelectorExpr no impl")
@@ -84,8 +84,12 @@ func (f *FuncDecl) checkAndConvert(funPars []*ir.Param, params []value.Value) []
 func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
 	if id.Obj != nil {
-		funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
-		return block.NewCall(funDecl, values...)
+		if f.GetCurrent().Name() == GetIdentName(id) { //recursion
+			return block.NewCall(f.GetCurrent(), values...)
+		} else {
+			funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
+			return block.NewCall(funDecl, values...)
+		}
 	} else { //Custom func
 		valueOf := reflect.ValueOf(f)
 		name := valueOf.MethodByName(FastCharToLower(id.Name))

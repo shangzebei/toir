@@ -1,10 +1,7 @@
 package test
 
-import "fmt"
-
 func main() {
-	if true {
-		fmt.Printf("cccccccccccccc\n")
+	for i := 0; i < 10; i = i + 1 {
+		external.Printf("%d\n", i)
 	}
-	fmt.Printf("bbbbbbbbbbbbbbbb\n")
 }

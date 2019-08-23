@@ -144,7 +144,7 @@ func (f *FuncDecl) appendSlice(b *ir.Func) *ir.Block {
 
 func (f *FuncDecl) checkAppend(src value.Value, p types.Type) *ir.Func {
 	//int * append_slice(int len,int cap,int * v,int )
-	newFunc := ir.NewFunc("checkAppend"+p.String(),
+	newFunc := ir.NewFunc("checkAppend",
 		types.I8Ptr,
 		ir.NewParam("slice", types.I8Ptr),
 		ir.NewParam("sInfo", types.NewPointer(types.NewArray(uint64(3), types.I32))),
