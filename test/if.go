@@ -5,9 +5,9 @@ import "fmt"
 func main() {
 	if1234()
 	//f2()
-	//if1(101)    // yes
-	//if1else(12) //yes
-	//if3()       //this is true
+	if1(101)    // yes
+	if1else(12) //yes
+	if3()       //this is true
 	//if4And()    //
 	//if5()
 }

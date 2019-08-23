@@ -55,7 +55,8 @@ func (f *FuncDecl) mulCond(iv *IFValue, ifBodyBlock *ir.Block, elseBlock *ir.Blo
 
 }
 
-func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
+func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
+	temp := f.GetCurrentBlock()
 	//init
 	if expr.Init != nil {
 		switch expr.Init.(type) {
@@ -70,10 +71,10 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 	case *ast.BinaryExpr:
 		var elseBlock *ir.Block
 		//if body
-		ifBodyBlock := f.doBlockStmt(expr.Body)
+		ifBodyBlock, _ := f.doBlockStmt(expr.Body)
 		//else block
 		if expr.Else != nil {
-			elseBlock = f.doBlockStmt(expr.Else.(*ast.BlockStmt))
+			elseBlock, _ = f.doBlockStmt(expr.Else.(*ast.BlockStmt))
 		}
 		//empty block
 		if elseBlock == nil {
@@ -86,8 +87,9 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 			c.Br.NewCondBr(doCond, ifBodyBlock, elseBlock) //end
 			f.mulCond(c, ifBodyBlock, elseBlock)
 		} else {
-			f.GetCurrentBlock().NewCondBr(doCond, ifBodyBlock, elseBlock)
+			temp.NewCondBr(doCond, ifBodyBlock, elseBlock)
 		}
+
 		if ifBodyBlock.Term == nil || elseBlock.Term == nil {
 			f.popBlock() //Close main
 			newBlock := f.newBlock()
@@ -98,11 +100,12 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 				elseBlock.NewBr(newBlock)
 			}
 		}
+
 	case *ast.Ident:
 		identName := GetIdentName(expr.Cond.(*ast.Ident))
 		parseBool, _ := strconv.ParseBool(identName)
 		if parseBool {
-			stmt := f.doBlockStmt(expr.Body)
+			_, stmt := f.doBlockStmt(expr.Body)
 			f.GetCurrentBlock().NewBr(stmt)
 			f.popBlock() //close main
 			empty := f.newBlock()
@@ -111,4 +114,5 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 	default:
 		fmt.Println("not impl doIfStmt")
 	}
+	return temp, f.GetCurrentBlock()
 }

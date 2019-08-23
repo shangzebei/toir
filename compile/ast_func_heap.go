@@ -3,6 +3,7 @@ package compile
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
+	"github.com/sirupsen/logrus"
 )
 
 func Push(context *[]*ir.Func, x *ir.Func) bool {
@@ -13,7 +14,7 @@ func Push(context *[]*ir.Func, x *ir.Func) bool {
 		}
 	}
 	*context = append(*context, x)
-	fmt.Println("push Func =================")
+	logrus.Debug("push Func =================")
 	return true
 }
 
@@ -22,6 +23,6 @@ func Pop(context *[]*ir.Func) *ir.Func {
 	n := len(old)
 	x := old[n-1]
 	*context = old[0 : n-1]
-	fmt.Println("pop Func =================")
+	logrus.Debug("pop Func =================")
 	return x
 }

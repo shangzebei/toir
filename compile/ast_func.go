@@ -159,9 +159,12 @@ func (f *FuncDecl) pop() *ir.Func {
 	return Pop(f.FuncHeap)
 }
 
-func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
+//must return start
+func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.Block) {
 	//ast.Print(f.fset, block)
-	f.newBlock()
+	newBlock := f.newBlock()
+	startBlock := newBlock
+	endBlock := newBlock
 	//copy func param
 	if len(f.GetCurrent().Blocks) == 1 {
 		f.initFuncParam()
@@ -182,7 +185,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 				fmt.Println("aaaaaaaaaaa")
 			}
 		case *ast.IfStmt: //if
-			f.doIfStmt(value.(*ast.IfStmt))
+			startBlock, endBlock = f.doIfStmt(value.(*ast.IfStmt))
 		case *ast.ReturnStmt:
 			returnStmt := value.(*ast.ReturnStmt)
 			//ast.Print(f.fset, returnStmt)
@@ -217,7 +220,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 
 			}
 		case *ast.ForStmt:
-			f.doForStmt(value.(*ast.ForStmt))
+			startBlock, endBlock = f.doForStmt(value.(*ast.ForStmt))
 		case *ast.IncDecStmt:
 			f.doIncDecStmt(value.(*ast.IncDecStmt))
 		case *ast.AssignStmt:
@@ -231,7 +234,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 			fmt.Println("doBlockStmt not impl")
 		}
 	}
-	return f.GetCurrentBlock()
+	return startBlock, endBlock
 }
 
 func (f *FuncDecl) initFuncParam() {

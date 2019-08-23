@@ -1,14 +1,14 @@
 package compile
 
 import (
-	"fmt"
 	"github.com/llir/llvm/ir"
+	"github.com/sirupsen/logrus"
 )
 
 /////////////////////////////////////////////////////
 
 func (f *FuncDecl) popBlock() {
-	fmt.Println("pop block ###### ")
+	logrus.Debug("pop block ###### ")
 	blocks := f.blockHeap[f.GetCurrent()]
 	f.blockHeap[f.GetCurrent()] = f.blockHeap[f.GetCurrent()][0 : len(blocks)-1]
 
@@ -17,7 +17,7 @@ func (f *FuncDecl) popBlock() {
 func (f *FuncDecl) newBlock() *ir.Block {
 	//ul := uuid.NewV4()
 	newBlock := f.GetCurrent().NewBlock("")
-	fmt.Println("push block ###### ")
+	logrus.Debug("push block ###### ")
 	f.blockHeap[f.GetCurrent()] = append(f.blockHeap[f.GetCurrent()], newBlock)
 	return newBlock
 }

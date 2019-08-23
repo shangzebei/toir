@@ -6,8 +6,9 @@ import (
 	"go/ast"
 )
 
-func (f *FuncDecl) doForStmt(st *ast.ForStmt) *ir.Block {
+func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 
+	temp := f.GetCurrentBlock()
 	// INIT
 	dd := f.doAssignStmt(st.Init.(*ast.AssignStmt))
 
@@ -19,15 +20,14 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) *ir.Block {
 		addBlock.NewStore(doIncDecStmt, dd)
 	case *ast.AssignStmt:
 		f.doAssignStmt(st.Post.(*ast.AssignStmt))
-		//addBlock.NewStore(assignStmt, dd)
 	default:
 		logrus.Error("doForStmt not impl")
 	}
 	f.popBlock() //end ADD
 
 	//body
-	body := f.doBlockStmt(st.Body)
-	body.NewBr(addBlock)
+	sBody, endBody := f.doBlockStmt(st.Body)
+	endBody.NewBr(addBlock) //end to add
 
 	// COND
 	condBlock := f.newBlock() //---begin
@@ -35,14 +35,14 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) *ir.Block {
 	f.popBlock() //END COND
 	//
 
-	f.GetCurrentBlock().NewBr(condBlock)
+	f.GetCurrentBlock().NewBr(addBlock)
 	f.popBlock() //Close MAIN
 
 	// EMPTY
 	empty := f.newBlock()
-	condBlock.NewCondBr(doBinary, body, empty)
+	condBlock.NewCondBr(doBinary, sBody, empty)
 	//
 	addBlock.NewBr(condBlock)
-	return empty
+	return temp, empty
 
 }
