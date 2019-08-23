@@ -68,10 +68,10 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 	case *ast.BinaryExpr:
 		var elseBlock *ir.Block
 		//if body
-		ifBodyBlock := f.doBlockStmt(nil, expr.Body)
+		ifBodyBlock := f.doBlockStmt(expr.Body)
 		//else block
 		if expr.Else != nil {
-			elseBlock = f.doBlockStmt(nil, expr.Else.(*ast.BlockStmt))
+			elseBlock = f.doBlockStmt(expr.Else.(*ast.BlockStmt))
 		}
 		//empty block
 		if elseBlock == nil {
@@ -86,11 +86,19 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) {
 		} else {
 			f.GetCurrentBlock().NewCondBr(doCond, ifBodyBlock, elseBlock)
 		}
+		f.popBlock() //Close main
+		newBlock := f.newBlock()
+		ifBodyBlock.NewBr(newBlock)
+		elseBlock.NewBr(newBlock)
 	case *ast.Ident:
 		identName := GetIdentName(expr.Cond.(*ast.Ident))
 		parseBool, _ := strconv.ParseBool(identName)
 		if parseBool {
-			f.GetCurrentBlock().NewBr(f.doBlockStmt(nil, expr.Body))
+			stmt := f.doBlockStmt(expr.Body)
+			f.GetCurrentBlock().NewBr(stmt)
+			f.popBlock() //close main
+			empty := f.newBlock()
+			stmt.NewBr(empty)
 		}
 	default:
 		fmt.Println("not impl doIfStmt")

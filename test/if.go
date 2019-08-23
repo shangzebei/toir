@@ -3,12 +3,13 @@ package test
 import "fmt"
 
 func main() {
-	f2()
-	if1(101)    // yes
-	if1else(12) //yes
-	if3()       //this is true
-	if4And()    //
-	if5()
+	if1234()
+	//f2()
+	//if1(101)    // yes
+	//if1else(12) //yes
+	//if3()       //this is true
+	//if4And()    //
+	//if5()
 }
 
 func f2() {
@@ -56,4 +57,16 @@ func if5() {
 	if a = 90; a > 50 {
 		fmt.Printf("%d\n", a)
 	}
+}
+
+func if1234() {
+	a := 190
+	fmt.Printf("aaaaaaaaaaaaaaaa\n")
+	if a > 100 {
+		fmt.Printf("yes\n")
+	} else {
+		fmt.Printf("no\n")
+	}
+	fmt.Printf("bbbbbbbbbbbbbbbb\n")
+
 }

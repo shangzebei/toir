@@ -23,7 +23,8 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) *ir.Block {
 	f.popBlock() //end ADD
 
 	//body
-	body := f.doBlockStmt(addBlock, st.Body)
+	body := f.doBlockStmt(st.Body)
+	body.NewBr(addBlock)
 
 	// COND
 	condBlock := f.newBlock() //---begin

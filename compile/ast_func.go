@@ -129,7 +129,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	f.doFunType(funName, funcType)
 	//func body
 	blockStmt := funDecl.Body
-	f.doBlockStmt(nil, blockStmt)
+	f.doBlockStmt(blockStmt)
 	//body
 	////////////////////////////method end/////////////////////////
 
@@ -154,7 +154,7 @@ func (f *FuncDecl) pop() *ir.Func {
 	return Pop(f.FuncHeap)
 }
 
-func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Block {
+func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) *ir.Block {
 	//ast.Print(f.fset, block)
 	newBlock := f.newBlock()
 	//copy func param
@@ -220,10 +220,7 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 			fmt.Println("doBlockStmt not impl")
 		}
 	}
-	if retblock != nil {
-		f.GetCurrentBlock().NewBr(retblock)
-	}
-	return newBlock
+	return f.GetCurrentBlock()
 }
 
 func (f *FuncDecl) initFuncParam() {
