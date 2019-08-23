@@ -223,9 +223,6 @@ func (f *FuncDecl) doBlockStmt(retblock *ir.Block, block *ast.BlockStmt) *ir.Blo
 	if retblock != nil {
 		f.GetCurrentBlock().NewBr(retblock)
 	}
-	if f.GetCurrentBlock().Term == nil {
-		newBlock.NewRet(nil)
-	}
 	return newBlock
 }
 

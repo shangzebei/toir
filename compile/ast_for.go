@@ -2,10 +2,11 @@ package compile
 
 import (
 	"fmt"
+	"github.com/llir/llvm/ir"
 	"go/ast"
 )
 
-func (f *FuncDecl) doForStmt(st *ast.ForStmt) {
+func (f *FuncDecl) doForStmt(st *ast.ForStmt) *ir.Block {
 
 	// INIT
 	dd := f.doAssignStmt(st.Init.(*ast.AssignStmt))
@@ -19,7 +20,7 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) {
 	default:
 		fmt.Println("doForStmt not impl")
 	}
-	f.popBlock()
+	f.popBlock() //end ADD
 
 	//body
 	body := f.doBlockStmt(addBlock, st.Body)
@@ -27,15 +28,17 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) {
 	// COND
 	condBlock := f.newBlock() //---begin
 	doBinary := f.doBinary(st.Cond.(*ast.BinaryExpr))
-
-	empty := f.newBlock()
-	f.popBlock()
-
-	f.GetCurrentBlock().NewCondBr(doBinary, body, empty)
-	f.popBlock() //---end
+	f.popBlock() //END COND
 	//
-	addBlock.NewBr(condBlock)
 
 	f.GetCurrentBlock().NewBr(condBlock)
+	f.popBlock() //Close MAIN
+
+	// EMPTY
+	empty := f.newBlock()
+	condBlock.NewCondBr(doBinary, body, empty)
+	//
+	addBlock.NewBr(condBlock)
+	return empty
 
 }
