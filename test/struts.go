@@ -19,8 +19,13 @@ func main() {
 	//pp = ad
 
 	show(ad.Age)
+	ad.Show()
 }
 
 func show(a int) {
 	fmt.Printf("%d\n", a)
+}
+
+func (p *Person) Show() {
+	fmt.Printf("asdfasdfasdfsdfsd\n")
 }

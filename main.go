@@ -19,23 +19,31 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/mul_var.go")
+	bytes, _ := ioutil.ReadFile("/Users/shang/GolandProjects/tre/compiler/testdata/struct-method-pointer-receiver.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
 		return
 	}
-	//ast.Print(fset, f)
+	ast.Print(fset, f)
 	m := ir.NewModule()
-	doFunc := compile.DoFunc(m, fset)
+	doFunc := compile.DoFunc(m, fset, "main")
+	var mainF ast.Decl
 	for _, value := range f.Decls {
 		switch value.(type) {
 		case *ast.GenDecl:
 			doFunc.DoGenDecl(value.(*ast.GenDecl))
 		case *ast.FuncDecl:
-			doFunc.DoFunDecl(f.Name.Name, value.(*ast.FuncDecl))
+			if value.(*ast.FuncDecl).Name.Name != "main" {
+				doFunc.DoFunDecl(f.Name.Name, value.(*ast.FuncDecl))
+			} else {
+				mainF = value
+			}
 		}
 	}
+
+	doFunc.DoFunDecl(f.Name.Name, mainF.(*ast.FuncDecl)) //main
+
 	ioutil.WriteFile("bc.ll", []byte(m.String()), 0644)
 
 	outputBinaryPath := "binary"

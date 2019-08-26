@@ -80,7 +80,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	if len(r) != len(l) {
 		if len(r) == 1 && len(l) != 1 {
 			if re, ok := r[0].Type().(*types.StructType); ok && strings.HasSuffix(re.Name(), ".return") { //return
-				for index, _ := range re.Fields {
+				for index := range re.Fields {
 					r = append(r, f.GetCurrentBlock().NewExtractValue(r[0], uint64(index)))
 				}
 			}
@@ -135,6 +135,9 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	variable := f.GetVariable(varName)
 	structDefs := f.StructDefs[doSymbol(variable.Type().String())]
 	def := structDefs[GetIdentName(selectorExpr.Sel)]
+	if _, ok := GetRealType(variable.Type()).(*types.PointerType); ok { //support pointer a.b
+		variable = f.GetCurrentBlock().NewLoad(variable)
+	}
 	return f.GetCurrentBlock().NewGetElementPtr(variable, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(def.Order)))
 }
 

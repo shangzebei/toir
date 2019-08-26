@@ -16,6 +16,7 @@ type StructDef struct {
 	Name  string
 	Order int
 	Typ   types.Type
+	Fun   *ir.Func
 }
 
 type KVVariable struct {
@@ -24,6 +25,7 @@ type KVVariable struct {
 }
 
 type FuncDecl struct {
+	mPackage  string
 	m         *ir.Module
 	fset      *token.FileSet
 	Funs      map[string]*ir.Func
@@ -34,12 +36,12 @@ type FuncDecl struct {
 	Variables map[*ir.Block]map[string]value.Value
 	//struct---
 	GlobDef    map[string]types.Type           //for type
-	StructDefs map[string]map[string]StructDef //for type info
-	//struct---
+	StructDefs map[string]map[string]StructDef //Strut.Field
+	//constant---
 	Constants []constant.Constant //for constant
 }
 
-func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
+func DoFunc(m *ir.Module, fset *token.FileSet, pkg string) *FuncDecl {
 	return &FuncDecl{
 		m:          m,
 		fset:       fset,
@@ -49,6 +51,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet) *FuncDecl {
 		FuncDecls:  make(map[*ast.FuncDecl]*ir.Func),
 		GlobDef:    make(map[string]types.Type),
 		StructDefs: make(map[string]map[string]StructDef),
+		mPackage:   pkg,
 	}
 }
 
@@ -127,8 +130,30 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	}
 	////////////////////////////method begin//////////////////////////////
 	//func name
+	var StructTyp string
 	funName := funDecl.Name.Name
-	Push(f.FuncHeap, f.CreatTempFunc(funName))
+	//deal struct
+	if funDecl.Recv != nil {
+		switch funDecl.Recv.List[0].Type.(type) {
+		case *ast.Ident:
+			StructTyp = GetIdentName(funDecl.Recv.List[0].Type.(*ast.Ident))
+		case *ast.StarExpr:
+			starExpr := funDecl.Recv.List[0].Type.(*ast.StarExpr)
+			StructTyp = GetIdentName(starExpr.X.(*ast.Ident))
+		}
+		funName = f.mPackage + "." + StructTyp + "." + funDecl.Name.Name
+	}
+
+	tempFunc := f.CreatTempFunc(funName)
+	Push(f.FuncHeap, tempFunc)
+
+	//deal struct
+	if funDecl.Recv != nil {
+		varName := GetIdentName(funDecl.Recv.List[0].Names[0])
+		tempFunc.Params = append(tempFunc.Params, ir.NewParam(varName, types.NewPointer(f.GlobDef[StructTyp])))
+		f.StructDefs[StructTyp][funDecl.Name.Name] = StructDef{Name: funDecl.Name.Name, Fun: tempFunc}
+	}
+
 	//func type
 	funcType := funDecl.Type.Params.List
 	f.doFunType(funName, funcType)
@@ -143,6 +168,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	}
 	pop := f.pop()
 	f.FuncDecls[funDecl] = pop
+
 	return pop
 
 }
@@ -279,16 +305,6 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 	f.Variables[f.GetCurrentBlock()][name] = value2
 }
 
-//func (f *FuncDecl) GetFunc(name string) *ir.Func {
-//	for _, value := range f.FuncDecls {
-//		if value.Name() == name {
-//			return value
-//		}
-//	}
-//	fmt.Println("not find func", name)
-//	return nil
-//}
-
 //only for array and struts
 func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	switch lit.Type.(type) {
@@ -312,19 +328,21 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 			}
 			return f.GetCurrentBlock().NewAlloca(i)
 		} else {
-			var s []constant.Constant
-			for key, value := range f.StructDefs[name] {
-				find := false
-				for _, value := range lit.Elts { //
-					keyValueExpr := value.(*ast.KeyValueExpr)
-					if key == GetIdentName(keyValueExpr.Key.(*ast.Ident)) {
-						s = append(s, f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit)))
-						find = true
-						break
+			var s = make([]constant.Constant, getFieldNum(f.StructDefs[name]))
+			for key, v := range f.StructDefs[name] {
+				if v.Fun == nil {
+					find := false
+					for _, value := range lit.Elts { //
+						keyValueExpr := value.(*ast.KeyValueExpr)
+						if key == GetIdentName(keyValueExpr.Key.(*ast.Ident)) {
+							s[v.Order] = f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit))
+							find = true
+							break
+						}
 					}
-				}
-				if !find {
-					s = append(s, InitZeroConstant(value.Typ))
+					if !find {
+						s[v.Order] = InitZeroConstant(v.Typ)
+					}
 				}
 			}
 			def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), constant.NewStruct(s...))
@@ -337,4 +355,14 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		fmt.Println("not impl doCompositeLit")
 	}
 	return nil
+}
+
+func getFieldNum(m map[string]StructDef) int {
+	a := 0
+	for _, value := range m {
+		if value.Fun == nil {
+			a++
+		}
+	}
+	return a
 }

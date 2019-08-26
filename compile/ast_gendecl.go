@@ -110,7 +110,6 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 		var l int64
 		alloca = f.GetCurrentBlock().NewAlloca(GetRealType(kind))
 		structType := kind.(*types.StructType)
-		fmt.Println(structType)
 		for _, value := range structType.Fields {
 			switch value.(type) {
 			case *types.IntType:
