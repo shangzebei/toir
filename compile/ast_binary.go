@@ -24,7 +24,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	switch expr.X.(type) {
 	case *ast.Ident:
 		ident := expr.X.(*ast.Ident)
-		x = f.IdentToValue(ident)
+		x = f.IdentToValue(ident)[0]
 	case *ast.BasicLit:
 		basicLit := expr.X.(*ast.BasicLit)
 		x = f.BasicLitToConstant(basicLit)
@@ -47,7 +47,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	switch expr.Y.(type) {
 	case *ast.Ident:
 		ident := expr.Y.(*ast.Ident)
-		y = f.IdentToValue(ident)
+		y = f.IdentToValue(ident)[0]
 	case *ast.BasicLit:
 		basicLit := expr.Y.(*ast.BasicLit)
 		y = f.BasicLitToConstant(basicLit)

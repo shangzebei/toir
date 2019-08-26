@@ -19,13 +19,13 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/if.go")
+	bytes, _ := ioutil.ReadFile("test/mul_var.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
 		return
 	}
-	ast.Print(fset, f)
+	//ast.Print(fset, f)
 	m := ir.NewModule()
 	doFunc := compile.DoFunc(m, fset)
 	for _, value := range f.Decls {

@@ -188,37 +188,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 			startBlock, endBlock = f.doIfStmt(value.(*ast.IfStmt))
 		case *ast.ReturnStmt:
 			returnStmt := value.(*ast.ReturnStmt)
-			//ast.Print(f.fset, returnStmt)
-			//TODO return 1 value
-			for _, value := range returnStmt.Results {
-				switch value.(type) {
-				case *ast.BasicLit:
-					basicLit := value.(*ast.BasicLit)
-					f.GetCurrent().Sig.RetType = f.GetTypes(basicLit.Kind)
-					f.GetCurrentBlock().NewRet(f.BasicLitToConstant(value.(*ast.BasicLit)))
-				case *ast.BinaryExpr:
-					binary := f.doBinary(value.(*ast.BinaryExpr))
-					f.GetCurrent().Sig.RetType = binary.Type()
-					f.GetCurrentBlock().NewRet(binary)
-				case *ast.CallExpr:
-					callExpr := f.doCallExpr(value.(*ast.CallExpr))
-					f.GetCurrent().Sig.RetType = callExpr.Type()
-					f.GetCurrentBlock().NewRet(callExpr)
-				case *ast.Ident:
-					identToValue := f.IdentToValue(value.(*ast.Ident))
-					if _, ok := identToValue.(*ir.InstAlloca); ok {
-						load := f.GetCurrentBlock().NewLoad(identToValue)
-						f.GetCurrent().Sig.RetType = load.Type()
-						f.GetCurrentBlock().NewRet(load)
-					} else {
-						f.GetCurrent().Sig.RetType = identToValue.Type()
-						f.GetCurrentBlock().NewRet(identToValue)
-					}
-				default:
-					fmt.Println("doBlockStmt return not impl!")
-				}
-
-			}
+			f.doReturnStmt(returnStmt)
 		case *ast.ForStmt:
 			startBlock, endBlock = f.doForStmt(value.(*ast.ForStmt))
 		case *ast.IncDecStmt:
@@ -302,7 +272,11 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 		logrus.Errorf("%d is keyword", name)
 		return
 	}
-	f.Variables[f.GetCurrentBlock()] = map[string]value.Value{name: value2}
+	_, ok := f.Variables[f.GetCurrentBlock()]
+	if !ok {
+		f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
+	}
+	f.Variables[f.GetCurrentBlock()][name] = value2
 }
 
 //func (f *FuncDecl) GetFunc(name string) *ir.Func {

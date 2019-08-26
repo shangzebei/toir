@@ -63,13 +63,14 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 		case *ast.AssignStmt:
 			f.doAssignStmt(expr.Init.(*ast.AssignStmt))
 		default:
-			logrus.Debug("expr.Init doIfStmt not impl")
+			logrus.Error("expr.Init doIfStmt not impl")
 		}
 	}
 	//Cond
 	switch expr.Cond.(type) {
 	case *ast.BinaryExpr:
 		var elseBlock *ir.Block
+		//var endElseBlock *ir.Block
 		//if body
 		ifBodyBlock, _ := f.doBlockStmt(expr.Body)
 		//else block
@@ -89,7 +90,6 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 		} else {
 			temp.NewCondBr(doCond, ifBodyBlock, elseBlock)
 		}
-
 		if ifBodyBlock.Term == nil || elseBlock.Term == nil {
 			f.popBlock() //Close main
 			newBlock := f.newBlock()

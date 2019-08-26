@@ -17,7 +17,7 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 	switch st.Post.(type) {
 	case *ast.IncDecStmt:
 		doIncDecStmt := f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
-		addBlock.NewStore(doIncDecStmt, dd)
+		addBlock.NewStore(doIncDecStmt, dd[0])
 	case *ast.AssignStmt:
 		f.doAssignStmt(st.Post.(*ast.AssignStmt))
 	default:

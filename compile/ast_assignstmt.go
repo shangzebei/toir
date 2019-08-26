@@ -11,9 +11,10 @@ import (
 	"go/token"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
-func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
+func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	//ast.Print(f.fset, assignStmt)
 	//c:=a+b
 	//a+b
@@ -44,7 +45,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		case *ast.SelectorExpr:
 			r = append(r, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
 		default:
-			fmt.Println("not impl assignStmt.Rhs")
+			logrus.Error("not impl assignStmt.Rhs")
 		}
 	}
 	//V
@@ -75,38 +76,53 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) value.Value {
 		}
 	}
 
+	//check return
+	if len(r) != len(l) {
+		if len(r) == 1 && len(l) != 1 {
+			if re, ok := r[0].Type().(*types.StructType); ok && strings.HasSuffix(re.Name(), ".return") { //return
+				for index, _ := range re.Fields {
+					r = append(r, f.GetCurrentBlock().NewExtractValue(r[0], uint64(index)))
+				}
+			}
+		} else {
+			logrus.Error("not common return")
+		}
+	}
 	//check
-	r[0] = f.doBoolean(r[0], l[0].Type())
+	for index, _ := range l {
+		r[index] = f.doBoolean(r[index], l[index].Type())
+	}
 
 	//ops
 	switch assignStmt.Tok {
 	case token.DEFINE: // :=
-		vName := l[0].(*ir.Param).Name()
-		if con, ok := r[0].(constant.Constant); ok {
-			realType := GetRealType(con.Type())
-			switch realType.(type) {
-			case *types.StructType, *types.ArrayType:
-				f.InitValue(vName, realType, r[0])
-			default:
-				newAlloc := f.GetCurrentBlock().NewAlloca(GetRealType(r[0].Type()))
-				f.GetCurrentBlock().NewStore(r[0], newAlloc)
-				f.PutVariable(vName, newAlloc)
+		for lindex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			if con, ok := r[lindex].(constant.Constant); ok {
+				realType := GetRealType(con.Type())
+				switch realType.(type) {
+				case *types.StructType, *types.ArrayType:
+					f.InitValue(vName, realType, r[lindex])
+				default:
+					newAlloc := f.GetCurrentBlock().NewAlloca(GetRealType(r[lindex].Type()))
+					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
+					f.PutVariable(vName, newAlloc)
+				}
+			} else {
+				f.PutVariable(vName, r[lindex])
 			}
-		} else {
-			f.PutVariable(vName, r[0])
 		}
-		return f.GetVariable(vName)
+		return l
 	case token.ASSIGN: // =
-		//TODO
-		if len(r) == 1 {
-			lt, ok := l[0].Type().(*types.PointerType)
-			if ok && !reflect.TypeOf(r[0].Type()).ConvertibleTo(reflect.TypeOf(lt.ElemType)) {
+		for lindex, lvalue := range l {
+			lt, ok := lvalue.Type().(*types.PointerType)
+			if ok && !reflect.TypeOf(r[lindex].Type()).ConvertibleTo(reflect.TypeOf(lt.ElemType)) {
 				//r[0] = f.GetCurrentBlock().NewLoad(r[0])
-				logrus.Warn(l[0].Type(), r[0].Type())
+				logrus.Warn(lvalue.Type(), r[lindex].Type())
 			}
-			f.GetCurrentBlock().NewStore(r[0], l[0])
+			f.GetCurrentBlock().NewStore(r[lindex], lvalue)
 		}
-		return l[0]
+		return l
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}
@@ -147,7 +163,8 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.CallExpr:
 		kv = f.doCallExpr(index.Index.(*ast.CallExpr))
 	case *ast.Ident:
-		kv = f.IdentToValue(index.Index.(*ast.Ident))
+		//index is one
+		kv = f.IdentToValue(index.Index.(*ast.Ident))[0]
 	case *ast.BinaryExpr:
 		kv = f.doBinary(index.Index.(*ast.BinaryExpr))
 	case *ast.IndexExpr:
