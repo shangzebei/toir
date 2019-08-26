@@ -19,13 +19,13 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("/Users/shang/GolandProjects/tre/compiler/testdata/struct-method-pointer-receiver.go")
+	bytes, _ := ioutil.ReadFile("test/slice_append.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
 		return
 	}
-	ast.Print(fset, f)
+	//ast.Print(fset, f)
 	m := ir.NewModule()
 	doFunc := compile.DoFunc(m, fset, "main")
 	var mainF ast.Decl

@@ -96,6 +96,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	//ops
 	switch assignStmt.Tok {
 	case token.DEFINE: // :=
+		var rep []value.Value
 		for lindex, lvalue := range l {
 			vName := lvalue.(*ir.Param).Name()
 			if con, ok := r[lindex].(constant.Constant); ok {
@@ -111,9 +112,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			} else {
 				f.PutVariable(vName, r[lindex])
 			}
+			rep = append(rep, f.GetVariable(vName))
 		}
-		return l
+		return rep
 	case token.ASSIGN: // =
+		var rep []value.Value
 		for lindex, lvalue := range l {
 			lt, ok := lvalue.Type().(*types.PointerType)
 			if ok && !reflect.TypeOf(r[lindex].Type()).ConvertibleTo(reflect.TypeOf(lt.ElemType)) {
@@ -121,8 +124,9 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				logrus.Warn(lvalue.Type(), r[lindex].Type())
 			}
 			f.GetCurrentBlock().NewStore(r[lindex], lvalue)
+			rep = append(rep, lvalue)
 		}
-		return l
+		return rep
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}
