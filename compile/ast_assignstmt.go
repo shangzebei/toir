@@ -44,6 +44,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			r = append(r, f.doCompositeLit(value.(*ast.CompositeLit)))
 		case *ast.SelectorExpr:
 			r = append(r, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
+		case *ast.UnaryExpr:
+			r = append(r, f.doUnaryExpr(value.(*ast.UnaryExpr)))
 		default:
 			logrus.Error("not impl assignStmt.Rhs")
 		}
@@ -110,7 +112,9 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 					f.PutVariable(vName, newAlloc)
 				}
 			} else {
-				f.PutVariable(vName, r[lindex])
+				newAlloc := f.GetCurrentBlock().NewAlloca(r[lindex].Type())
+				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
+				f.PutVariable(vName, newAlloc)
 			}
 			rep = append(rep, f.GetVariable(vName))
 		}

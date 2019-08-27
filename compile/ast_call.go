@@ -48,6 +48,8 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.CompositeLit:
 			//TODO
 			params = append(params, f.doCompositeLit(value.(*ast.CompositeLit)))
+		case *ast.StarExpr:
+			params = append(params, f.GetCurrentBlock().NewLoad(f.doStartExpr(value.(*ast.StarExpr))))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}

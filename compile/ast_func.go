@@ -85,7 +85,11 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	variable := f.GetVariable(name)
 	switch unaryExpr.Op {
 	case token.AND:
-		return variable
+		if _, ok := variable.(*ir.InstAlloca); ok {
+			return variable
+		} else {
+			return f.Toi8Ptr(variable)
+		}
 	default:
 		fmt.Println("doUnaryExpr not impl")
 	}
@@ -95,9 +99,13 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 
 //*
 func (f *FuncDecl) doStartExpr(x *ast.StarExpr) value.Value {
-	if x.X.(*ast.Ident).Obj == nil { //func param
-		return ir.NewParam("", types.NewPointer(f.GetTypeFromName(GetIdentName(x.X.(*ast.Ident)))))
-	} else {
+	switch x.X.(type) {
+	case *ast.Ident:
+		variable := f.GetVariable(GetIdentName(x.X.(*ast.Ident)))
+		return f.GetCurrentBlock().NewLoad(variable)
+	case *ast.StarExpr:
+		return f.GetCurrentBlock().NewLoad(f.doStartExpr(x.X.(*ast.StarExpr)))
+	default:
 		name := GetIdentName(x.X.(*ast.Ident))
 		if p := f.GetVariable(name); p != nil {
 			return f.GetCurrentBlock().NewLoad(p)
@@ -105,7 +113,6 @@ func (f *FuncDecl) doStartExpr(x *ast.StarExpr) value.Value {
 			fmt.Println("not find in doStartExpr")
 		}
 	}
-	fmt.Println("not impl doStartExpr")
 	return nil
 }
 
