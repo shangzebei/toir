@@ -204,9 +204,7 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		load := f.GetCurrentBlock().NewLoad(f.GetPSlice(variable))
-		ptr := f.GetCurrentBlock().NewGetElementPtr(load, kv)
-		return ptr
+		return f.GetSliceIndex(variable, kv)
 	case *ast.CallExpr:
 		return f.doCallExpr(index.X.(*ast.CallExpr))
 	default:

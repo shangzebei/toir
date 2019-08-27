@@ -11,7 +11,8 @@ import (
 )
 
 type SliceArray struct {
-	p value.Value
+	p   value.Value
+	emt types.Type
 }
 
 func (i *SliceArray) Type() types.Type {
@@ -26,20 +27,28 @@ func (i *SliceArray) Ident() string {
 	return i.p.Ident()
 }
 
+var stTypeDef types.Type
+
 func (f *FuncDecl) NewAllocSlice(block *ir.Block, elemType types.Type) value.Value {
 	if t, ok := elemType.(*types.ArrayType); ok {
 		//len,cap,elem bytes,ptr//TODO
-		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".slice", types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(t.ElemType)))
-		alloca := f.GetCurrentBlock().NewAlloca(newTypeDef)
+		if stTypeDef == nil {
+			stTypeDef = f.m.NewTypeDef("slice", types.NewStruct(types.I32, types.I32, types.I32, types.I8Ptr))
+		}
+		alloca := f.GetCurrentBlock().NewAlloca(stTypeDef)
 		alloca.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)))
 		array := f.ToPtr(f.GetCurrentBlock().NewAlloca(t))
-		f.GetCurrentBlock().NewStore(array, f.GetPSlice(alloca))
-		f.GetCurrentBlock().NewStore(constant.NewInt(types.I32, GetSliceBytes(t)), f.GetPBytes(alloca))
+		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(array, types.I8Ptr), f.GetPSlice(alloca))
+		f.GetCurrentBlock().NewStore(constant.NewInt(types.I32, GetSliceEMBytes(t)), f.GetPBytes(alloca))
 		f.SetLen(alloca, constant.NewInt(types.I32, int64(t.Len)))
 		f.SetCap(alloca, constant.NewInt(types.I32, int64(t.Len)))
-		return &SliceArray{p: alloca}
+		return &SliceArray{p: alloca, emt: t.ElemType}
 	}
 	return nil
+}
+
+func (f *FuncDecl) GetSliceDef() types.Type {
+	return stTypeDef
 }
 
 func (f *FuncDecl) IsSlice(v value.Value) bool {
@@ -52,9 +61,11 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 	return false
 }
 
-func (f *FuncDecl) GetSliceIndex(v value.Value, index int) value.Value {
+func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
+	t, _ := v.(*SliceArray)
 	load := f.GetCurrentBlock().NewLoad(f.GetPSlice(v))
-	return f.GetCurrentBlock().NewExtractValue(load, uint64(index))
+	cast := f.GetCurrentBlock().NewBitCast(load, types.NewPointer(t.emt))
+	return f.GetCurrentBlock().NewGetElementPtr(cast, index)
 }
 
 func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
@@ -71,6 +82,14 @@ func (f *FuncDecl) GetPCap(v value.Value) value.Value {
 
 func (f *FuncDecl) SetLen(slice value.Value, v value.Value) {
 	f.GetCurrentBlock().NewStore(v, f.GetPLen(slice))
+}
+
+func (f *FuncDecl) GetLen(slice value.Value) value.Value {
+	return f.GetCurrentBlock().NewExtractValue(slice, 0)
+}
+
+func (f *FuncDecl) GetCap(slice value.Value) value.Value {
+	return f.GetCurrentBlock().NewExtractValue(slice, 1)
 }
 
 func (f *FuncDecl) SetCap(slice value.Value, v value.Value) {

@@ -3,14 +3,15 @@ package test
 import "fmt"
 
 func main() {
-	a := []int64{1, 2, 3}
+	a := []int64{1, 2, 8}
 	// a = len(3) cap(3) 1 2 3
 	//fmt.Printf("%d\n",a[1])
 	//b:=a[3]
-	fmt.Printf("a = len(%d) cap(%d) %d %d %d\n", len(a), cap(a), a[0], a[1], a[2])
+	//fmt.Printf("a = len(%d) cap(%d) %d %d %d\n", len(a), cap(a), a[0], a[1], a[2])
 	//
 	//// a = len(4) cap(6) 1 2 3 4
 	a = append(a, 4)
+
 	fmt.Printf("a = len(%d) cap(%d) %d %d %d %d\n", len(a), cap(a), a[0], a[1], a[2], a[3])
 	//////
 	//////// a = len(5) cap(6) 1 2 3 4 5000
