@@ -20,7 +20,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			ident := value.(*ast.Ident)
 			if ident.Obj.Kind == ast.Var { //constant,Glob,alloa,param
 				variable := f.GetVariable(ident.Name)
-				if _, ok := variable.(*SliceValue); ok {
+				if f.IsSlice(variable) {
 					params = append(params, variable)
 				} else {
 					if _, ok := variable.Type().(*types.PointerType); ok {

@@ -9,7 +9,7 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"learn/llvm"
 	"learn/stdlib"
-	"learn/utils"
+	"strconv"
 )
 
 func (f *FuncDecl) IntType(value2 value.Value, typ types.Type) value.Value {
@@ -64,19 +64,11 @@ func (f *FuncDecl) Float64(value2 value.Value) value.Value {
 
 //////////////////slice////////////////////
 func (f *FuncDecl) Len(value2 value.Value) value.Value {
-	if s, ok := value2.(*SliceValue); ok {
-		extractValue := f.GetCurrentBlock().NewExtractValue(f.GetCurrentBlock().NewLoad(s.SInfoValue), 0)
-		return extractValue
-	}
-	return nil
+	return f.GetCurrentBlock().NewLoad(f.GetPLen(value2))
 }
 
 func (f *FuncDecl) Cap(value2 value.Value) value.Value {
-	if s, ok := value2.(*SliceValue); ok {
-		extractValue := f.GetCurrentBlock().NewExtractValue(f.GetCurrentBlock().NewLoad(s.SInfoValue), 1)
-		return extractValue
-	}
-	return nil
+	return f.GetCurrentBlock().NewLoad(f.GetPCap(value2))
 }
 
 //func copy(dst, src []Type) int
@@ -88,22 +80,33 @@ func (f *FuncDecl) Copy(dst value.Value, src value.Value) value.Value {
 		constant.NewBool(false))
 }
 
+func (f *FuncDecl) NewType(tp types.Type) value.Value {
+	switch tp.(type) {
+	case *types.ArrayType:
+		return f.NewAllocSlice(f.GetCurrentBlock(), tp)
+	default:
+		return f.GetCurrentBlock().NewAlloca(tp)
+	}
+}
+
 func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value {
-	if s, ok := value2.(*SliceValue); ok {
+	if f.IsSlice(value2) {
 		//malloc
 		src := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(value2), types.I8Ptr)
 		call := f.StdCall(
 			f.checkAppend(value2, types.I32),
 			src,
-			s.SInfoValue,
 		)
-		instBitCast := f.GetCurrentBlock().NewBitCast(call, GetRealType(value2.Type()))
+		realType := GetRealType(value2.Type())
+		instBitCast := f.GetCurrentBlock().NewBitCast(call, realType)
+
+		instBitCast.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)) + "." + doSymbol(realType.String()))
 		//append
-		len := f.Len(value2)
+		lenPtr := f.GetPLen(value2)
+		len := f.GetCurrentBlock().NewLoad(lenPtr)
 		ptr := f.GetCurrentBlock().NewGetElementPtr(instBitCast, len)
 		f.GetCurrentBlock().NewStore(elems[0], ptr)
 		//store len
-		lenPtr := utils.Index(f.GetCurrentBlock(), s.SInfoValue, 0) //len
 		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewAdd(len, constant.NewInt(types.I32, 1)), lenPtr)
 		return instBitCast
 	}
@@ -112,21 +115,19 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 
 func (f *FuncDecl) newSlice(b *ir.Func) *ir.Block {
 	block := b.NewBlock("")
-	sPInfo := ir.NewParam("sInfo", types.NewPointer(types.NewArray(uint64(3), types.I32)))
-	len := utils.Index(block, sPInfo, 0)   //len
-	cap := utils.Index(block, sPInfo, 1)   //cap
-	bytes := utils.Index(block, sPInfo, 2) //bytes
+	slice := ir.NewParam("slice", types.I8Ptr) //slice ptr
+	len := f.GetPLen(slice)                    //len
+	cap := f.GetPCap(slice)                    //cap
 	vlen := block.NewLoad(len)
 	vcap := block.NewLoad(cap)
-	vbytes := block.NewLoad(bytes)
+	vbytes := f.GetBytes(slice) //bytes
 	vcapAddLen := block.NewAdd(vcap, constant.NewInt(types.I32, 4))
-
 	dst := f.Call(block, stdlib.Malloc, block.NewMul(vcapAddLen, vbytes)) //i8* ptr
 
 	f.Call(block,
 		llvm.Mencpy,
-		dst,                               //block.NewLoad(malloc),
-		ir.NewParam("slice", types.I8Ptr), //block.NewLoad(alloca),
+		dst, //block.NewLoad(malloc),
+		f.GetPSlice(ir.NewParam("slice", types.I8Ptr)),
 		block.NewMul(vlen, vbytes),
 		constant.NewBool(false),
 	)
@@ -147,7 +148,6 @@ func (f *FuncDecl) checkAppend(src value.Value, p types.Type) *ir.Func {
 	newFunc := ir.NewFunc("checkAppend",
 		types.I8Ptr,
 		ir.NewParam("slice", types.I8Ptr),
-		ir.NewParam("sInfo", types.NewPointer(types.NewArray(uint64(3), types.I32))),
 	)
 	newBlock := newFunc.NewBlock("")
 	sPInfo := ir.NewParam("sInfo", types.NewPointer(types.NewArray(uint64(3), types.I32)))

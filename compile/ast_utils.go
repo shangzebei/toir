@@ -30,6 +30,11 @@ var MapNamesTypes = map[string]types.Type{
 	"string":  types.I8Ptr,
 	"float32": types.Float,
 	"float64": types.Float,
+	"i8":      types.I8,
+	"i32":     types.I32,
+	"i64":     types.I64,
+	"i8*":     types.I8Ptr,
+	"float":   types.Float,
 }
 
 func (f *FuncDecl) GetTypes(typ token.Token) types.Type {
@@ -179,7 +184,7 @@ func (f *FuncDecl) Call(b *ir.Block, v value.Value, args ...value.Value) value.V
 	return nil
 }
 
-func (f *FuncDecl) Toi8Ptr(src value.Value) *ir.InstGetElementPtr {
+func (f *FuncDecl) ToPtr(src value.Value) *ir.InstGetElementPtr {
 	return Toi8Ptr(f.GetCurrentBlock(), src)
 }
 
@@ -196,17 +201,21 @@ func GetRealType(value2 types.Type) types.Type {
 }
 
 func GetSliceBytes(arrayType *types.ArrayType) int64 {
+	return GetSliceEMBytes(arrayType) * int64(arrayType.Len)
+}
+
+func GetSliceEMBytes(arrayType *types.ArrayType) int64 {
 	var l int64
 	switch arrayType.ElemType.(type) {
 	case *types.IntType:
 		intType := arrayType.ElemType.(*types.IntType)
 		l = int64(intType.BitSize / 8)
 	case *types.PointerType:
-		l = int64(1)
+		l = int64(8)
 	default:
 		fmt.Println("unkonw types size")
 	}
-	return l * int64(arrayType.Len)
+	return l
 }
 
 func InitZeroConstant(typ types.Type) constant.Constant {

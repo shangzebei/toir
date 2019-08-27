@@ -88,7 +88,7 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 		if _, ok := variable.(*ir.InstAlloca); ok {
 			return variable
 		} else {
-			return f.Toi8Ptr(variable)
+			return f.ToPtr(variable)
 		}
 	default:
 		fmt.Println("doUnaryExpr not impl")

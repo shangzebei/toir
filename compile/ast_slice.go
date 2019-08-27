@@ -6,48 +6,80 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"learn/utils"
+	"strconv"
+	"strings"
 )
 
-type SliceValue struct {
-	SPtr       value.Value
-	SInfoValue value.Value
-	SLen       int64
-	SCap       int64
-	SOffset    int64
-	ID         int
+type SliceArray struct {
+	p value.Value
 }
 
-func (i *SliceValue) Type() types.Type {
-	return i.SPtr.Type()
+func (i *SliceArray) Type() types.Type {
+	return i.p.Type()
 }
 
-func (i *SliceValue) String() string {
-	return i.SPtr.String()
+func (i *SliceArray) String() string {
+	return i.p.String()
 }
 
-func (i *SliceValue) Ident() string {
-	return i.SPtr.Ident()
+func (i *SliceArray) Ident() string {
+	return i.p.Ident()
 }
 
-func NewAllocSlice(block *ir.Block, elemType types.Type) *SliceValue {
-	if a, ok := elemType.(*types.ArrayType); ok {
-		sliceValue := &SliceValue{SLen: int64(a.Len), SCap: int64(a.Len)}
-		t := elemType.(*types.ArrayType)
-		sliceValue.SPtr = block.NewAlloca(types.NewPointer(t.ElemType))
-		ptr := block.NewGetElementPtr(block.NewAlloca(elemType), constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
-		block.NewStore(ptr, sliceValue.SPtr)
-		sliceValue.initSlice(block, a)
-		return sliceValue
+func (f *FuncDecl) NewAllocSlice(block *ir.Block, elemType types.Type) value.Value {
+	if t, ok := elemType.(*types.ArrayType); ok {
+		//len,cap,elem bytes,ptr//TODO
+		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".slice", types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(t.ElemType)))
+		alloca := f.GetCurrentBlock().NewAlloca(newTypeDef)
+		alloca.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)))
+		array := f.ToPtr(f.GetCurrentBlock().NewAlloca(t))
+		f.GetCurrentBlock().NewStore(array, f.GetPSlice(alloca))
+		f.GetCurrentBlock().NewStore(constant.NewInt(types.I32, GetSliceBytes(t)), f.GetPBytes(alloca))
+		f.SetLen(alloca, constant.NewInt(types.I32, int64(t.Len)))
+		f.SetCap(alloca, constant.NewInt(types.I32, int64(t.Len)))
+		return &SliceArray{p: alloca}
 	}
 	return nil
 }
 
-func (f *SliceValue) initSlice(block *ir.Block, bytes *types.ArrayType) {
-	f.SInfoValue = block.NewAlloca(types.NewArray(uint64(3), types.I32))
-	index0 := utils.Index(block, f.SInfoValue, 0) //len
-	index1 := utils.Index(block, f.SInfoValue, 1) //cap
-	index2 := utils.Index(block, f.SInfoValue, 2) //bytes
-	block.NewStore(constant.NewInt(types.I32, f.SLen), index0)
-	block.NewStore(constant.NewInt(types.I32, f.SCap), index1)
-	block.NewStore(constant.NewInt(types.I32, GetSliceBytes(bytes)), index2)
+func (f *FuncDecl) IsSlice(v value.Value) bool {
+	if bit, ok := v.(*ir.InstBitCast); ok && strings.HasPrefix(bit.Name(), "array.") {
+		return true
+	}
+	if _, ok := v.(*SliceArray); ok {
+		return true
+	}
+	return false
+}
+
+func (f *FuncDecl) GetSliceIndex(v value.Value, index int) value.Value {
+	load := f.GetCurrentBlock().NewLoad(f.GetPSlice(v))
+	return f.GetCurrentBlock().NewExtractValue(load, uint64(index))
+}
+
+func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
+	return utils.Index(f.GetCurrentBlock(), v, 3)
+}
+
+func (f *FuncDecl) GetPLen(v value.Value) value.Value {
+	return utils.Index(f.GetCurrentBlock(), v, 0)
+}
+
+func (f *FuncDecl) GetPCap(v value.Value) value.Value {
+	return utils.Index(f.GetCurrentBlock(), v, 1)
+}
+
+func (f *FuncDecl) SetLen(slice value.Value, v value.Value) {
+	f.GetCurrentBlock().NewStore(v, f.GetPLen(slice))
+}
+
+func (f *FuncDecl) SetCap(slice value.Value, v value.Value) {
+	f.GetCurrentBlock().NewStore(v, f.GetPCap(slice))
+}
+
+func (f *FuncDecl) GetBytes(v value.Value) value.Value {
+	return f.GetCurrentBlock().NewLoad(f.GetPBytes(v))
+}
+func (f *FuncDecl) GetPBytes(v value.Value) value.Value {
+	return utils.Index(f.GetCurrentBlock(), v, 2)
 }

@@ -85,18 +85,9 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 			if value != nil {
 				f.InitValue(name.Name, kind, value)
 			} else {
-				f.PutVariable(name.Name, f.New(kind))
+				f.PutVariable(name.Name, f.NewType(kind))
 			}
 		}
-	}
-}
-
-func (f *FuncDecl) New(tp types.Type) value.Value {
-	switch tp.(type) {
-	case *types.ArrayType:
-		return NewAllocSlice(f.GetCurrentBlock(), tp)
-	default:
-		return f.GetCurrentBlock()
 	}
 }
 
@@ -108,20 +99,20 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 	}
 	switch kind.(type) {
 	case *types.ArrayType:
-		sliceValue := f.New(GetRealType(kind))
+		sliceValue := f.NewType(GetRealType(kind))
 		alloca = sliceValue
 		arrayType := kind.(*types.ArrayType)
 		bytes := GetSliceBytes(arrayType)
 		f.StdCall(
 			llvm.Mencpy,
-			f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(alloca), types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(f.GetPSlice(alloca)), types.I8Ptr),
 			f.GetCurrentBlock().NewBitCast(value2, types.I8Ptr),
 			constant.NewInt(types.I32, bytes),
 			constant.NewBool(false),
 		)
 	case *types.StructType:
 		var l int64
-		alloca = f.New(GetRealType(kind))
+		alloca = f.NewType(GetRealType(kind))
 		structType := kind.(*types.StructType)
 		for _, value := range structType.Fields {
 			switch value.(type) {
@@ -142,10 +133,10 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 			constant.NewBool(false),
 		)
 	case *types.IntType:
-		alloca = f.New(GetRealType(kind))
+		alloca = f.NewType(GetRealType(kind))
 		f.GetCurrentBlock().NewStore(value2, alloca)
 	default:
-		alloca = f.New(GetRealType(kind))
+		alloca = f.NewType(GetRealType(kind))
 		fmt.Println("not find types")
 	}
 	f.PutVariable(name, alloca)

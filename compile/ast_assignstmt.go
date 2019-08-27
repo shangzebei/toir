@@ -108,16 +108,27 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				case *types.StructType, *types.ArrayType:
 					f.InitValue(vName, realType, r[lindex])
 				default:
-					newAlloc := f.GetCurrentBlock().NewAlloca(GetRealType(r[lindex].Type()))
+					newAlloc := f.NewType(GetRealType(r[lindex].Type()))
 					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
 					f.PutVariable(vName, newAlloc)
 				}
+				rep = append(rep, f.GetVariable(vName))
+				return rep
 			} else {
-				newAlloc := f.GetCurrentBlock().NewAlloca(r[lindex].Type())
+				newAlloc := f.NewType(r[lindex].Type())
 				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
 				f.PutVariable(vName, newAlloc)
+				rep = append(rep, f.GetVariable(vName))
+				return rep
 			}
-			rep = append(rep, f.GetVariable(vName))
+			//if et, ok := f.isSlice(r[lindex]); ok {
+			//	newAlloc := f.New(r[lindex])
+			//	f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
+			//	f.PutVariable(vName, newAlloc)
+			//	rep = append(rep, f.GetVariable(vName))
+			//	return rep
+			//}
+
 		}
 		return rep
 	case token.ASSIGN: // =
@@ -193,10 +204,8 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		if _, ok := variable.(*SliceValue); ok {
-			return f.GetCurrentBlock().NewGetElementPtr(f.GetCurrentBlock().NewLoad(variable), kv)
-		}
-		ptr := f.GetCurrentBlock().NewGetElementPtr(variable, constant.NewInt(types.I32, 0), kv)
+		load := f.GetCurrentBlock().NewLoad(f.GetPSlice(variable))
+		ptr := f.GetCurrentBlock().NewGetElementPtr(load, kv)
 		return ptr
 	case *ast.CallExpr:
 		return f.doCallExpr(index.X.(*ast.CallExpr))
