@@ -9,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -46,6 +45,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			r = append(r, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
 		case *ast.UnaryExpr:
 			r = append(r, f.doUnaryExpr(value.(*ast.UnaryExpr)))
+		case *ast.StarExpr:
+			r = append(r, f.GetCurrentBlock().NewLoad(f.doStartExpr(value.(*ast.StarExpr))))
 		default:
 			logrus.Error("not impl assignStmt.Rhs")
 		}
@@ -121,13 +122,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		return rep
 	case token.ASSIGN: // =
 		var rep []value.Value
-		for lindex, lvalue := range l {
-			lt, ok := lvalue.Type().(*types.PointerType)
-			if ok && !reflect.TypeOf(r[lindex].Type()).ConvertibleTo(reflect.TypeOf(lt.ElemType)) {
-				//r[0] = f.GetCurrentBlock().NewLoad(r[0])
-				logrus.Warn(lvalue.Type(), r[lindex].Type())
+		for lIndex, lvalue := range l {
+			if ri, ok := r[lIndex].(*ir.InstAlloca); ok {
+				r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
 			}
-			f.GetCurrentBlock().NewStore(r[lindex], lvalue)
+			f.GetCurrentBlock().NewStore(r[lIndex], lvalue)
 			rep = append(rep, lvalue)
 		}
 		return rep

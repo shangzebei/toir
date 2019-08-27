@@ -17,5 +17,7 @@ func dd(a int32) {
 }
 
 func TestName(t *testing.T) {
-
+	var arr []int
+	fmt.Printf("%d\n", len(arr)) // 0
+	fmt.Printf("%d\n", cap(arr)) // 2
 }

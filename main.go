@@ -19,7 +19,7 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/pointer-pointer.go")
+	bytes, _ := ioutil.ReadFile("/Users/shang/GolandProjects/tre/compiler/testdata/slice-append.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error

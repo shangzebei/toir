@@ -40,9 +40,13 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 			kind = f.GetTypeFromName(spec.Type.(*ast.Ident).Name)
 		case *ast.ArrayType:
 			arrayType := spec.Type.(*ast.ArrayType)
-			toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
-			len, _ := strconv.Atoi(toConstant.Ident())
-			kind = types.NewArray(uint64(len), toConstant.Type())
+			if arrayType.Len == nil {
+				kind = types.NewArray(0, f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident))))
+			} else {
+				toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
+				len, _ := strconv.Atoi(toConstant.Ident())
+				kind = types.NewArray(uint64(len), toConstant.Type())
+			}
 		default:
 			fmt.Println("not impl DoGenDecl")
 		}
@@ -81,9 +85,18 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 			if value != nil {
 				f.InitValue(name.Name, kind, value)
 			} else {
-				f.PutVariable(name.Name, f.GetCurrentBlock().NewAlloca(kind))
+				f.PutVariable(name.Name, f.New(kind))
 			}
 		}
+	}
+}
+
+func (f *FuncDecl) New(tp types.Type) value.Value {
+	switch tp.(type) {
+	case *types.ArrayType:
+		return NewAllocSlice(f.GetCurrentBlock(), tp)
+	default:
+		return f.GetCurrentBlock()
 	}
 }
 
@@ -95,7 +108,7 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 	}
 	switch kind.(type) {
 	case *types.ArrayType:
-		sliceValue := NewAllocSlice(f.GetCurrentBlock(), GetRealType(kind))
+		sliceValue := f.New(GetRealType(kind))
 		alloca = sliceValue
 		arrayType := kind.(*types.ArrayType)
 		bytes := GetSliceBytes(arrayType)
@@ -108,7 +121,7 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 		)
 	case *types.StructType:
 		var l int64
-		alloca = f.GetCurrentBlock().NewAlloca(GetRealType(kind))
+		alloca = f.New(GetRealType(kind))
 		structType := kind.(*types.StructType)
 		for _, value := range structType.Fields {
 			switch value.(type) {
@@ -129,10 +142,10 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 			constant.NewBool(false),
 		)
 	case *types.IntType:
-		alloca = f.GetCurrentBlock().NewAlloca(GetRealType(kind))
+		alloca = f.New(GetRealType(kind))
 		f.GetCurrentBlock().NewStore(value2, alloca)
 	default:
-		alloca = f.GetCurrentBlock().NewAlloca(GetRealType(kind))
+		alloca = f.New(GetRealType(kind))
 		fmt.Println("not find types")
 	}
 	f.PutVariable(name, alloca)

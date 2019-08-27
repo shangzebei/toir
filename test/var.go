@@ -14,18 +14,19 @@ func main() {
 	fmt.Printf("%d-%d=%d\n", b, d, tt)
 }
 
-func varBool() bool {
-	a := 90
-	b := 78
-	c := 12
-	d := a > 1 && b > 50 && c < 50 //ERROR
-	return d
-}
+//func varBool() bool {
+//	a := 90
+//	b := 78
+//	c := 12
+//	d := a > 1 && b > 50 && c < 50 //ERROR
+//	return d
+//}
 
 func varBool1() {
 	var name bool
 	name = true
 }
+
 func varBool2() {
 	b := true
 }
