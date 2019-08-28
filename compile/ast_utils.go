@@ -50,9 +50,11 @@ func (f *FuncDecl) GetTypes(typ token.Token) types.Type {
 }
 
 func (f *FuncDecl) GetTypeFromName(name string) types.Type {
+	//base types
 	if v, ok := MapNamesTypes[strings.ToLower(name)]; ok {
 		return v
 	}
+	//Glob ver
 	if g, ok := f.GlobDef[name]; ok {
 		return g
 	}
@@ -201,17 +203,17 @@ func GetRealType(value2 types.Type) types.Type {
 }
 
 func GetSliceBytes(arrayType *types.ArrayType) int64 {
-	return GetSliceEMBytes(arrayType) * int64(arrayType.Len)
+	return int64(GetBytes(arrayType.ElemType)) * int64(arrayType.Len)
 }
 
-func GetSliceEMBytes(arrayType *types.ArrayType) int64 {
-	var l int64
-	switch arrayType.ElemType.(type) {
+func GetBytes(typ types.Type) int {
+	var l int
+	switch typ.(type) {
 	case *types.IntType:
-		intType := arrayType.ElemType.(*types.IntType)
-		l = int64(intType.BitSize / 8)
+		intType := typ.(*types.IntType)
+		l = int(intType.BitSize / 8)
 	case *types.PointerType:
-		l = int64(8)
+		l = 8
 	default:
 		fmt.Println("unkonw types size")
 	}
@@ -230,4 +232,17 @@ func InitZeroConstant(typ types.Type) constant.Constant {
 		fmt.Println("InitZeroValue type not impl")
 	}
 	return nil
+}
+
+func GetStructBytes(v value.Value) int {
+	a := 0
+	if t, ok := v.Type().(*types.StructType); ok {
+		for _, value := range t.Fields {
+			a += GetBytes(value)
+		}
+	}
+	if _, ok := v.(*SliceArray); ok {
+		a += 24
+	}
+	return a
 }

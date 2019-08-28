@@ -102,7 +102,9 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		var rep []value.Value
 		for lindex, lvalue := range l {
 			vName := lvalue.(*ir.Param).Name()
-			if con, ok := r[lindex].(constant.Constant); ok {
+			switch r[lindex].(type) {
+			case constant.Constant:
+				con := r[lindex].(constant.Constant)
 				realType := GetRealType(con.Type())
 				switch realType.(type) {
 				case *types.StructType, *types.ArrayType:
@@ -114,30 +116,37 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				}
 				rep = append(rep, f.GetVariable(vName))
 				return rep
-			} else {
+			case *SliceArray:
+				array := r[lindex].(*SliceArray)
+				newAllocSlice := f.NewAllocSlice(f.GetCurrentBlock(), types.NewArray(0, array.emt))
+				f.CopySlice(array, newAllocSlice)
+				f.PutVariable(vName, newAllocSlice)
+				rep = append(rep, newAllocSlice)
+				return rep
+			default:
 				newAlloc := f.NewType(r[lindex].Type())
 				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
 				f.PutVariable(vName, newAlloc)
 				rep = append(rep, f.GetVariable(vName))
 				return rep
+
 			}
-			//if et, ok := f.isSlice(r[lindex]); ok {
-			//	newAlloc := f.New(r[lindex])
-			//	f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
-			//	f.PutVariable(vName, newAlloc)
-			//	rep = append(rep, f.GetVariable(vName))
-			//	return rep
-			//}
 
 		}
 		return rep
 	case token.ASSIGN: // =
 		var rep []value.Value
 		for lIndex, lvalue := range l {
-			if ri, ok := r[lIndex].(*ir.InstAlloca); ok {
+			switch r[lIndex].(type) {
+			case *ir.InstAlloca:
+				ri := r[lIndex].(*ir.InstAlloca)
 				r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
+			case *SliceArray:
+				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[lIndex]), lvalue)
+			default:
+				f.GetCurrentBlock().NewStore(r[lIndex], lvalue)
+				fmt.Println("token.ASSIGN unknown type")
 			}
-			f.GetCurrentBlock().NewStore(r[lIndex], lvalue)
 			rep = append(rep, lvalue)
 		}
 		return rep

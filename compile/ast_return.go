@@ -41,7 +41,7 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 		f.GetCurrent().Sig.RetType = values[0].Type()
 		f.GetCurrentBlock().NewRet(values[0])
 	} else {
-		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".return", types.NewStruct(GetStrutsTypes(values)...))
+		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".return", types.NewStruct(StrutsToTypes(values)...))
 		f.GetCurrent().Sig.RetType = newTypeDef
 		alloca := f.GetCurrentBlock().NewAlloca(newTypeDef)
 		for index, value := range values {
@@ -52,7 +52,7 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 	}
 }
 
-func GetStrutsTypes(values []value.Value) []types.Type {
+func StrutsToTypes(values []value.Value) []types.Type {
 	var pp []types.Type
 	for _, value := range values {
 		pp = append(pp, value.Type())

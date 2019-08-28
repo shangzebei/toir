@@ -29,20 +29,30 @@ func main() {
 	m := ir.NewModule()
 	doFunc := compile.DoFunc(m, fset, "main")
 	var mainF ast.Decl
+	var globs []*ast.GenDecl
+	var funs []*ast.FuncDecl
 	for _, value := range f.Decls {
 		switch value.(type) {
 		case *ast.GenDecl:
-			doFunc.DoGenDecl(value.(*ast.GenDecl))
+			globs = append(globs, value.(*ast.GenDecl))
 		case *ast.FuncDecl:
 			if value.(*ast.FuncDecl).Name.Name != "main" {
-				doFunc.DoFunDecl(f.Name.Name, value.(*ast.FuncDecl))
+				funs = append(funs, value.(*ast.FuncDecl))
 			} else {
 				mainF = value
 			}
 		}
 	}
-
-	doFunc.DoFunDecl(f.Name.Name, mainF.(*ast.FuncDecl)) //main
+	//Glob
+	for _, value := range globs {
+		doFunc.DoGenDecl(value)
+	}
+	//define func
+	for _, value := range funs {
+		doFunc.DoFunDecl(f.Name.Name, value)
+	}
+	//main
+	doFunc.DoFunDecl(f.Name.Name, mainF.(*ast.FuncDecl))
 
 	ioutil.WriteFile("bc.ll", []byte(m.String()), 0644)
 

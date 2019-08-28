@@ -5,19 +5,14 @@ import (
 	"testing"
 )
 
-func dd(a int32) {
-	fmt.Println("cccc")
-	a++
-	if a < 5 {
-		fmt.Println("aaaa")
-		dd(a)
-		fmt.Println("bbbb")
-	}
-	fmt.Println("ddddddd")
+type AA struct {
+	Name string
 }
 
 func TestName(t *testing.T) {
-	var arr []int
-	fmt.Printf("%d\n", len(arr)) // 0
-	fmt.Printf("%d\n", cap(arr)) // 2
+	var kk AA
+	aa := AA{Name: "asdfsdfs"}
+	kk = aa
+	kk.Name = "bbbbbbbb"
+	fmt.Printf("%s-%s-%s\n", aa.Name, kk.Name, aa.Name)
 }

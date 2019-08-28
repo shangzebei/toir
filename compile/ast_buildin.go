@@ -109,7 +109,7 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewAdd(len, constant.NewInt(types.I32, 1)), lenPtr)
 		//
 
-		return f.GetCurrentBlock().NewLoad(value2)
+		return value2
 	}
 	return nil
 }

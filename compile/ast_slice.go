@@ -5,6 +5,7 @@ import (
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"learn/llvm"
 	"learn/utils"
 	"strconv"
 	"strings"
@@ -39,7 +40,7 @@ func (f *FuncDecl) NewAllocSlice(block *ir.Block, elemType types.Type) value.Val
 		alloca.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)))
 		array := f.ToPtr(f.GetCurrentBlock().NewAlloca(t))
 		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(array, types.I8Ptr), f.GetPSlice(alloca))
-		f.GetCurrentBlock().NewStore(constant.NewInt(types.I32, GetSliceEMBytes(t)), f.GetPBytes(alloca))
+		f.GetCurrentBlock().NewStore(constant.NewInt(types.I32, int64(GetBytes(t.ElemType))), f.GetPBytes(alloca))
 		f.SetLen(alloca, constant.NewInt(types.I32, int64(t.Len)))
 		f.SetCap(alloca, constant.NewInt(types.I32, int64(t.Len)))
 		return &SliceArray{p: alloca, emt: t.ElemType}
@@ -68,6 +69,7 @@ func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
 	return f.GetCurrentBlock().NewGetElementPtr(cast, index)
 }
 
+//i8**
 func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
 	return utils.Index(f.GetCurrentBlock(), v, 3)
 }
@@ -101,4 +103,22 @@ func (f *FuncDecl) GetBytes(v value.Value) value.Value {
 }
 func (f *FuncDecl) GetPBytes(v value.Value) value.Value {
 	return utils.Index(f.GetCurrentBlock(), v, 2)
+}
+
+func (f *FuncDecl) CopySlice(old value.Value, new value.Value) {
+	getLen := f.GetLen(f.GetCurrentBlock().NewLoad(old))
+	f.CopyStruct(old, new)
+	f.StdCall(llvm.Mencpy,
+		f.GetCurrentBlock().NewLoad(f.GetPSlice(new)),
+		f.GetCurrentBlock().NewLoad(f.GetPSlice(old)),
+		getLen,
+		constant.NewBool(false))
+}
+
+func (f *FuncDecl) CopyStruct(old value.Value, new value.Value) {
+	f.StdCall(llvm.Mencpy,
+		f.GetCurrentBlock().NewBitCast(new, types.I8Ptr),
+		f.GetCurrentBlock().NewBitCast(old, types.I8Ptr),
+		constant.NewInt(types.I32, int64(GetStructBytes(old))),
+		constant.NewBool(false))
 }
