@@ -10,9 +10,7 @@ type AA struct {
 }
 
 func TestName(t *testing.T) {
-	aa := AA{Name: "asdfsdfs"}
-	bb := AA{Name: "eeeeeeee"}
-	aa = bb
-	bb.Name = "gggggggg"
-	fmt.Printf("%s-%s-%s\n", aa.Name, bb.Name, aa.Name)
+	for i := 0; i < 10; i++ {
+		fmt.Printf("%d\n", i)
+	}
 }

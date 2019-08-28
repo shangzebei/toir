@@ -5,8 +5,7 @@ import "fmt"
 //import "fmt"
 
 func main() {
-	show(5)
-	for1()
+	for2()
 }
 
 func show(a int) {
@@ -30,7 +29,7 @@ func for1() {
 }
 
 func for2() {
-	for i := 0; i <= 10; i++ {
+	for i := 0; i < 10; i++ {
 		fmt.Printf("%d\n", i)
 	}
 }

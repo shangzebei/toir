@@ -35,7 +35,7 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 	f.popBlock() //END COND
 	//
 
-	f.GetCurrentBlock().NewBr(addBlock)
+	f.GetCurrentBlock().NewBr(sBody)
 	f.popBlock() //Close MAIN
 
 	// EMPTY
