@@ -39,6 +39,9 @@ type FuncDecl struct {
 	StructDefs map[string]map[string]StructDef //Strut.Field
 	//constant---
 	Constants []constant.Constant //for constant
+	//for
+	forBreak    *ir.Block
+	forContinue *ir.Block
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string) *FuncDecl {
@@ -233,6 +236,8 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 			f.doDeclStmt(value.(*ast.DeclStmt))
 		case *ast.RangeStmt:
 			f.doRangeStmt(value.(*ast.RangeStmt))
+		case *ast.BranchStmt:
+			f.doBranchStmt(value.(*ast.BranchStmt))
 		default:
 			fmt.Println("doBlockStmt not impl")
 		}
@@ -362,6 +367,16 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		fmt.Println("not impl doCompositeLit")
 	}
 	return nil
+}
+
+func (f *FuncDecl) doBranchStmt(stmt *ast.BranchStmt) {
+	switch stmt.Tok {
+	case token.BREAK:
+		f.forBreak = f.GetCurrentBlock()
+	case token.CONTINUE:
+		f.forContinue = f.GetCurrentBlock()
+	}
+
 }
 
 func getFieldNum(m map[string]StructDef) int {

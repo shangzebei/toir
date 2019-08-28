@@ -141,6 +141,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			case *ir.InstAlloca:
 				ri := r[lIndex].(*ir.InstAlloca)
 				r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
+				f.GetCurrentBlock().NewStore(r[lIndex], lvalue)
 			case *SliceArray:
 				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[lIndex]), lvalue)
 			default:

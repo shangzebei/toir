@@ -42,6 +42,18 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 	empty := f.newBlock()
 	condBlock.NewCondBr(doBinary, sBody, empty)
 	//
+
+	//check break
+	if f.forBreak != nil {
+		f.forBreak.NewBr(empty)
+		f.forBreak = nil
+	}
+	//check continue
+	if f.forContinue != nil {
+		f.forContinue.NewBr(addBlock)
+		f.forContinue = nil
+	}
+	//
 	addBlock.NewBr(condBlock)
 	return temp, empty
 

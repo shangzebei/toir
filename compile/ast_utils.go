@@ -214,6 +214,8 @@ func GetBytes(typ types.Type) int {
 		l = int(intType.BitSize / 8)
 	case *types.PointerType:
 		l = 8
+	case *types.FloatType:
+		l = 8
 	default:
 		fmt.Println("unkonw types size")
 	}
