@@ -6,8 +6,9 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
-	"learn/llvm"
-	"learn/utils"
+	"toir/llvm"
+	"toir/utils"
+
 	"strconv"
 	"strings"
 )

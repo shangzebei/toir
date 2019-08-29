@@ -9,8 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
-	"learn/llvm"
-	"learn/stdlib"
+	"toir/llvm"
+	"toir/stdlib"
+
 	"strconv"
 )
 
@@ -75,6 +76,8 @@ func (f *FuncDecl) doFunType(funName string, funcTyp *ast.FuncType) {
 				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr)).Type()
 			case *ast.ArrayType:
 				paramKind = types.NewPointer(f.GetSliceType()) //slice type
+			case *ast.SelectorExpr:
+				paramKind = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
 			default:
 				logrus.Error("func type not impl")
 			}
@@ -104,7 +107,7 @@ func (f *FuncDecl) doFunType(funName string, funcTyp *ast.FuncType) {
 			identName := GetIdentName(value.Type.(*ast.Ident))
 			ty = append(ty, f.GetTypeFromName(identName))
 		case *ast.SelectorExpr:
-			selector := f.doSelector(nil, value.Type.(*ast.SelectorExpr))
+			selector := f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type")
 			ty = append(ty, selector.Type())
 		default:
 			logrus.Error("not known type")

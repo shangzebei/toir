@@ -3,7 +3,7 @@ package llvm
 import (
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
-	"learn/stdlib"
+	"toir/stdlib"
 )
 
 type std func() *ir.Func

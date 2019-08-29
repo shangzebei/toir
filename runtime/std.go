@@ -1,8 +1,12 @@
 package runtime
 
-import "learn/def"
+import "toir/runtime/def"
 
-//
-func checkAppend() def.I8p {
-	return 0
+//i8 * checkAppend(slice *)
+func checkAppend(s []int) def.I8p {
+	if len(s) >= cap(s) {
+		return def.StructToI8(make([]int, 4))
+	} else {
+		return def.StructToI8(s)
+	}
 }

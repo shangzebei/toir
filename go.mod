@@ -1,4 +1,4 @@
-module learn
+module toir
 
 go 1.13
 

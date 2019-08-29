@@ -8,7 +8,8 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
-	"learn/compile"
+	"toir/compile"
+
 	"os/exec"
 )
 

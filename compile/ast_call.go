@@ -6,8 +6,7 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
-	"reflect"
-	"strings"
+	"toir/utils"
 )
 
 func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
@@ -60,7 +59,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	switch call.Fun.(type) {
 	case *ast.SelectorExpr:
 		fexpr := call.Fun.(*ast.SelectorExpr)
-		return f.doSelector(params, fexpr)
+		return f.doSelector(params, fexpr, "call")
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
 	default:
@@ -92,21 +91,7 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 			return block.NewCall(funDecl, values...)
 		}
 	} else { //Custom func
-		valueOf := reflect.ValueOf(f)
-		name := valueOf.MethodByName(FastCharToLower(id.Name))
-		if name.IsNil() || name.IsZero() {
-			fmt.Println("not buildin", id.Name)
-		}
-		var params []reflect.Value
-		for _, value := range values {
-			params = append(params, reflect.ValueOf(value))
-		}
-		call := name.Call(params)
-		return call[0].Interface().(value.Value)
+		return utils.Call(f, utils.FastCharToLower(id.Name), values)
 	}
 
-}
-
-func FastCharToLower(name string) string {
-	return strings.ToUpper(string(name[0])) + name[1:]
 }

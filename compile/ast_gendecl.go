@@ -8,7 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
-	"learn/llvm"
+	"toir/llvm"
+
 	"strconv"
 )
 

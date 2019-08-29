@@ -10,6 +10,8 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"reflect"
+	"strings"
 )
 
 func Index(block *ir.Block, src value.Value, index int) *ir.InstGetElementPtr {
@@ -35,4 +37,22 @@ func CompileRuntime(fileName string, funName string) *ast.FuncDecl {
 		}
 	}
 	return nil
+}
+
+func Call(i interface{}, funName string, params []value.Value) value.Value {
+	valueOf := reflect.ValueOf(i)
+	name := valueOf.MethodByName(funName)
+	if name.IsNil() || name.IsZero() {
+		fmt.Println("not buildin", funName)
+	}
+	var vs []reflect.Value
+	for _, value := range params {
+		vs = append(vs, reflect.ValueOf(value))
+	}
+	call := name.Call(vs)
+	return call[0].Interface().(value.Value)
+}
+
+func FastCharToLower(name string) string {
+	return strings.ToUpper(string(name[0])) + name[1:]
 }

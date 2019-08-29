@@ -8,8 +8,8 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
-	"learn/llvm"
-	"learn/stdlib"
+	"toir/llvm"
+	"toir/stdlib"
 )
 
 func (f *FuncDecl) IntType(value2 value.Value, typ types.Type) value.Value {
@@ -98,7 +98,7 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 			f.GetCurrentBlock().NewAlloca(tp)
 		}
 	default:
-		logrus.Warn("not find type")
+		logrus.Warnf("default NewAlloca %s", tp.String())
 		return f.GetCurrentBlock().NewAlloca(tp)
 	}
 	return nil
@@ -189,7 +189,7 @@ func (f *FuncDecl) checkAppend(src value.Value, p types.Type) *ir.Func {
 func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
 	if t, ok := v.(*SliceArray); ok {
 		allocSlice := f.NewAllocSlice(types.NewArray(0, t.emt))
-		call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], constant.NewInt(types.I32, int64(GetBytes(v.Type())))))
+		call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], f.GetBytes(v)))
 		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(types.I8Ptr)), f.GetPSlice(allocSlice))
 		f.SetCap(allocSlice, size[0])
 		f.SetLen(allocSlice, size[0])
