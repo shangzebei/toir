@@ -3,7 +3,7 @@ package test
 import "fmt"
 
 func main() {
-	stringSli()
+	sli3()
 }
 
 func sli1() {
@@ -31,6 +31,9 @@ func sli3() {
 	for i := 0; i < 30; i++ {
 		name = append(name, i)
 		fmt.Printf("len-%d cap-%d\n", len(name), cap(name))
+	}
+	for j := 0; j < 33; j++ {
+		fmt.Printf("%d\n", name[j])
 	}
 
 }

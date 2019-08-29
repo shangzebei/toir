@@ -105,7 +105,7 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 		bytes := GetSliceBytes(arrayType)
 		f.StdCall(
 			llvm.Mencpy,
-			f.GetCurrentBlock().NewLoad(f.GetPSlice(alloca)),
+			f.GetVSlice(alloca),
 			f.GetCurrentBlock().NewBitCast(value2, types.I8Ptr),
 			constant.NewInt(types.I32, bytes),
 			constant.NewBool(false),
@@ -115,15 +115,7 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 		alloca = f.NewType(GetRealType(kind))
 		structType := kind.(*types.StructType)
 		for _, value := range structType.Fields {
-			switch value.(type) {
-			case *types.IntType:
-				intType := value.(*types.IntType)
-				l += int64(intType.BitSize / 8)
-			case *types.PointerType:
-				l += int64(8)
-			default:
-				fmt.Println("unkonw types size")
-			}
+			l += int64(GetBytes(value))
 		}
 		f.StdCall(
 			llvm.Mencpy,

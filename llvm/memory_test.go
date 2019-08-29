@@ -10,7 +10,6 @@ type AA struct {
 }
 
 func TestName(t *testing.T) {
-	for i := 0; i < 10; i++ {
-		fmt.Printf("%d\n", i)
-	}
+	a := make([]int, 3)
+	fmt.Printf("cap=%d - len=%d\n", cap(a), len(a))
 }

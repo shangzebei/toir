@@ -9,23 +9,32 @@ type Person struct {
 }
 
 func main() {
-	//var pp Person
+	initS()
+}
+
+func initS() {
 	var ad = Person{Sex: "man", Age: 12}
-	//ad := Person{}
-	//ad.Name = "asdf"
-	//ad.Age = 45
-	fmt.Printf("%s\n", ad.Name)
-
-	//pp = ad
-
-	show(ad.Age)
-	ad.Show()
+	ad.Age = 45
+	fmt.Printf("%s-%s-%d\n", ad.Name, ad.Sex, ad.Age)
 }
 
-func show(a int) {
-	fmt.Printf("%d\n", a)
-}
+//func sFunc()  {
+//	var ad = Person{Sex: "man", Age: 12}
+//	//ad := Person{}
+//	//ad.Name = "asdf"
+//	//ad.Age = 45
+//	fmt.Printf("%s\n", ad.Name)
+//
+//	//pp = ad
+//
+//	show(ad.Age)
+//	ad.Show()
+//}
 
-func (p *Person) Show() {
-	fmt.Printf("asdfasdfasdfsdfsd\n")
-}
+//func show(a int) {
+//	fmt.Printf("%d\n", a)
+//}
+
+//func (p *Person) Show() {
+//	fmt.Printf("asdfasdfasdfsdfsd\n")
+//}

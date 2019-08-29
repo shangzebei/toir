@@ -47,6 +47,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			r = append(r, f.doUnaryExpr(value.(*ast.UnaryExpr)))
 		case *ast.StarExpr:
 			r = append(r, f.GetCurrentBlock().NewLoad(f.doStartExpr(value.(*ast.StarExpr))))
+		case *ast.SliceExpr:
+			r = append(r, f.doSliceExpr(value.(*ast.SliceExpr)))
 		default:
 			logrus.Error("not impl assignStmt.Rhs")
 		}
@@ -109,6 +111,10 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				switch realType.(type) {
 				case *types.StructType, *types.ArrayType:
 					f.InitValue(vName, realType, r[lindex])
+				case *types.IntType:
+					newAlloc := f.NewType(GetRealType(r[lindex].Type()))
+					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
+					f.PutVariable(vName, newAlloc)
 				default:
 					newAlloc := f.NewType(GetRealType(r[lindex].Type()))
 					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
@@ -118,8 +124,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				return rep
 			case *SliceArray:
 				array := r[lindex].(*SliceArray)
-				newAllocSlice := f.NewAllocSlice(f.GetCurrentBlock(), types.NewArray(0, array.emt))
-				f.CopySlice(array, newAllocSlice)
+				newAllocSlice := f.NewAllocSlice(types.NewArray(0, array.emt))
+				f.CopySlice(newAllocSlice, array)
 				f.PutVariable(vName, newAllocSlice)
 				rep = append(rep, newAllocSlice)
 				return rep

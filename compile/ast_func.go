@@ -9,6 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
+	"learn/llvm"
+	"learn/stdlib"
 	"strconv"
 )
 
@@ -69,6 +71,10 @@ func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 				paramKind = f.GetTypeFromName(param)
 			case *ast.StarExpr:
 				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr)).Type()
+			case *ast.ArrayType:
+				paramKind = f.GetSliceType()
+			default:
+				logrus.Error("func type not impl")
 			}
 			newParam := ir.NewParam(paramName, paramKind)
 			f.GetCurrent().Params = append(f.GetCurrent().Params, newParam)
@@ -247,7 +253,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 
 func (f *FuncDecl) initFuncParam() {
 	for _, value := range f.GetCurrent().Params {
-		newAlloca := f.GetCurrentBlock().NewAlloca(value.Typ)
+		newAlloca := f.NewType(value.Typ)
 		f.GetCurrentBlock().NewStore(value, newAlloca)
 		logrus.Debugf("put Variable %s", value.Name())
 		f.PutVariable(value.Name(), newAlloca)
@@ -377,6 +383,36 @@ func (f *FuncDecl) doBranchStmt(stmt *ast.BranchStmt) {
 		f.forContinue = f.GetCurrentBlock()
 	}
 
+}
+
+func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
+	variable := f.GetVariable(GetIdentName(expr.X.(*ast.Ident)))
+	low := f.BasicLitToConstant(expr.Low.(*ast.BasicLit))
+	higt := f.BasicLitToConstant(expr.High.(*ast.BasicLit))
+	if f.IsSlice(variable) {
+		array := variable.(*SliceArray)
+		slice := f.NewAllocSlice(types.NewArray(0, array.emt))
+		sub := f.GetCurrentBlock().NewSub(higt, low)
+		mul := f.GetCurrentBlock().NewMul(sub, f.GetBytes(variable))
+		call := f.StdCall(stdlib.Malloc, mul)
+		f.SetLen(slice, sub)
+		f.SetCap(slice, sub)
+		f.StdCall(llvm.Mencpy,
+			call,
+			f.GetCurrentBlock().NewBitCast(f.GetSliceIndex(variable, low), types.I8Ptr),
+			mul,
+			constant.NewBool(false))
+		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(types.I8Ptr)), f.GetPSlice(slice))
+		return slice
+	}
+	logrus.Error("doSliceExpr not sliceArray")
+	return nil
+}
+
+func (f *FuncDecl) doArrayType(arrayType *ast.ArrayType) value.Value {
+	identName := GetIdentName(arrayType.Elt.(*ast.Ident))
+	typ := f.GetTypeFromName(identName)
+	return ir.NewParam("", types.NewArray(0, typ))
 }
 
 func getFieldNum(m map[string]StructDef) int {

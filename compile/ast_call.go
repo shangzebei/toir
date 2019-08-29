@@ -23,7 +23,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 				if f.IsSlice(variable) {
 					params = append(params, variable)
 				} else {
-					if _, ok := variable.Type().(*types.PointerType); ok {
+					if types.IsPointer(variable.Type()) {
 						params = append(params, f.GetCurrentBlock().NewLoad(variable)) //f.GetCurrentBlock().NewLoad(
 					} else {
 						params = append(params, variable) //f.GetCurrentBlock().NewLoad(
@@ -50,6 +50,10 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			params = append(params, f.doCompositeLit(value.(*ast.CompositeLit)))
 		case *ast.StarExpr:
 			params = append(params, f.GetCurrentBlock().NewLoad(f.doStartExpr(value.(*ast.StarExpr))))
+		case *ast.SliceExpr:
+			params = append(params, f.doSliceExpr(value.(*ast.SliceExpr)))
+		case *ast.ArrayType:
+			params = append(params, f.NewAllocSlice(f.doArrayType(value.(*ast.ArrayType)).Type()))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}
