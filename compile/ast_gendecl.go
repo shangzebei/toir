@@ -143,32 +143,38 @@ func (f *FuncDecl) doStructType(typ *types.StructType) {
 func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 	var strums []types.Type
 	name := spec.Name.Name
-	//get type
-	structType := spec.Type.(*ast.StructType)
-
-	if _, ok := f.StructDefs[name]; !ok {
-		f.StructDefs[name] = make(map[string]StructDef)
-	}
-
-	for index, value := range structType.Fields.List {
-		fname := value.Names[0].Name
-		ftyp := f.GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
-		f.StructDefs[name][fname] = StructDef{
-			Name:  fname,
-			Order: index,
-			Typ:   ftyp,
+	switch spec.Type.(type) {
+	case *ast.StructType:
+		structType := spec.Type.(*ast.StructType)
+		if _, ok := f.StructDefs[name]; !ok {
+			f.StructDefs[name] = make(map[string]StructDef)
 		}
-		strums = append(strums, ftyp)
-	}
-	//get value
-	newTypeDef := f.m.NewTypeDef(name, types.NewStruct(strums...))
-	_, ok := f.GlobDef[name]
-	if ok {
-		logrus.Error("GlobDef has name", name)
-	}
-	f.GlobDef[name] = newTypeDef
-	if f.GetCurrent() != nil {
-		f.PutVariable(name, f.GetCurrentBlock().NewAlloca(newTypeDef))
+		for index, value := range structType.Fields.List {
+			fname := value.Names[0].Name
+			ftyp := f.GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
+			f.StructDefs[name][fname] = StructDef{
+				Name:  fname,
+				Order: index,
+				Typ:   ftyp,
+			}
+			strums = append(strums, ftyp)
+		}
+		//get value
+		newTypeDef := f.m.NewTypeDef(name, types.NewStruct(strums...))
+		_, ok := f.GlobDef[name]
+		if ok {
+			logrus.Error("GlobDef has name", name)
+		}
+		f.GlobDef[name] = newTypeDef
+		if f.GetCurrent() != nil {
+			f.PutVariable(name, f.GetCurrentBlock().NewAlloca(newTypeDef))
+		}
+	case *ast.Ident:
+		typDef := spec.Type.(*ast.Ident)
+		if MapDefTypes == nil {
+			MapDefTypes = make(map[string]types.Type)
+		}
+		MapDefTypes[name] = f.GetTypeFromName(GetIdentName(typDef))
 	}
 
 }

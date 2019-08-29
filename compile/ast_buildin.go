@@ -165,7 +165,7 @@ func (f *FuncDecl) appendSlice(b *ir.Func) *ir.Block {
 }
 
 func (f *FuncDecl) checkAppend(src value.Value, p types.Type) *ir.Func {
-	//int * append_slice(int len,int cap,int * v,int )
+	//i8 * checkAppend(slice *)
 	newFunc := ir.NewFunc("checkAppend",
 		types.I8Ptr,
 		ir.NewParam("ptr", types.NewPointer(f.GetSliceType())),
@@ -185,11 +185,16 @@ func (f *FuncDecl) checkAppend(src value.Value, p types.Type) *ir.Func {
 	return newFunc
 }
 
+//TODO
 func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
-	allocSlice := f.NewAllocSlice(types.NewArray(0, v.Type()))
-	call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], constant.NewInt(types.I32, int64(GetBytes(v.Type())))))
-	f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(types.I8Ptr)), f.GetPSlice(allocSlice))
-	f.SetCap(allocSlice, size[0])
-	f.SetLen(allocSlice, size[0])
-	return allocSlice
+	if t, ok := v.(*SliceArray); ok {
+		allocSlice := f.NewAllocSlice(types.NewArray(0, t.emt))
+		call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], constant.NewInt(types.I32, int64(GetBytes(v.Type())))))
+		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(types.I8Ptr)), f.GetPSlice(allocSlice))
+		f.SetCap(allocSlice, size[0])
+		f.SetLen(allocSlice, size[0])
+		return allocSlice
+	}
+	return nil
+
 }

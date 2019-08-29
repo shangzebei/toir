@@ -38,12 +38,9 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 		values = append(values, rev)
 	}
 	if !mul {
-		f.GetCurrent().Sig.RetType = values[0].Type()
 		f.GetCurrentBlock().NewRet(values[0])
 	} else {
-		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".return", types.NewStruct(StrutsToTypes(values)...))
-		f.GetCurrent().Sig.RetType = newTypeDef
-		alloca := f.GetCurrentBlock().NewAlloca(newTypeDef)
+		alloca := f.GetCurrentBlock().NewAlloca(f.GetCurrent().Sig.RetType)
 		for index, value := range values {
 			getElementPtr := f.GetCurrentBlock().NewGetElementPtr(alloca, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(index)))
 			f.GetCurrentBlock().NewStore(value, getElementPtr)

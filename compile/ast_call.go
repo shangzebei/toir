@@ -6,7 +6,6 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
-	"learn/stdlib"
 	"reflect"
 	"strings"
 )
@@ -61,24 +60,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	switch call.Fun.(type) {
 	case *ast.SelectorExpr:
 		fexpr := call.Fun.(*ast.SelectorExpr)
-		varName := GetIdentName(fexpr.X.(*ast.Ident))
-		variable := f.GetVariable(varName)
-		if variable != nil {
-			if t, ok := GetRealType(variable.Type()).(*types.StructType); ok {
-				var kk = []value.Value{variable}
-				if len(params) > 0 {
-					kk = append(kk, params...)
-				}
-				fun := f.StructDefs[t.Name()][GetIdentName(fexpr.Sel)].Fun
-				return f.GetCurrentBlock().NewCall(fun, kk...)
-			}
-		}
-		switch GetCallFuncName(fexpr) {
-		case "fmt.Printf", "external.Printf":
-			return f.StdCall(stdlib.Printf, params...)
-		default:
-			fmt.Println("doCallExpr SelectorExpr no impl")
-		}
+		return f.doSelector(params, fexpr)
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
 	default:

@@ -60,7 +60,9 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string) *FuncDecl {
 	}
 }
 
-func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
+func (f *FuncDecl) doFunType(funName string, funcTyp *ast.FuncType) {
+	fields := funcTyp.Params.List
+	//param
 	if len(fields) > 0 {
 		for _, value := range fields {
 			paramName := value.Names[0].String()
@@ -72,7 +74,7 @@ func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 			case *ast.StarExpr:
 				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr)).Type()
 			case *ast.ArrayType:
-				paramKind = f.GetSliceType()
+				paramKind = types.NewPointer(f.GetSliceType()) //slice type
 			default:
 				logrus.Error("func type not impl")
 			}
@@ -86,6 +88,34 @@ func (f *FuncDecl) doFunType(funName string, fields []*ast.Field) {
 		paramTypes[i] = param.Type()
 	}
 	f.GetCurrent().Sig.Params = paramTypes
+	//return
+	if funcTyp.Results == nil {
+		return
+	}
+	List := funcTyp.Results.List
+	mul := false
+	if len(List) > 1 {
+		mul = true
+	}
+	var ty []types.Type
+	for _, value := range List {
+		switch value.Type.(type) {
+		case *ast.Ident:
+			identName := GetIdentName(value.Type.(*ast.Ident))
+			ty = append(ty, f.GetTypeFromName(identName))
+		case *ast.SelectorExpr:
+			selector := f.doSelector(nil, value.Type.(*ast.SelectorExpr))
+			ty = append(ty, selector.Type())
+		default:
+			logrus.Error("not known type")
+		}
+	}
+	if mul {
+		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".return", types.NewStruct(ty...))
+		f.GetCurrent().Sig.RetType = newTypeDef
+	} else {
+		f.GetCurrent().Sig.RetType = ty[0]
+	}
 }
 
 //&
@@ -171,8 +201,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	}
 
 	//func type
-	funcType := funDecl.Type.Params.List
-	f.doFunType(funName, funcType)
+	f.doFunType(funName, funDecl.Type)
 	//func body
 	blockStmt := funDecl.Body
 	f.doBlockStmt(blockStmt)

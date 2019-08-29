@@ -21,6 +21,8 @@ func GetIdentName(i *ast.Ident) string {
 	return i.Name
 }
 
+var MapDefTypes map[string]types.Type
+
 var MapNamesTypes = map[string]types.Type{
 	"bool":    types.I8,
 	"int":     types.I32,
@@ -30,15 +32,18 @@ var MapNamesTypes = map[string]types.Type{
 	"string":  types.I8Ptr,
 	"float32": types.Float,
 	"float64": types.Float,
-	"i8":      types.I8,
-	"i32":     types.I32,
-	"i64":     types.I64,
-	"i8*":     types.I8Ptr,
-	"float":   types.Float,
+	//runtime types
+	"i8":    types.I8,
+	"i8*":   types.I8Ptr,
+	"i32":   types.I32,
+	"i64":   types.I64,
+	"i8p":   types.I8Ptr,
+	"i32p":  types.I32Ptr,
+	"i64p":  types.I64Ptr,
+	"float": types.Float,
 }
 
 func (f *FuncDecl) GetTypes(typ token.Token) types.Type {
-
 	if v, ok := MapNamesTypes[strings.ToLower(typ.String())]; ok {
 		return v
 	}
@@ -50,11 +55,16 @@ func (f *FuncDecl) GetTypes(typ token.Token) types.Type {
 }
 
 func (f *FuncDecl) GetTypeFromName(name string) types.Type {
+
 	//base types
 	if v, ok := MapNamesTypes[strings.ToLower(name)]; ok {
 		return v
 	}
-	//Glob ver
+	//type def
+	if v, ok := MapDefTypes[name]; ok {
+		return v
+	}
+	//Glob Struct
 	if g, ok := f.GlobDef[name]; ok {
 		return g
 	}

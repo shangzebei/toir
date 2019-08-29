@@ -1,34 +1,15 @@
 package test
 
-import "fmt"
+import (
+	"go/types"
+)
 
-type AA struct {
-	Name string
-}
+type K int
 
 func main() {
-	aa := AA{Name: "asdfsdfs"}
-	bb := AA{Name: "eeeeeeee"}
-	aa = bb
-	bb.Name = "gggggggg"
-	fmt.Printf("%s-%s-%s\n", aa.Name, bb.Name, aa.Name)
+
 }
 
-////asdfsdfs-bbbbbbbb-asdfsdfs
-//func v() {
-//	var kk AA
-//	aa := AA{Name: "asdfsdfs"}
-//	kk = aa
-//	kk.Name = "bbbbbbbb"
-//	fmt.Printf("%s-%s-%s\n", aa.Name, kk.Name, aa.Name)
-//}
-////eeeeeeee-bbbbbbbb-eeeeeeee
-//func p() {
-//	var kk AA
-//	aa := AA{Name: "asdfsdfs"}
-//	bb := AA{Name: "eeeeeeee"}
-//	aa = bb
-//	kk = aa
-//	kk.Name = "bbbbbbbb"
-//	fmt.Printf("%s-%s-%s\n", aa.Name, kk.Name, aa.Name)
-//}
+func pp() K {
+	return 0
+}
