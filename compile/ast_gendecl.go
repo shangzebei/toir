@@ -92,7 +92,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 			}
 		} else {
 			if value != nil {
-				f.InitValue(name.Name, kind, value)
+				f.PutVariable(name.Name, value)
 			} else {
 				f.PutVariable(name.Name, f.NewType(kind))
 			}
@@ -100,7 +100,8 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 	}
 }
 
-func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
+//init value which def
+func (f *FuncDecl) InitValue(kind types.Type, def value.Value) value.Value {
 	//alloca := f.GetCurrentBlock().NewAlloca(GetRealType(kind))
 	var alloca value.Value
 	if p, ok := kind.(*types.PointerType); ok {
@@ -108,20 +109,20 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 	}
 	switch kind.(type) {
 	case *types.ArrayType:
-		sliceValue := f.NewType(GetRealType(kind))
+		sliceValue := f.NewType(GetBaseType(kind))
 		alloca = sliceValue
 		arrayType := kind.(*types.ArrayType)
 		bytes := GetSliceBytes(arrayType)
 		f.StdCall(
 			llvm.Mencpy,
 			f.GetVSlice(alloca),
-			f.GetCurrentBlock().NewBitCast(value2, types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(def, types.I8Ptr),
 			constant.NewInt(types.I32, bytes),
 			constant.NewBool(false),
 		)
 	case *types.StructType:
 		var l int64
-		alloca = f.NewType(GetRealType(kind))
+		alloca = f.NewType(GetBaseType(kind))
 		structType := kind.(*types.StructType)
 		for _, value := range structType.Fields {
 			l += int64(GetBytes(value))
@@ -129,19 +130,18 @@ func (f *FuncDecl) InitValue(name string, kind types.Type, value2 value.Value) {
 		f.StdCall(
 			llvm.Mencpy,
 			f.GetCurrentBlock().NewBitCast(alloca, types.I8Ptr),
-			f.GetCurrentBlock().NewBitCast(value2, types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(def, types.I8Ptr),
 			constant.NewInt(types.I32, l),
 			constant.NewBool(false),
 		)
 	case *types.IntType:
-		alloca = f.NewType(GetRealType(kind))
-		f.GetCurrentBlock().NewStore(value2, alloca)
+		alloca = f.NewType(GetBaseType(kind))
+		f.GetCurrentBlock().NewStore(def, alloca)
 	default:
-		alloca = f.NewType(GetRealType(kind))
+		alloca = f.NewType(GetBaseType(kind))
 		fmt.Println("not find types")
 	}
-	f.PutVariable(name, alloca)
-
+	return alloca
 }
 
 func (f *FuncDecl) doStructType(typ *types.StructType) {

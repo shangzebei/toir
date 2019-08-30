@@ -14,7 +14,7 @@ func Push(context *[]*ir.Func, x *ir.Func) bool {
 		}
 	}
 	*context = append(*context, x)
-	logrus.Debug("push Func =================")
+	logrus.Debugf("push Func ======%s=========", x.Name())
 	return true
 }
 
@@ -23,6 +23,6 @@ func Pop(context *[]*ir.Func) *ir.Func {
 	n := len(old)
 	x := old[n-1]
 	*context = old[0 : n-1]
-	logrus.Debug("pop Func =================")
+	logrus.Debugf("pop Func ========%s=======", x.Name())
 	return x
 }

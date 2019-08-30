@@ -109,8 +109,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				con := r[lindex].(constant.Constant)
 				realType := GetRealType(con.Type())
 				switch realType.(type) {
-				case *types.StructType, *types.ArrayType:
-					f.InitValue(vName, realType, r[lindex])
+				//case *types.StructType, *types.ArrayType:
+				//	f.PutVariable(vName, f.InitValue(realType, r[lindex]))
 				case *types.IntType:
 					newAlloc := f.NewType(GetRealType(r[lindex].Type()))
 					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)

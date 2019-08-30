@@ -1,15 +1,17 @@
 package test
 
-type TT struct {
-}
+import "fmt"
 
-var pp *TT
+type Hlo struct {
+	Len int
+	Cap int
+}
 
 func main() {
-	kkkk(&TT{})
 	//test.test()
+	sh(&Hlo{Cap: 3, Len: 2})
 }
 
-func kkkk(int2 *TT) {
-
+func sh(hlo *Hlo) {
+	fmt.Printf("%d-%d\n", hlo.Len, hlo.Cap)
 }

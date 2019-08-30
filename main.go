@@ -38,7 +38,7 @@ func main() {
 
 	//copy runtime def to ...
 	var globs []*ast.GenDecl
-	//globs = append(globs, runtime.GenAll()...)
+	globs = append(globs, runtime.GenAll()...)
 
 	//
 	var funs []*ast.FuncDecl

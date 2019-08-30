@@ -169,11 +169,10 @@ func (f *FuncDecl) doStartExpr(x *ast.StarExpr) value.Value {
 			fmt.Println("not find in doStartExpr")
 		}
 	}
-	if f.GetCurrentBlock() != nil {
-		return f.GetCurrentBlock().NewLoad(v)
+	if p, ok := v.(*ir.Param); ok {
+		return ir.NewParam(p.Name(), types.NewPointer(p.Type()))
 	} else {
-		param := v.(*ir.Param)
-		return ir.NewParam(param.Name(), types.NewPointer(param.Type()))
+		return f.GetCurrentBlock().NewLoad(v)
 	}
 }
 
@@ -303,6 +302,12 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 
 func (f *FuncDecl) initFuncParam() {
 	for _, value := range f.GetCurrent().Params {
+		//pointer not copy args
+		//if types.IsPointer(value.Type()) {
+		//	f.PutVariable(value.Name(), value)
+		//	continue
+		//}
+
 		newAlloca := f.NewType(value.Typ)
 		f.GetCurrentBlock().NewStore(value, newAlloca)
 		if f.IsSlice(newAlloca) { //slice *
@@ -380,7 +385,7 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 	f.Variables[f.GetCurrentBlock()][name] = value2
 }
 
-//only for array and struts
+//only for array and struts return value
 func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	switch lit.Type.(type) {
 	case *ast.ArrayType: //array
@@ -393,7 +398,7 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		array := constant.NewArray(c...)
 		def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), array)
 		def.Immutable = true
-		return def
+		return f.InitValue(f.doIdent(lit.Type.(*ast.Ident)).Type(), def)
 	case *ast.Ident: //struct
 		name := GetIdentName(lit.Type.(*ast.Ident))
 		i, ok := f.GlobDef[name]
@@ -424,7 +429,7 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 			def.ContentType = i
 			def.Typ = types.NewPointer(i)
 			def.Immutable = true
-			return def
+			return f.InitValue(f.doIdent(lit.Type.(*ast.Ident)).Type(), def)
 		}
 	default:
 		fmt.Println("not impl doCompositeLit")

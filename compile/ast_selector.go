@@ -21,7 +21,7 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 			//struct func call
 			variable := f.GetVariable(varName)
 			if variable != nil {
-				if t, ok := GetRealType(variable.Type()).(*types.StructType); ok {
+				if t, ok := GetBaseType(variable.Type()).(*types.StructType); ok {
 					var kk = []value.Value{variable}
 					if len(params) > 0 {
 						kk = append(kk, params...)

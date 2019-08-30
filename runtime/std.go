@@ -15,9 +15,9 @@ type Slice struct {
 //i8 * checkAppend(slice *)
 func checkAppend(s *Slice) def.I8p {
 	if s.Len >= s.Cap {
-		return def.SliceIntToI8(make([]int, s.Len+4))
+		//return def.SliceIntToI8(make([]int, s.Len+4))
 	} else {
-		return def.SliceToI8(s)
+		//return def.SliceToI8(s)
 	}
 }
 

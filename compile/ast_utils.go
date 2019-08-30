@@ -250,6 +250,14 @@ func InitZeroConstant(typ types.Type) constant.Constant {
 	return nil
 }
 
+func GetBaseType(v types.Type) types.Type {
+	if p, ok := v.(*types.PointerType); ok {
+		return GetBaseType(p.ElemType)
+	} else {
+		return v
+	}
+}
+
 func GetStructBytes(v value.Value) int {
 	a := 0
 	if t, ok := v.Type().(*types.StructType); ok {
