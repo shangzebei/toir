@@ -58,6 +58,14 @@ func (f *FuncDecl) GetSliceType() types.Type {
 	return stTypeDef
 }
 
+func GetBaseType(v types.Type) types.Type {
+	if p, ok := v.(*types.PointerType); ok {
+		return GetBaseType(p.ElemType)
+	} else {
+		return v
+	}
+}
+
 func (f *FuncDecl) IsSlice(v value.Value) bool {
 	if bit, ok := v.(*ir.InstBitCast); ok && strings.HasPrefix(bit.Name(), "array.") {
 		return true
@@ -66,6 +74,9 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 		return true
 	}
 	if v.Type() == f.GetSliceType() && v.Type().Name() == "slice" {
+		return true
+	}
+	if GetBaseType(v.Type()) == f.GetSliceType() {
 		return true
 	}
 	return false

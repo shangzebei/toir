@@ -61,12 +61,11 @@ func (f *FuncDecl) callSelector(params []value.Value, fexpr *ast.SelectorExpr) v
 		lastIndex := strings.LastIndex(name, ".")
 		return utils.Call(&call.Call{Block: f.GetCurrentBlock()}, name[lastIndex+1:], params)
 	}
-
 	switch name {
 	case "fmt.Printf", "external.Printf":
 		return f.StdCall(stdlib.Printf, params...)
 	case "test.test":
-		decl := f.DoFunDecl("runtime", utils.CompileRuntime("runtime/std.go", "checkAppend"))
+		decl := f.DoFunDecl("runtime", utils.CompileRuntime("runtime/std.go", "copySlice"))
 		return f.StdCall(decl)
 	default:
 		logrus.Debug("not impl doSelector")

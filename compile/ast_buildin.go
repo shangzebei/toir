@@ -80,6 +80,7 @@ func (f *FuncDecl) Copy(dst value.Value, src value.Value) value.Value {
 			f.GetVSlice(src),
 			f.GetCurrentBlock().NewMul(len, f.GetBytes(src)),
 			constant.NewBool(false))
+		return len
 	} else {
 		logrus.Error("copy dst or src is not sliceArray")
 		return nil

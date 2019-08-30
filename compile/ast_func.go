@@ -61,9 +61,11 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string) *FuncDecl {
 	}
 }
 
-func (f *FuncDecl) doFunType(funName string, funcTyp *ast.FuncType) {
+//types.NewFunc()
+func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncType) {
 	fields := funcTyp.Params.List
 	//param
+	var params []*ir.Param
 	if len(fields) > 0 {
 		for _, value := range fields {
 			paramName := value.Names[0].String()
@@ -82,24 +84,26 @@ func (f *FuncDecl) doFunType(funName string, funcTyp *ast.FuncType) {
 				logrus.Error("func type not impl")
 			}
 			newParam := ir.NewParam(paramName, paramKind)
-			f.GetCurrent().Params = append(f.GetCurrent().Params, newParam)
+			params = append(params, newParam)
 			//
 		}
 	}
-	paramTypes := make([]types.Type, len(f.GetCurrent().Params))
-	for i, param := range f.GetCurrent().Params {
+
+	paramTypes := make([]types.Type, len(params))
+	for i, param := range params {
 		paramTypes[i] = param.Type()
 	}
-	f.GetCurrent().Sig.Params = paramTypes
+
 	//return
 	if funcTyp.Results == nil {
-		return
+		return params, types.NewFunc(types.Void, paramTypes...)
 	}
 	List := funcTyp.Results.List
 	mul := false
 	if len(List) > 1 {
 		mul = true
 	}
+
 	var ty []types.Type
 	for _, value := range List {
 		switch value.Type.(type) {
@@ -115,9 +119,9 @@ func (f *FuncDecl) doFunType(funName string, funcTyp *ast.FuncType) {
 	}
 	if mul {
 		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".return", types.NewStruct(ty...))
-		f.GetCurrent().Sig.RetType = newTypeDef
+		return params, types.NewFunc(newTypeDef, paramTypes...)
 	} else {
-		f.GetCurrent().Sig.RetType = ty[0]
+		return params, types.NewFunc(ty[0], paramTypes...)
 	}
 }
 
@@ -165,11 +169,11 @@ func (f *FuncDecl) GetCurrent() *ir.Func {
 	return (*f.FuncHeap)[len(*f.FuncHeap)-1]
 }
 
-func (f *FuncDecl) CreatTempFunc(name string) *ir.Func {
-	i := new(ir.Func)
-	i.Sig = new(types.FuncType)
-	i.SetName(name)
-	return i
+func (f *FuncDecl) CreatFunc(name string, params []*ir.Param, sig *types.FuncType) *ir.Func {
+	p := &ir.Func{Sig: sig, Params: params}
+	p.SetName(name)
+	p.Type()
+	return p
 }
 
 func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
@@ -193,7 +197,9 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 		funName = f.mPackage + "." + StructTyp + "." + funDecl.Name.Name
 	}
 
-	tempFunc := f.CreatTempFunc(funName)
+	//func type
+	params, funTyp := f.doFunType(funDecl.Type)
+	tempFunc := f.CreatFunc(funName, params, funTyp)
 	Push(f.FuncHeap, tempFunc)
 
 	//deal struct
@@ -203,8 +209,6 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 		f.StructDefs[StructTyp][funDecl.Name.Name] = StructDef{Name: funDecl.Name.Name, Fun: tempFunc}
 	}
 
-	//func type
-	f.doFunType(funName, funDecl.Type)
 	//func body
 	blockStmt := funDecl.Body
 	f.doBlockStmt(blockStmt)
@@ -222,7 +226,6 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 }
 
 func (f *FuncDecl) pop() *ir.Func {
-	f.GetCurrent().Type()
 	f.m.Funcs = append(f.m.Funcs, f.GetCurrent())
 	for index, value := range f.GetCurrent().Blocks {
 		if value.Term == nil {
@@ -287,8 +290,13 @@ func (f *FuncDecl) initFuncParam() {
 	for _, value := range f.GetCurrent().Params {
 		newAlloca := f.NewType(value.Typ)
 		f.GetCurrentBlock().NewStore(value, newAlloca)
+		if f.IsSlice(newAlloca) { //slice *
+			f.PutVariable(value.Name(), f.GetCurrentBlock().NewLoad(newAlloca))
+		} else {
+			f.PutVariable(value.Name(), newAlloca)
+		}
 		logrus.Debugf("put Variable %s", value.Name())
-		f.PutVariable(value.Name(), newAlloca)
+
 	}
 }
 

@@ -20,13 +20,13 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/example.go")
+	bytes, _ := ioutil.ReadFile("test/type.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
 		return
 	}
-	//ast.Print(fset, f)
+	ast.Print(fset, f)
 	m := ir.NewModule()
 	doFunc := compile.DoFunc(m, fset, "main")
 	var mainF ast.Decl

@@ -11,6 +11,6 @@ type Call struct {
 }
 
 //
-func (c *Call) StructToI8(v value.Value) value.Value {
+func (c *Call) SliceToI8(v value.Value) value.Value {
 	return c.Block.NewBitCast(v, types.I8Ptr)
 }

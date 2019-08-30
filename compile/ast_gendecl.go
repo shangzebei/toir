@@ -143,6 +143,9 @@ func (f *FuncDecl) doStructType(typ *types.StructType) {
 //for struts info reg
 func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 	var strums []types.Type
+	if MapDefTypes == nil {
+		MapDefTypes = make(map[string]types.Type)
+	}
 	name := spec.Name.Name
 	switch spec.Type.(type) {
 	case *ast.StructType:
@@ -172,10 +175,12 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 		}
 	case *ast.Ident:
 		typDef := spec.Type.(*ast.Ident)
-		if MapDefTypes == nil {
-			MapDefTypes = make(map[string]types.Type)
-		}
 		MapDefTypes[name] = f.GetTypeFromName(GetIdentName(typDef))
+	case *ast.FuncType:
+		_, funcType := f.doFunType(spec.Type.(*ast.FuncType))
+		MapDefTypes[name] = types.NewPointer(funcType)
+	default:
+		logrus.Error("not find typeSpec")
 	}
 
 }
