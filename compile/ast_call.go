@@ -3,7 +3,6 @@ package compile
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
-	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
@@ -16,19 +15,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	for _, value := range call.Args {
 		switch value.(type) {
 		case *ast.Ident:
-			ident := value.(*ast.Ident)
-			if ident.Obj.Kind == ast.Var { //constant,Glob,alloa,param
-				variable := f.GetVariable(ident.Name)
-				if f.IsSlice(variable) {
-					params = append(params, variable)
-				} else {
-					if types.IsPointer(variable.Type()) {
-						params = append(params, f.GetCurrentBlock().NewLoad(variable)) //f.GetCurrentBlock().NewLoad(
-					} else {
-						params = append(params, variable) //f.GetCurrentBlock().NewLoad(
-					}
-				}
-			}
+			params = append(params, f.doIdent(value.(*ast.Ident)))
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
 			constant := f.BasicLitToConstant(basicLit)

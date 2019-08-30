@@ -1,15 +1,16 @@
 package llvm
 
 import (
-	"fmt"
 	"testing"
 )
 
-type AA struct {
-	Name string
+type TT struct {
 }
 
 func TestName(t *testing.T) {
-	a := make([]int, 3)
-	fmt.Printf("cap=%d - len=%d\n", cap(a), len(a))
+	aaa(&TT{})
+}
+
+func aaa(t *TT) {
+
 }

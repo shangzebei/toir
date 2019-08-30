@@ -96,7 +96,7 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 		if tp == f.GetSliceType() && tp.Name() == "slice" {
 			return f.NewAllocSlice(tp)
 		} else {
-			f.GetCurrentBlock().NewAlloca(tp)
+			return f.GetCurrentBlock().NewAlloca(tp)
 		}
 	default:
 		logrus.Warnf("default NewAlloca %s", tp.String())
@@ -198,4 +198,8 @@ func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
 	}
 	return nil
 
+}
+
+func (f *FuncDecl) New(v value.Value) value.Value {
+	return f.GetCurrentBlock().NewAlloca(v.Type())
 }

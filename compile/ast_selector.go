@@ -65,7 +65,7 @@ func (f *FuncDecl) callSelector(params []value.Value, fexpr *ast.SelectorExpr) v
 	case "fmt.Printf", "external.Printf":
 		return f.StdCall(stdlib.Printf, params...)
 	case "test.test":
-		decl := f.DoFunDecl("runtime", utils.CompileRuntime("runtime/std.go", "copySlice"))
+		decl := f.DoFunDecl("runtime", f.r.GetFunc("checkAppend"))
 		return f.StdCall(decl)
 	default:
 		logrus.Debug("not impl doSelector")

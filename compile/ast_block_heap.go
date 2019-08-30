@@ -24,6 +24,10 @@ func (f *FuncDecl) newBlock() *ir.Block {
 
 func (f *FuncDecl) GetCurrentBlock() *ir.Block {
 	blocks := f.blockHeap[f.GetCurrent()]
+	if blocks == nil {
+		logrus.Warn("current not find block")
+		return nil
+	}
 	return f.blockHeap[f.GetCurrent()][len(blocks)-1]
 }
 

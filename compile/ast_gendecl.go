@@ -19,7 +19,7 @@ func (f *FuncDecl) DoGenDecl(decl *ast.GenDecl) {
 	case token.VAR:
 		for _, v := range decl.Specs {
 			spec := v.(*ast.ValueSpec)
-			f.valueSpec(spec)
+			f.valueSpec(spec, decl.Tok)
 		}
 	case token.TYPE:
 		for _, v := range decl.Specs {
@@ -33,7 +33,7 @@ func (f *FuncDecl) DoGenDecl(decl *ast.GenDecl) {
 	}
 }
 
-func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
+func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 	var kind types.Type
 	if spec.Type != nil {
 		switch spec.Type.(type) {
@@ -48,6 +48,8 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 				len, _ := strconv.Atoi(toConstant.Ident())
 				kind = types.NewArray(uint64(len), toConstant.Type())
 			}
+		case *ast.StarExpr:
+			kind = f.doStartExpr(spec.Type.(*ast.StarExpr)).Type()
 		default:
 			fmt.Println("not impl DoGenDecl")
 		}
@@ -77,8 +79,14 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec) {
 		}
 		////////////////////////////////
 		if f.GetCurrent() == nil {
-			if value != nil {
-				f.m.NewGlobalDef(name.Name, value.(constant.Constant))
+			if t == token.VAR || value != nil {
+				var v constant.Constant
+				if value == nil {
+					v = InitZeroConstant(kind)
+				} else {
+					v = value.(constant.Constant)
+				}
+				f.m.NewGlobalDef(name.Name, v)
 			} else {
 				f.m.NewGlobal(name.Name, kind)
 			}
@@ -155,7 +163,15 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 		}
 		for index, value := range structType.Fields.List {
 			fname := value.Names[0].Name
-			ftyp := f.GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
+			var ftyp types.Type
+			switch value.Type.(type) {
+			case *ast.Ident:
+				ftyp = f.GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
+			case *ast.SelectorExpr:
+				ftyp = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
+			default:
+				logrus.Error("struct type don`t know")
+			}
 			f.StructDefs[name][fname] = StructDef{
 				Name:  fname,
 				Order: index,
@@ -163,6 +179,9 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 			}
 			strums = append(strums, ftyp)
 		}
+		//if len(strums) == 0 {
+		//	strums = append(strums, types.I8)
+		//}
 		//get value
 		newTypeDef := f.m.NewTypeDef(name, types.NewStruct(strums...))
 		_, ok := f.GlobDef[name]

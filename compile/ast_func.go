@@ -10,6 +10,7 @@ import (
 	"go/ast"
 	"go/token"
 	"toir/llvm"
+	"toir/runtime/core"
 	"toir/stdlib"
 
 	"strconv"
@@ -45,9 +46,11 @@ type FuncDecl struct {
 	//for
 	forBreak    *ir.Block
 	forContinue *ir.Block
+	//runtime
+	r *core.Runtime
 }
 
-func DoFunc(m *ir.Module, fset *token.FileSet, pkg string) *FuncDecl {
+func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
 	return &FuncDecl{
 		m:          m,
 		fset:       fset,
@@ -58,6 +61,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string) *FuncDecl {
 		GlobDef:    make(map[string]types.Type),
 		StructDefs: make(map[string]map[string]StructDef),
 		mPackage:   pkg,
+		r:          r,
 	}
 }
 
@@ -127,8 +131,14 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 
 //&
 func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
-	name := GetIdentName(unaryExpr.X.(*ast.Ident))
-	variable := f.GetVariable(name)
+	var variable value.Value
+	switch unaryExpr.X.(type) {
+	case *ast.Ident:
+		name := GetIdentName(unaryExpr.X.(*ast.Ident))
+		variable = f.GetVariable(name)
+	case *ast.CompositeLit: //
+		variable = f.doCompositeLit(unaryExpr.X.(*ast.CompositeLit))
+	}
 	switch unaryExpr.Op {
 	case token.AND:
 		if _, ok := variable.(*ir.InstAlloca); ok {
@@ -145,21 +155,26 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 
 //*
 func (f *FuncDecl) doStartExpr(x *ast.StarExpr) value.Value {
+	var v value.Value
 	switch x.X.(type) {
 	case *ast.Ident:
-		variable := f.GetVariable(GetIdentName(x.X.(*ast.Ident)))
-		return f.GetCurrentBlock().NewLoad(variable)
+		v = f.doIdent(x.X.(*ast.Ident))
 	case *ast.StarExpr:
-		return f.GetCurrentBlock().NewLoad(f.doStartExpr(x.X.(*ast.StarExpr)))
+		v = f.doStartExpr(x.X.(*ast.StarExpr))
 	default:
 		name := GetIdentName(x.X.(*ast.Ident))
 		if p := f.GetVariable(name); p != nil {
-			return f.GetCurrentBlock().NewLoad(p)
+			v = p
 		} else {
 			fmt.Println("not find in doStartExpr")
 		}
 	}
-	return nil
+	if f.GetCurrentBlock() != nil {
+		return f.GetCurrentBlock().NewLoad(v)
+	} else {
+		param := v.(*ir.Param)
+		return ir.NewParam(param.Name(), types.NewPointer(param.Type()))
+	}
 }
 
 func (f *FuncDecl) GetCurrent() *ir.Func {
@@ -464,6 +479,46 @@ func (f *FuncDecl) doFuncLit(fun *ast.FuncLit) value.Value {
 	f.doBlockStmt(fun.Body)
 	f.pop()
 	return tempFunc
+}
+
+func (f *FuncDecl) doIdent(ident *ast.Ident) value.Value {
+	if ident.Obj != nil {
+		switch ident.Obj.Kind {
+		case ast.Var:
+			//constant,Glob,alloa,param
+			variable := f.GetVariable(ident.Name)
+			if variable != nil {
+				if f.IsSlice(variable) {
+					return variable
+				} else {
+					if types.IsPointer(variable.Type()) {
+						return f.GetCurrentBlock().NewLoad(variable) //f.GetCurrentBlock().NewLoad(
+					} else {
+						return variable //f.GetCurrentBlock().NewLoad(
+					}
+				}
+			} else {
+				logrus.Error("not find in variable")
+			}
+		case ast.Typ:
+			typ, ok := f.GlobDef[ident.Name]
+			if ok {
+				return ir.NewParam("type", typ)
+			} else {
+				logrus.Error("GlobDef not find")
+			}
+		default:
+			logrus.Error("not find ast.xx")
+		}
+	} else {
+		identName := GetIdentName(ident)
+		if IsKeyWord(identName) {
+			return ir.NewParam("", f.GetTypeFromName(identName))
+		} else {
+			return ir.NewParam(identName, f.GetTypeFromName(identName))
+		}
+	}
+	return nil
 }
 
 func getFieldNum(m map[string]StructDef) int {

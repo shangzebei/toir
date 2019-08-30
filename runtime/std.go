@@ -5,10 +5,17 @@ import (
 	"toir/runtime/def"
 )
 
+type Slice struct {
+	Len   int
+	Cap   int
+	bytes int
+	ptr   def.I8p
+}
+
 //i8 * checkAppend(slice *)
-func checkAppend(s []int) def.I8p {
-	if len(s) >= cap(s) {
-		return def.SliceToI8(make([]int, len(s)+4))
+func checkAppend(s *Slice) def.I8p {
+	if s.Len >= s.Cap {
+		return def.SliceIntToI8(make([]int, s.Len+4))
 	} else {
 		return def.SliceToI8(s)
 	}
@@ -22,4 +29,9 @@ func copySlice(dst []int, src []int) int {
 		fmt.Printf("copy error !\n")
 	}
 	return 0
+}
+
+//new slice
+func makeSlice() *Slice {
+	return new(Slice)
 }

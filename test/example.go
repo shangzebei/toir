@@ -1,5 +1,15 @@
 package test
 
+type TT struct {
+}
+
+var pp *TT
+
 func main() {
-	test.test()
+	kkkk(&TT{})
+	//test.test()
+}
+
+func kkkk(int2 *TT) {
+
 }

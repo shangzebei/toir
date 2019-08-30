@@ -241,7 +241,11 @@ func InitZeroConstant(typ types.Type) constant.Constant {
 	case types.Float:
 		return constant.NewFloat(types.Float, float64(0))
 	default:
-		fmt.Println("InitZeroValue type not impl")
+		if t, ok := typ.(*types.PointerType); ok {
+			return constant.NewNull(t)
+		} else {
+			fmt.Println("InitZeroValue type not impl")
+		}
 	}
 	return nil
 }

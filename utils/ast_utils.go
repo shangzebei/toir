@@ -41,16 +41,18 @@ func CompileRuntime(fileName string, funName string) *ast.FuncDecl {
 
 func Call(i interface{}, funName string, params []value.Value) value.Value {
 	valueOf := reflect.ValueOf(i)
-	name := valueOf.MethodByName(funName)
-	if name.IsNil() || name.IsZero() {
+	fun := valueOf.MethodByName(funName)
+	if fun.IsValid() {
+		var vs []reflect.Value
+		for _, value := range params {
+			vs = append(vs, reflect.ValueOf(value))
+		}
+		call := fun.Call(vs)
+		return call[0].Interface().(value.Value)
+	} else {
 		fmt.Println("not buildin", funName)
 	}
-	var vs []reflect.Value
-	for _, value := range params {
-		vs = append(vs, reflect.ValueOf(value))
-	}
-	call := name.Call(vs)
-	return call[0].Interface().(value.Value)
+	return nil
 }
 
 func FastCharToLower(name string) string {

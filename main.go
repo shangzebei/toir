@@ -9,6 +9,7 @@ import (
 	"go/token"
 	"io/ioutil"
 	"toir/compile"
+	"toir/runtime/core"
 
 	"os/exec"
 )
@@ -20,17 +21,26 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/type_func.go")
+	bytes, _ := ioutil.ReadFile("test/example.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
 		return
 	}
-	ast.Print(fset, f)
+	//ast.Print(fset, f)
 	m := ir.NewModule()
-	doFunc := compile.DoFunc(m, fset, "main")
+
+	//init runtime
+	runtime := core.Init("runtime/std.go")
+	doFunc := compile.DoFunc(m, fset, "main", runtime)
+
 	var mainF ast.Decl
+
+	//copy runtime def to ...
 	var globs []*ast.GenDecl
+	//globs = append(globs, runtime.GenAll()...)
+
+	//
 	var funs []*ast.FuncDecl
 	for _, value := range f.Decls {
 		switch value.(type) {
