@@ -292,6 +292,8 @@ func (f *FuncDecl) initFuncParam() {
 		f.GetCurrentBlock().NewStore(value, newAlloca)
 		if f.IsSlice(newAlloca) { //slice *
 			f.PutVariable(value.Name(), f.GetCurrentBlock().NewLoad(newAlloca))
+		} else if types.IsFunc(GetBaseType(newAlloca.Type())) {
+			f.PutVariable(value.Name(), f.GetCurrentBlock().NewLoad(newAlloca))
 		} else {
 			f.PutVariable(value.Name(), newAlloca)
 		}
@@ -453,6 +455,15 @@ func (f *FuncDecl) doArrayType(arrayType *ast.ArrayType) value.Value {
 	identName := GetIdentName(arrayType.Elt.(*ast.Ident))
 	typ := f.GetTypeFromName(identName)
 	return ir.NewParam("", types.NewArray(0, typ))
+}
+
+func (f *FuncDecl) doFuncLit(fun *ast.FuncLit) value.Value {
+	params, funTyp := f.doFunType(fun.Type)
+	tempFunc := f.CreatFunc("", params, funTyp)
+	Push(f.FuncHeap, tempFunc)
+	f.doBlockStmt(fun.Body)
+	f.pop()
+	return tempFunc
 }
 
 func getFieldNum(m map[string]StructDef) int {

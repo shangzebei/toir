@@ -20,7 +20,7 @@ func init() {
 
 func main() {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/type.go")
+	bytes, _ := ioutil.ReadFile("test/type_func.go")
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error

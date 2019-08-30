@@ -5,6 +5,7 @@ import (
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"github.com/sirupsen/logrus"
 	"go/ast"
 	"toir/utils"
 )
@@ -52,6 +53,8 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			params = append(params, f.doSliceExpr(value.(*ast.SliceExpr)))
 		case *ast.ArrayType:
 			params = append(params, f.NewAllocSlice(f.doArrayType(value.(*ast.ArrayType)).Type()))
+		case *ast.FuncLit:
+			params = append(params, f.doFuncLit(value.(*ast.FuncLit)))
 		default:
 			fmt.Println("doCallExpr args not impl")
 		}
@@ -83,15 +86,23 @@ func (f *FuncDecl) checkAndConvert(funPars []*ir.Param, params []value.Value) []
 
 func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
+	////recursion
+	if f.GetCurrent().Name() == GetIdentName(id) {
+		return block.NewCall(f.GetCurrent(), values...)
+	}
 	if id.Obj != nil {
-		if f.GetCurrent().Name() == GetIdentName(id) { //recursion
-			return block.NewCall(f.GetCurrent(), values...)
-		} else {
+		switch id.Obj.Decl.(type) {
+		case *ast.FuncDecl:
 			funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
 			return block.NewCall(funDecl, values...)
+		case *ast.Field:
+			return block.NewCall(f.GetVariable(GetIdentName(id)), values...)
+		default:
+			logrus.Debug("not find type doCallFunc")
 		}
 	} else { //Custom func
 		return utils.Call(f, utils.FastCharToLower(id.Name), values)
 	}
+	return nil
 
 }
