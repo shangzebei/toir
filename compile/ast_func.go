@@ -303,10 +303,10 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 func (f *FuncDecl) initFuncParam() {
 	for _, value := range f.GetCurrent().Params {
 		//pointer not copy args
-		//if types.IsPointer(value.Type()) {
-		//	f.PutVariable(value.Name(), value)
-		//	continue
-		//}
+		if types.IsPointer(value.Type()) {
+			f.PutVariable(value.Name(), value)
+			continue
+		}
 
 		newAlloca := f.NewType(value.Typ)
 		f.GetCurrentBlock().NewStore(value, newAlloca)

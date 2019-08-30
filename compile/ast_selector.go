@@ -22,12 +22,20 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 			variable := f.GetVariable(varName)
 			if variable != nil {
 				if t, ok := GetBaseType(variable.Type()).(*types.StructType); ok {
-					var kk = []value.Value{variable}
-					if len(params) > 0 {
-						kk = append(kk, params...)
+					def, ok := f.StructDefs[t.Name()][GetIdentName(fexpr.Sel)]
+					if ok {
+						var kk = []value.Value{variable}
+						if len(params) > 0 {
+							kk = append(kk, params...)
+						}
+						if def.Fun == nil {
+							return utils.Index(f.GetCurrentBlock(), variable, def.Order)
+						} else {
+							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
+						}
+
 					}
-					fun := f.StructDefs[t.Name()][GetIdentName(fexpr.Sel)].Fun
-					return f.GetCurrentBlock().NewCall(fun, kk...)
+
 				}
 			}
 		default:
@@ -38,6 +46,8 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 	switch flag {
 	case "type":
 		return f.typeSelector(fexpr)
+	//case "value":
+	//return f.valueSelector(fexpr)
 	case "call":
 		return f.callSelector(params, fexpr)
 	}

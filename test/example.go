@@ -1,17 +1,20 @@
 package test
 
-import "fmt"
+type SS struct {
+	Len   int
+	Cap   int
+	bytes int
+}
 
-type Hlo struct {
-	Len int
-	Cap int
+//i8 * checkAppend(slice *)
+func checkAppend(s *SS) {
+	if s.Len >= s.Cap {
+		//return def.SliceIntToI8(make([]int, s.Len+4))
+	} else {
+		//return def.SliceToI8(s)
+	}
 }
 
 func main() {
 	//test.test()
-	sh(&Hlo{Cap: 3, Len: 2})
-}
-
-func sh(hlo *Hlo) {
-	fmt.Printf("%d-%d\n", hlo.Len, hlo.Cap)
 }

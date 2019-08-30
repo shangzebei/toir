@@ -37,7 +37,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	case *ast.ParenExpr:
 		x = f.doParenExpr(expr.X.(*ast.ParenExpr))
 	case *ast.SelectorExpr:
-		x = f.doSelector(nil, expr.X.(*ast.SelectorExpr), "call")
+		x = f.doSelector(nil, expr.X.(*ast.SelectorExpr), "type")
 	default:
 		fmt.Println("not impl doBinary")
 	}
@@ -60,7 +60,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	case *ast.IndexExpr:
 		y = f.doIndexExpr(expr.Y.(*ast.IndexExpr))
 	case *ast.SelectorExpr:
-		x = f.doSelector(nil, expr.X.(*ast.SelectorExpr), "call")
+		y = f.doSelector(nil, expr.Y.(*ast.SelectorExpr), "call")
 	default:
 		fmt.Println("not impl doBinary")
 	}
