@@ -15,8 +15,10 @@ import (
 func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) {
 	fmt.Println("not impl doRangeStmt")
 	//ast.Print(f.fset,stmt)
-	f.doBlockStmt(stmt.Body)
 	fmt.Println(stmt.Key)
 	fmt.Println(stmt.Value)
+	ident := stmt.Key.(*ast.Ident)
+	f.doAssignStmt(ident.Obj.Decl.(*ast.AssignStmt))
+	f.doBlockStmt(stmt.Body)
 
 }

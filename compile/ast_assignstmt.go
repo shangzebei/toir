@@ -94,8 +94,10 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		}
 	}
 	//check
-	for index, _ := range l {
-		r[index] = f.doBoolean(r[index], l[index].Type())
+	for index := range l {
+		if len(l) > index && len(r) > index {
+			r[index] = f.doBoolean(r[index], l[index].Type())
+		}
 	}
 
 	//ops

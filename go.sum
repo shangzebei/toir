@@ -3,6 +3,7 @@ github.com/inspirer/textmapper v0.0.0-20181224220124-bad2c4921a6b/go.mod h1:SpoI
 github.com/inspirer/textmapper v0.0.0-20190101225825-ae0b38e27780 h1:pw08V8HYitrJVu78g/A0qeKP4n88/z/4xryA3i6NY58=
 github.com/inspirer/textmapper v0.0.0-20190101225825-ae0b38e27780/go.mod h1:SpoIwXu07A3gguovN379QUCTHpUk1lhX2KIjVxpQOas=
 github.com/inspirer/textmapper v0.0.0-20190727095044-58324bfb3d07/go.mod h1:SpoIwXu07A3gguovN379QUCTHpUk1lhX2KIjVxpQOas=
+github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGiHgQ4OO8tzTaLawm8vnODuwDk=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=

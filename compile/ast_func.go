@@ -147,6 +147,8 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 		} else {
 			return f.ToPtr(variable)
 		}
+	case token.RANGE:
+		return f.doIdent(unaryExpr.X.(*ast.Ident))
 	default:
 		fmt.Println("doUnaryExpr not impl")
 	}
