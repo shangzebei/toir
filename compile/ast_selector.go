@@ -33,9 +33,7 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 						} else {
 							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
 						}
-
 					}
-
 				}
 			}
 		default:
@@ -43,6 +41,7 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 		}
 
 	}
+
 	switch flag {
 	case "type":
 		return f.typeSelector(fexpr)

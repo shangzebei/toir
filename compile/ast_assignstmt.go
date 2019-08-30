@@ -84,7 +84,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	//check return
 	if len(r) != len(l) {
 		if len(r) == 1 && len(l) != 1 {
-			if re, ok := r[0].Type().(*types.StructType); ok && strings.HasSuffix(re.Name(), ".return") { //return
+			if re, ok := r[0].Type().(*types.StructType); ok && strings.HasPrefix(re.Name(), "return.") { //return
 				for index := range re.Fields {
 					r = append(r, f.GetCurrentBlock().NewExtractValue(r[0], uint64(index)))
 				}
@@ -121,20 +121,19 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 					f.PutVariable(vName, newAlloc)
 				}
 				rep = append(rep, f.GetVariable(vName))
-				return rep
+
 			case *SliceArray:
 				array := r[lindex].(*SliceArray)
 				newAllocSlice := f.NewAllocSlice(types.NewArray(0, array.emt))
 				f.CopySlice(newAllocSlice, array)
 				f.PutVariable(vName, newAllocSlice)
 				rep = append(rep, newAllocSlice)
-				return rep
+
 			default:
 				newAlloc := f.NewType(r[lindex].Type())
 				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
 				f.PutVariable(vName, newAlloc)
 				rep = append(rep, f.GetVariable(vName))
-				return rep
 
 			}
 

@@ -122,7 +122,8 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 		}
 	}
 	if mul {
-		newTypeDef := f.m.NewTypeDef(f.GetCurrent().Name()+".return", types.NewStruct(ty...))
+		i := len(f.m.Funcs)
+		newTypeDef := f.m.NewTypeDef("return."+strconv.Itoa(i)+"."+strconv.Itoa(len(f.m.Funcs[i-1].Blocks)), types.NewStruct(ty...))
 		return params, types.NewFunc(newTypeDef, paramTypes...)
 	} else {
 		return params, types.NewFunc(ty[0], paramTypes...)
@@ -307,11 +308,11 @@ func (f *FuncDecl) initFuncParam() {
 			f.PutVariable(value.Name(), value)
 			continue
 		}
-
+		//TODO WARN
 		newAlloca := f.NewType(value.Typ)
 		f.GetCurrentBlock().NewStore(value, newAlloca)
 		if f.IsSlice(newAlloca) { //slice *
-			f.PutVariable(value.Name(), f.GetCurrentBlock().NewLoad(newAlloca))
+			f.PutVariable(value.Name(), newAlloca)
 		} else if types.IsFunc(GetBaseType(newAlloca.Type())) {
 			f.PutVariable(value.Name(), f.GetCurrentBlock().NewLoad(newAlloca))
 		} else {
@@ -398,7 +399,7 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		array := constant.NewArray(c...)
 		def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), array)
 		def.Immutable = true
-		return f.InitValue(f.doIdent(lit.Type.(*ast.Ident)).Type(), def)
+		return f.InitValue(array.Type(), def)
 	case *ast.Ident: //struct
 		name := GetIdentName(lit.Type.(*ast.Ident))
 		i, ok := f.GlobDef[name]
@@ -425,11 +426,12 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 					}
 				}
 			}
-			def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), constant.NewStruct(s...))
+			newStruct := constant.NewStruct(s...)
+			def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), newStruct)
 			def.ContentType = i
 			def.Typ = types.NewPointer(i)
 			def.Immutable = true
-			return f.InitValue(f.doIdent(lit.Type.(*ast.Ident)).Type(), def)
+			return f.InitValue(newStruct.Type(), def)
 		}
 	default:
 		fmt.Println("not impl doCompositeLit")
@@ -493,15 +495,7 @@ func (f *FuncDecl) doIdent(ident *ast.Ident) value.Value {
 			//constant,Glob,alloa,param
 			variable := f.GetVariable(ident.Name)
 			if variable != nil {
-				if f.IsSlice(variable) {
-					return variable
-				} else {
-					if types.IsPointer(variable.Type()) {
-						return f.GetCurrentBlock().NewLoad(variable) //f.GetCurrentBlock().NewLoad(
-					} else {
-						return variable //f.GetCurrentBlock().NewLoad(
-					}
-				}
+				return variable
 			} else {
 				logrus.Error("not find in variable")
 			}
