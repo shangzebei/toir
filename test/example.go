@@ -13,8 +13,8 @@ func main() {
 	//pp(&uu)
 	//jj(&uu.Len)
 	//nn(uu.Len)
-	var b []int
-	b = append(b, 11)
+	b := []int{1, 2, 3, 4}
+	//b = append(b, 11)
 	nn(b[0])
 
 }

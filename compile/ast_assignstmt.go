@@ -131,8 +131,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				i := r[lindex]
 				newType := f.NewType(i.Type())
 				f.GetCurrentBlock().NewStore(i, newType)
-				f.PutVariable(vName, i)
-				rep = append(rep, i)
+				f.PutVariable(vName, newType)
+				rep = append(rep, newType)
 			} else {
 				newAlloc := f.NewType(r[lindex].Type())
 				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
