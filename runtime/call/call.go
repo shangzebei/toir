@@ -1,6 +1,7 @@
 package call
 
 import (
+	"fmt"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
@@ -40,4 +41,11 @@ func (c *Call) MemCopy(dst value.Value, src value.Value, len value.Value) {
 
 func (c *Call) Malloc(size value.Value) value.Value {
 	return c.Block.NewCall(stdlib.Malloc, size)
+}
+
+//
+func (c *Call) ArrayPtr(src value.Value, bytes value.Value, index value.Value) value.Value {
+	fmt.Println(src)
+	//c.Block.NewGetElementPtr(src,constant.NewInt(types.I32,0),c.Block.NewMul(bytes,index))
+	return src
 }

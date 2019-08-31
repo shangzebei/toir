@@ -12,6 +12,7 @@ import (
 	"toir/utils"
 )
 
+//which struct return value not pointer
 func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, flag string) value.Value {
 	ident := fexpr.X.(*ast.Ident)
 	varName := GetIdentName(ident)
@@ -29,7 +30,12 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 							kk = append(kk, params...)
 						}
 						if def.Fun == nil {
-							return utils.Index(f.GetCurrentBlock(), variable, def.Order)
+							if types.IsPointer(variable.Type()) {
+								//f.GetCurrentBlock().NewLoad(utils.Index(f.GetCurrentBlock(), f.GetCurrentBlock().NewLoad(variable), def.Order))
+							}
+							//ptr := utils.Toi8Ptr(f.GetCurrentBlock(), variable)
+							index := utils.Index(f.GetCurrentBlock(), variable, def.Order)
+							return f.GetCurrentBlock().NewLoad(index)
 						} else {
 							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
 						}
@@ -77,7 +83,7 @@ func (f *FuncDecl) callSelector(params []value.Value, fexpr *ast.SelectorExpr) v
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("checkAppend"))
 		return f.StdCall(decl)
 	default:
-		logrus.Debug("not impl doSelector")
+		logrus.Debugf("not impl doSelector %s", name)
 	}
 	return nil
 }

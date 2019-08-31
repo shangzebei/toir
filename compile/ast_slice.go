@@ -75,7 +75,6 @@ func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
 	t, _ := v.(*SliceArray)
 	decl := f.DoFunDecl("runtime", f.r.GetFunc("indexSlice"))
 	cast := f.GetCurrentBlock().NewBitCast(f.StdCall(decl, v, index), types.NewPointer(t.emt))
-	//bitCast := f.GetCurrentBlock().NewBitCast(stdCall, t.emt)
 	return f.GetCurrentBlock().NewGetElementPtr(cast, index)
 }
 

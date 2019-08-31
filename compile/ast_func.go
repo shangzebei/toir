@@ -9,11 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
-	"toir/llvm"
-	"toir/runtime/core"
-	"toir/stdlib"
-
 	"strconv"
+	"toir/runtime/core"
 )
 
 type StructDef struct {
@@ -121,6 +118,9 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 			logrus.Error("not known type")
 		}
 	}
+	if len(ty) == 0 {
+		ty = append(ty, types.Void)
+	}
 	if mul {
 		i := len(f.m.Funcs)
 		newTypeDef := f.m.NewTypeDef("return."+strconv.Itoa(i)+"."+strconv.Itoa(len(f.m.Funcs[i-1].Blocks)), types.NewStruct(ty...))
@@ -139,13 +139,20 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 		variable = f.GetVariable(name)
 	case *ast.CompositeLit: //
 		variable = f.doCompositeLit(unaryExpr.X.(*ast.CompositeLit))
+	case *ast.SelectorExpr:
+		variable = f.doSelector(nil, unaryExpr.X.(*ast.SelectorExpr), "call")
+	default:
+		logrus.Error("not impl")
 	}
 	switch unaryExpr.Op {
 	case token.AND:
 		if _, ok := variable.(*ir.InstAlloca); ok {
 			return variable
 		} else {
-			return f.ToPtr(variable)
+			fmt.Println(variable)
+			//TODO ERROR
+			return f.GetCurrentBlock().NewIntToPtr(variable, types.NewPointer(variable.Type()))
+			//return f.ToPtr(variable)
 		}
 	case token.RANGE:
 		return f.doIdent(unaryExpr.X.(*ast.Ident))
@@ -278,6 +285,9 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 			case *ast.CompositeLit:
 				callExpr := exprStmt.X.(*ast.CompositeLit)
 				f.doCompositeLit(callExpr)
+			case *ast.SliceExpr:
+				callExpr := exprStmt.X.(*ast.SliceExpr)
+				f.doSliceExpr(callExpr)
 			default:
 				fmt.Println("aaaaaaaaaaa")
 			}
@@ -407,12 +417,12 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		return f.InitValue(array.Type(), def)
 	case *ast.Ident: //struct
 		name := GetIdentName(lit.Type.(*ast.Ident))
-		i, ok := f.GlobDef[name]
+		structType, ok := f.GlobDef[name]
 		if lit.Elts == nil {
 			if !ok {
 				f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
 			}
-			return f.GetCurrentBlock().NewAlloca(i)
+			return f.GetCurrentBlock().NewAlloca(structType)
 		} else {
 			var s = make([]constant.Constant, getFieldNum(f.StructDefs[name]))
 			for key, v := range f.StructDefs[name] {
@@ -433,10 +443,10 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 			}
 			newStruct := constant.NewStruct(s...)
 			def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), newStruct)
-			def.ContentType = i
-			def.Typ = types.NewPointer(i)
+			def.ContentType = structType
+			def.Typ = types.NewPointer(structType)
 			def.Immutable = true
-			return f.InitValue(newStruct.Type(), def)
+			return f.InitValue(structType, def)
 		}
 	default:
 		fmt.Println("not impl doCompositeLit")
@@ -458,21 +468,10 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 	variable := f.GetVariable(GetIdentName(expr.X.(*ast.Ident)))
 	low := f.BasicLitToConstant(expr.Low.(*ast.BasicLit))
 	higt := f.BasicLitToConstant(expr.High.(*ast.BasicLit))
-	if f.IsSlice(variable) {
-		array := variable.(*SliceArray)
-		slice := f.NewAllocSlice(types.NewArray(0, array.emt))
-		sub := f.GetCurrentBlock().NewSub(higt, low)
-		mul := f.GetCurrentBlock().NewMul(sub, f.GetBytes(variable))
-		call := f.StdCall(stdlib.Malloc, mul)
-		f.SetLen(slice, sub)
-		f.SetCap(slice, sub)
-		f.StdCall(llvm.Mencpy,
-			call,
-			f.GetCurrentBlock().NewBitCast(f.GetSliceIndex(variable, low), types.I8Ptr),
-			mul,
-			constant.NewBool(false))
-		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(types.I8Ptr)), f.GetPSlice(slice))
-		return slice
+	if f.IsSlice(variable) { //
+		decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
+		stdCall := f.StdCall(decl, variable, low, higt)
+		return stdCall
 	}
 	logrus.Error("doSliceExpr not sliceArray")
 	return nil

@@ -111,14 +111,14 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 			decl,
 			value2,
 		)
-		slice := f.GetVSlice(value2)
-		f.GetCurrentBlock().NewStore(call, slice)
+		slicePtr := f.GetVSlice(value2)
+		f.GetCurrentBlock().NewStore(call, slicePtr)
 
 		//append
 		lenPtr := f.GetPLen(value2)
 		len := f.GetCurrentBlock().NewLoad(lenPtr)
 		i := elems[0]
-		bitCast := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(slice), types.NewPointer(i.Type()))
+		bitCast := f.GetCurrentBlock().NewBitCast(slicePtr, types.NewPointer(i.Type()))
 		ptr := f.GetCurrentBlock().NewGetElementPtr(bitCast, len)
 		f.GetCurrentBlock().NewStore(i, ptr)
 		//store len+1

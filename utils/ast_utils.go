@@ -61,3 +61,7 @@ func Call(i interface{}, funName string, params []value.Value) value.Value {
 func FastCharToLower(name string) string {
 	return strings.ToUpper(string(name[0])) + name[1:]
 }
+
+func Toi8Ptr(b *ir.Block, src value.Value) *ir.InstGetElementPtr {
+	return b.NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
+}

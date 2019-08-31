@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"toir/utils"
 )
 
 func GetCallFuncName(call *ast.SelectorExpr) string {
@@ -197,11 +198,7 @@ func (f *FuncDecl) Call(b *ir.Block, v value.Value, args ...value.Value) value.V
 }
 
 func (f *FuncDecl) ToPtr(src value.Value) *ir.InstGetElementPtr {
-	return Toi8Ptr(f.GetCurrentBlock(), src)
-}
-
-func Toi8Ptr(b *ir.Block, src value.Value) *ir.InstGetElementPtr {
-	return b.NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
+	return utils.Toi8Ptr(f.GetCurrentBlock(), src)
 }
 
 func GetRealType(value2 types.Type) types.Type {

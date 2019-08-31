@@ -38,7 +38,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		case *ast.CallExpr:
 			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
 		case *ast.IndexExpr:
-			r = append(r, f.GetCurrentBlock().NewLoad(f.doIndexExpr(value.(*ast.IndexExpr))))
+			r = append(r, f.doIndexExpr(value.(*ast.IndexExpr)))
 		case *ast.CompositeLit:
 			r = append(r, f.doCompositeLit(value.(*ast.CompositeLit)))
 		case *ast.SelectorExpr:
@@ -128,7 +128,6 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				array := r[lindex].(*SliceArray)
 				f.PutVariable(vName, array)
 				rep = append(rep, array)
-
 			default:
 				newAlloc := f.NewType(r[lindex].Type())
 				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
@@ -204,7 +203,7 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.BinaryExpr:
 		kv = f.doBinary(index.Index.(*ast.BinaryExpr))
 	case *ast.IndexExpr:
-		kv = f.GetCurrentBlock().NewLoad(f.doIndexExpr(index.Index.(*ast.IndexExpr)))
+		kv = f.doIndexExpr(index.Index.(*ast.IndexExpr))
 	case *ast.SelectorExpr:
 		kv = f.GetCurrentBlock().NewLoad(f.doSelectorExpr(index.Index.(*ast.SelectorExpr)))
 	default:
@@ -219,7 +218,7 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		return f.GetSliceIndex(variable, kv)
+		return f.GetCurrentBlock().NewLoad(f.GetSliceIndex(variable, kv))
 	case *ast.CallExpr:
 		return f.doCallExpr(index.X.(*ast.CallExpr))
 	default:

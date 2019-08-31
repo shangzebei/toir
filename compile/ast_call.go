@@ -30,7 +30,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.BinaryExpr:
 			params = append(params, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.IndexExpr:
-			params = append(params, f.GetCurrentBlock().NewLoad(f.doIndexExpr(value.(*ast.IndexExpr))))
+			params = append(params, f.doIndexExpr(value.(*ast.IndexExpr)))
 		case *ast.SelectorExpr:
 			params = append(params, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
 		case *ast.UnaryExpr: //get addr

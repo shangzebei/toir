@@ -47,6 +47,17 @@ func copySlice(dst *slice, src *slice) int {
 	return 0
 }
 
+func rangeSlice(s *slice, low int, high int) *slice {
+	l := high - low
+	i := new(slice)
+	malloc := def.Malloc(l * s.bytes)
+	i.Cap = l
+	i.Len = l
+	def.MemCopy(malloc, def.ArrayPtr(s.ptr, s.bytes, l), l)
+	i.ptr = malloc
+	return i
+}
+
 //new slice
 func makeSlice() *slice {
 	return new(slice)

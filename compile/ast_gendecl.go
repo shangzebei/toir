@@ -100,7 +100,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 	}
 }
 
-//init value which def
+//init value which def and return value
 func (f *FuncDecl) InitValue(kind types.Type, def value.Value) value.Value {
 	//alloca := f.GetCurrentBlock().NewAlloca(GetRealType(kind))
 	var alloca value.Value
@@ -141,7 +141,7 @@ func (f *FuncDecl) InitValue(kind types.Type, def value.Value) value.Value {
 		alloca = f.NewType(GetBaseType(kind))
 		fmt.Println("not find types")
 	}
-	return alloca
+	return f.GetCurrentBlock().NewLoad(alloca)
 }
 
 func (f *FuncDecl) doStructType(typ *types.StructType) {

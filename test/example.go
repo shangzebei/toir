@@ -1,10 +1,23 @@
 package test
 
+type UU struct {
+	Len int
+}
+
 func main() {
 	//test.test()
-	b := []int{1, 2, 3, 4}
-	b = append(b, 5)
-	//for kk, gg := range a {
-	//	fmt.Printf("asdfasdfasdfsdaf")
-	//}
+	uu := UU{Len: 23}
+	&uu.Len
 }
+
+//func sh(uu UU)  {
+//
+//}
+//
+//func pp(uu *UU)  {
+//
+//}
+//
+//func jj(int2 *int)  {
+//
+//}
