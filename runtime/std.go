@@ -14,27 +14,35 @@ type slice struct {
 
 //return Slice ptr
 func indexSlice(s *slice, index int) def.I8p {
-	if index > s.Len {
-		fmt.Printf("out of range")
+	if index >= s.Len {
+		fmt.Printf("out of range\n")
+		def.Unreachable()
 	}
 	return s.ptr
 }
 
-//i8 * checkAppend(slice *)
-func checkAppend(s *slice) def.I8p {
+//i8 * checkGrow(slice *)
+func checkGrow(s *slice) def.I8p {
 	if s.Len >= s.Cap {
-		return def.SliceIntToI8(make([]int, s.Len+4))
+		len := s.Len + 4
+		a := def.Malloc(len * s.bytes)
+		def.MemCopy(a, s.ptr, s.Len)
+		s.Cap = len
+		return a
 	} else {
-		return def.SliceToI8(s)
+		return s.ptr
 	}
 }
 
 //int copy(char *dst,char *src)
-func copySlice(dst []int, src []int) int {
-	if cap(dst) > len(src) {
-		return copy(dst, src)
+func copySlice(dst *slice, src *slice) int {
+	if dst.Cap > src.Len {
+		def.MemCopy(dst.ptr, src.ptr, src.Len)
+		dst.Len = src.Len
+		return src.Len
 	} else {
 		fmt.Printf("copy error !\n")
+		def.Unreachable()
 	}
 	return 0
 }

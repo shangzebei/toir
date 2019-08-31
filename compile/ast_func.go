@@ -275,6 +275,9 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 			case *ast.IndexExpr:
 				callExpr := exprStmt.X.(*ast.IndexExpr)
 				f.doIndexExpr(callExpr)
+			case *ast.CompositeLit:
+				callExpr := exprStmt.X.(*ast.CompositeLit)
+				f.doCompositeLit(callExpr)
 			default:
 				fmt.Println("aaaaaaaaaaa")
 			}
@@ -481,6 +484,7 @@ func (f *FuncDecl) doArrayType(arrayType *ast.ArrayType) value.Value {
 	return ir.NewParam("", types.NewArray(0, typ))
 }
 
+//inline func
 func (f *FuncDecl) doFuncLit(fun *ast.FuncLit) value.Value {
 	params, funTyp := f.doFunType(fun.Type)
 	tempFunc := f.CreatFunc("", params, funTyp)

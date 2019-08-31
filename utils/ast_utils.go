@@ -48,7 +48,10 @@ func Call(i interface{}, funName string, params []value.Value) value.Value {
 			vs = append(vs, reflect.ValueOf(value))
 		}
 		call := fun.Call(vs)
-		return call[0].Interface().(value.Value)
+		if len(call) > 0 {
+			return call[0].Interface().(value.Value)
+		}
+
 	} else {
 		fmt.Println("not buildin", funName)
 	}

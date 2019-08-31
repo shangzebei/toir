@@ -115,7 +115,7 @@ func (f *FuncDecl) InitValue(kind types.Type, def value.Value) value.Value {
 		bytes := GetSliceBytes(arrayType)
 		f.StdCall(
 			llvm.Mencpy,
-			f.GetVSlice(alloca),
+			f.GetCurrentBlock().NewLoad(f.GetVSlice(alloca)),
 			f.GetCurrentBlock().NewBitCast(def, types.I8Ptr),
 			constant.NewInt(types.I32, bytes),
 			constant.NewBool(false),

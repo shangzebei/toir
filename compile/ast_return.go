@@ -32,6 +32,8 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 			} else {
 				rev = identToValue
 			}
+		case *ast.SelectorExpr:
+			rev = f.doSelector(nil, val.(*ast.SelectorExpr), "call")
 		default:
 			logrus.Debug("doBlockStmt return not impl!")
 		}

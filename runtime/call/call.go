@@ -2,8 +2,11 @@ package call
 
 import (
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"toir/llvm"
+	"toir/stdlib"
 )
 
 type Call struct {
@@ -19,4 +22,22 @@ func (c *Call) SliceIntToI8(v value.Value) value.Value {
 //
 func (c *Call) SliceToI8(v value.Value) value.Value {
 	return c.Block.NewBitCast(v, types.I8Ptr)
+}
+
+//
+func (c *Call) Unreachable() {
+	c.Block.NewUnreachable()
+}
+
+func (c *Call) MemCopy(dst value.Value, src value.Value, len value.Value) {
+	c.Block.NewCall(llvm.Mencpy,
+		dst,
+		src,
+		len,
+		constant.NewBool(false))
+
+}
+
+func (c *Call) Malloc(size value.Value) value.Value {
+	return c.Block.NewCall(stdlib.Malloc, size)
 }

@@ -73,7 +73,9 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 
 func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
 	t, _ := v.(*SliceArray)
-	cast := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(f.GetPSlice(v)), types.NewPointer(t.emt))
+	decl := f.DoFunDecl("runtime", f.r.GetFunc("indexSlice"))
+	cast := f.GetCurrentBlock().NewBitCast(f.StdCall(decl, v, index), types.NewPointer(t.emt))
+	//bitCast := f.GetCurrentBlock().NewBitCast(stdCall, t.emt)
 	return f.GetCurrentBlock().NewGetElementPtr(cast, index)
 }
 
@@ -126,8 +128,8 @@ func (f *FuncDecl) SetCap(slice value.Value, v value.Value) {
 
 func (f *FuncDecl) CopySlice(dst value.Value, src value.Value) {
 	if f.IsSlice(src) && f.IsSlice(src) {
-		f.CopyStruct(dst, src)
-		f.Copy(dst, src)
+		decl := f.DoFunDecl("runtime", f.r.GetFunc("copySlice"))
+		f.StdCall(decl, dst, src)
 	} else {
 		logrus.Error("copy dst or src is not sliceArray")
 	}

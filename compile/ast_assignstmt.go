@@ -126,10 +126,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 
 			case *SliceArray:
 				array := r[lindex].(*SliceArray)
-				newAllocSlice := f.NewAllocSlice(types.NewArray(0, array.emt))
-				f.CopySlice(newAllocSlice, array)
-				f.PutVariable(vName, newAllocSlice)
-				rep = append(rep, newAllocSlice)
+				f.PutVariable(vName, array)
+				rep = append(rep, array)
 
 			default:
 				newAlloc := f.NewType(r[lindex].Type())

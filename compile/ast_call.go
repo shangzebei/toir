@@ -15,10 +15,11 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	for _, value := range call.Args {
 		switch value.(type) {
 		case *ast.Ident:
-			if a, ok := f.doIdent(value.(*ast.Ident)).(*ir.InstAlloca); ok {
+			doIdent := f.doIdent(value.(*ast.Ident))
+			if a, ok := doIdent.(*ir.InstAlloca); ok {
 				params = append(params, f.GetCurrentBlock().NewLoad(a))
 			} else {
-				params = append(params, a)
+				params = append(params, doIdent)
 			}
 		case *ast.BasicLit: //param
 			basicLit := value.(*ast.BasicLit)
