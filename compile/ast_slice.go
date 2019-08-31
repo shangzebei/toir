@@ -41,7 +41,7 @@ func (f *FuncDecl) NewAllocSlice(array types.Type) value.Value {
 		//len,cap,elem bytes,ptr//TODO
 		if t.Len != 0 {
 			array := f.GetCurrentBlock().NewAlloca(t)
-			cast := f.GetCurrentBlock().NewBitCast(array, types.NewPointer(types.I8Ptr))
+			cast := f.GetCurrentBlock().NewBitCast(array, types.I8Ptr)
 			f.GetCurrentBlock().NewStore(cast, f.GetPSlice(alloca))
 			f.SetLen(alloca, constant.NewInt(types.I32, int64(t.Len)))
 			f.SetCap(alloca, constant.NewInt(types.I32, int64(t.Len)))
@@ -52,10 +52,7 @@ func (f *FuncDecl) NewAllocSlice(array types.Type) value.Value {
 }
 
 func (f *FuncDecl) GetSliceType() types.Type {
-	if stTypeDef == nil {
-		stTypeDef = f.m.NewTypeDef("slice", types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(types.I8Ptr)))
-	}
-	return stTypeDef
+	return f.GlobDef["slice"]
 }
 
 func (f *FuncDecl) IsSlice(v value.Value) bool {
@@ -87,7 +84,7 @@ func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
 
 //addr char *
 func (f *FuncDecl) GetVSlice(v value.Value) value.Value {
-	return f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(f.GetPSlice(v)), types.I8Ptr)
+	return f.GetPSlice(v)
 }
 
 func (f *FuncDecl) GetPLen(v value.Value) value.Value {
