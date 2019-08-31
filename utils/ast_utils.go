@@ -65,3 +65,27 @@ func FastCharToLower(name string) string {
 func Toi8Ptr(b *ir.Block, src value.Value) *ir.InstGetElementPtr {
 	return b.NewGetElementPtr(src, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
 }
+
+func StdCall(m *ir.Module, b *ir.Block, v value.Value, args ...value.Value) value.Value {
+	typ := v.Type()
+	if p, ok := v.Type().(*types.PointerType); ok {
+		typ = p.ElemType
+	}
+	if _, ok := typ.(*types.FuncType); ok {
+		ex := false
+		i := v.(*ir.Func)
+		for _, value := range m.Funcs {
+			if i.GlobalName == value.GlobalName {
+				ex = true
+				break
+			}
+		}
+		if !ex {
+			m.Funcs = append(m.Funcs, v.(*ir.Func))
+		}
+		return b.NewCall(v, args...)
+	} else {
+		fmt.Println("type error")
+	}
+	return nil
+}

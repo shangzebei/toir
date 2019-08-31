@@ -146,14 +146,7 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	}
 	switch unaryExpr.Op {
 	case token.AND:
-		if _, ok := variable.(*ir.InstAlloca); ok {
-			return variable
-		} else {
-			fmt.Println(variable)
-			//TODO ERROR
-			return f.GetCurrentBlock().NewIntToPtr(variable, types.NewPointer(variable.Type()))
-			//return f.ToPtr(variable)
-		}
+		return variable
 	case token.RANGE:
 		return f.doIdent(unaryExpr.X.(*ast.Ident))
 	default:
@@ -275,22 +268,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 		switch value.(type) {
 		case *ast.ExprStmt:
 			exprStmt := value.(*ast.ExprStmt)
-			switch exprStmt.X.(type) {
-			case *ast.CallExpr:
-				callExpr := exprStmt.X.(*ast.CallExpr)
-				f.doCallExpr(callExpr)
-			case *ast.IndexExpr:
-				callExpr := exprStmt.X.(*ast.IndexExpr)
-				f.doIndexExpr(callExpr)
-			case *ast.CompositeLit:
-				callExpr := exprStmt.X.(*ast.CompositeLit)
-				f.doCompositeLit(callExpr)
-			case *ast.SliceExpr:
-				callExpr := exprStmt.X.(*ast.SliceExpr)
-				f.doSliceExpr(callExpr)
-			default:
-				fmt.Println("aaaaaaaaaaa")
-			}
+			f.doExprStmt(exprStmt)
 		case *ast.IfStmt: //if
 			startBlock, endBlock = f.doIfStmt(value.(*ast.IfStmt))
 		case *ast.ReturnStmt:
@@ -523,6 +501,28 @@ func (f *FuncDecl) doIdent(ident *ast.Ident) value.Value {
 		}
 	}
 	return nil
+}
+
+func (f *FuncDecl) doExprStmt(exprStmt *ast.ExprStmt) {
+	switch exprStmt.X.(type) {
+	case *ast.CallExpr:
+		callExpr := exprStmt.X.(*ast.CallExpr)
+		f.doCallExpr(callExpr)
+	case *ast.IndexExpr:
+		callExpr := exprStmt.X.(*ast.IndexExpr)
+		f.doIndexExpr(callExpr)
+	case *ast.CompositeLit:
+		callExpr := exprStmt.X.(*ast.CompositeLit)
+		f.doCompositeLit(callExpr)
+	case *ast.SliceExpr:
+		callExpr := exprStmt.X.(*ast.SliceExpr)
+		f.doSliceExpr(callExpr)
+	case *ast.UnaryExpr:
+		callExpr := exprStmt.X.(*ast.UnaryExpr)
+		f.doUnaryExpr(callExpr)
+	default:
+		logrus.Error("doBlockStmt.ExprStmt not impl")
+	}
 }
 
 func getFieldNum(m map[string]StructDef) int {

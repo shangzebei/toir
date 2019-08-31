@@ -30,12 +30,8 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 							kk = append(kk, params...)
 						}
 						if def.Fun == nil {
-							if types.IsPointer(variable.Type()) {
-								//f.GetCurrentBlock().NewLoad(utils.Index(f.GetCurrentBlock(), f.GetCurrentBlock().NewLoad(variable), def.Order))
-							}
-							//ptr := utils.Toi8Ptr(f.GetCurrentBlock(), variable)
 							index := utils.Index(f.GetCurrentBlock(), variable, def.Order)
-							return f.GetCurrentBlock().NewLoad(index)
+							return index
 						} else {
 							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
 						}
@@ -74,7 +70,7 @@ func (f *FuncDecl) callSelector(params []value.Value, fexpr *ast.SelectorExpr) v
 	name := GetCallFuncName(fexpr)
 	if strings.HasPrefix(name, "def.") {
 		lastIndex := strings.LastIndex(name, ".")
-		return utils.Call(&call.Call{Block: f.GetCurrentBlock()}, name[lastIndex+1:], params)
+		return utils.Call(&call.Call{Block: f.GetCurrentBlock(), M: f.m}, name[lastIndex+1:], params)
 	}
 	switch name {
 	case "fmt.Printf", "external.Printf":

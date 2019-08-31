@@ -145,5 +145,6 @@ func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
 }
 
 func (f *FuncDecl) New(v value.Value) value.Value {
-	return f.GetCurrentBlock().NewAlloca(v.Type())
+	alloca := f.GetCurrentBlock().NewAlloca(v.Type())
+	return alloca
 }

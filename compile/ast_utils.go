@@ -149,52 +149,8 @@ func doSymbol(name string) string {
 	return compile.ReplaceAllString(name, "")
 }
 
-func (f *FuncDecl) convertTypeTo(from value.Value, to types.Type) value.Value {
-	if from.Type() != to {
-		if _, ok := to.(*types.IntType); ok {
-			if _, ok := from.Type().(*types.PointerType); ok {
-				return f.GetCurrentBlock().NewLoad(from)
-			} else {
-				fmt.Println("convertTypeTo unknown type")
-			}
-		}
-		if _, ok := to.(*types.PointerType); ok {
-			if _, ok := from.Type().(*types.IntType); ok {
-				return f.GetCurrentBlock().NewGetElementPtr(from, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
-			} else {
-				fmt.Println("convertTypeTo unknown type")
-			}
-		}
-	}
-	return nil
-}
-
 func (f *FuncDecl) StdCall(v value.Value, args ...value.Value) value.Value {
-	return f.Call(f.GetCurrentBlock(), v, args...)
-}
-
-func (f *FuncDecl) Call(b *ir.Block, v value.Value, args ...value.Value) value.Value {
-	typ := v.Type()
-	if p, ok := v.Type().(*types.PointerType); ok {
-		typ = p.ElemType
-	}
-	if _, ok := typ.(*types.FuncType); ok {
-		ex := false
-		i := v.(*ir.Func)
-		for _, value := range f.m.Funcs {
-			if i.GlobalName == value.GlobalName {
-				ex = true
-				break
-			}
-		}
-		if !ex {
-			f.m.Funcs = append(f.m.Funcs, v.(*ir.Func))
-		}
-		return b.NewCall(v, args...)
-	} else {
-		fmt.Println("type error")
-	}
-	return nil
+	return utils.StdCall(f.m, f.GetCurrentBlock(), v, args...)
 }
 
 func (f *FuncDecl) ToPtr(src value.Value) *ir.InstGetElementPtr {

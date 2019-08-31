@@ -40,7 +40,7 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 		values = append(values, rev)
 	}
 	if !mul {
-		f.GetCurrentBlock().NewRet(values[0])
+		f.GetCurrentBlock().NewRet(f.ConvertType(f.GetCurrent().Sig.RetType, values[0]))
 	} else {
 		alloca := f.GetCurrentBlock().NewAlloca(f.GetCurrent().Sig.RetType)
 		for index, value := range values {
@@ -49,6 +49,16 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 		}
 		f.GetCurrentBlock().NewRet(f.GetCurrentBlock().NewLoad(alloca))
 	}
+}
+
+func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value.Value {
+	if exportType == current.Type() {
+		return current
+	} else {
+		load := f.GetCurrentBlock().NewLoad(current)
+		return f.ConvertType(exportType, load)
+	}
+
 }
 
 func StrutsToTypes(values []value.Value) []types.Type {

@@ -62,9 +62,6 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 	if _, ok := v.(*SliceArray); ok {
 		return true
 	}
-	if v.Type() == f.GetSliceType() && v.Type().Name() == "slice" {
-		return true
-	}
 	if GetBaseType(v.Type()) == f.GetSliceType() {
 		return true
 	}
@@ -72,10 +69,8 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 }
 
 func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
-	t, _ := v.(*SliceArray)
 	decl := f.DoFunDecl("runtime", f.r.GetFunc("indexSlice"))
-	cast := f.GetCurrentBlock().NewBitCast(f.StdCall(decl, v, index), types.NewPointer(t.emt))
-	return f.GetCurrentBlock().NewGetElementPtr(cast, index)
+	return f.StdCall(decl, v, index)
 }
 
 //slice*** [char **]

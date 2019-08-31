@@ -18,7 +18,7 @@ func indexSlice(s *slice, index int) def.I8p {
 		fmt.Printf("out of range\n")
 		def.Unreachable()
 	}
-	return s.ptr
+	return def.ArrayPtr(s.ptr, s.bytes, index)
 }
 
 //i8 * checkGrow(slice *)

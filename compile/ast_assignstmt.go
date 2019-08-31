@@ -106,11 +106,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		var rep []value.Value
 		for lindex, lvalue := range l {
 			vName := lvalue.(*ir.Param).Name()
-			switch r[lindex].(type) {
-			case constant.Constant:
-				con := r[lindex].(constant.Constant)
-				realType := GetRealType(con.Type())
-				switch realType.(type) {
+			if _, ok := r[lindex].(constant.Constant); ok {
+				switch GetBaseType(r[lindex].Type()).(type) {
 				//case *types.StructType, *types.ArrayType:
 				//	f.PutVariable(vName, f.InitValue(realType, r[lindex]))
 				case *types.IntType:
@@ -123,17 +120,24 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 					f.PutVariable(vName, newAlloc)
 				}
 				rep = append(rep, f.GetVariable(vName))
+			} else if f.IsSlice(r[lindex]) {
+				//array := r[lindex].(*SliceArray)
+				//newAllocSlice := f.NewAllocSlice(types.NewArray(0, array.emt))
+				//f.CopySlice(newAllocSlice, array)
+				//f.PutVariable(vName, newAllocSlice)
+				//rep = append(rep, newAllocSlice)
+				//return rep
 
-			case *SliceArray:
-				array := r[lindex].(*SliceArray)
-				f.PutVariable(vName, array)
-				rep = append(rep, array)
-			default:
+				i := r[lindex]
+				newType := f.NewType(i.Type())
+				f.GetCurrentBlock().NewStore(i, newType)
+				f.PutVariable(vName, i)
+				rep = append(rep, i)
+			} else {
 				newAlloc := f.NewType(r[lindex].Type())
 				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
 				f.PutVariable(vName, newAlloc)
 				rep = append(rep, f.GetVariable(vName))
-
 			}
 
 		}
@@ -189,7 +193,7 @@ func (f *FuncDecl) doBoolean(v value.Value, tyt types.Type) value.Value {
 	return v
 }
 
-//index array
+//index array return i8*
 func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	var kv value.Value
 	switch index.Index.(type) {
@@ -218,11 +222,26 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		return f.GetCurrentBlock().NewLoad(f.GetSliceIndex(variable, kv))
+		return f.GetCurrentBlock().NewBitCast(f.GetSliceIndex(variable, kv), types.NewPointer(f.FindSliceEmType(ident.Obj)))
 	case *ast.CallExpr:
 		return f.doCallExpr(index.X.(*ast.CallExpr))
 	default:
 		fmt.Println("no impl index.X")
+	}
+	return nil
+}
+
+func (f *FuncDecl) FindSliceEmType(id *ast.Object) types.Type {
+	switch id.Decl.(type) {
+	case *ast.AssignStmt:
+		exprs := id.Decl.(*ast.AssignStmt).Rhs
+		expr := (exprs[0].(*ast.CompositeLit).Type).(*ast.ArrayType).Elt
+		return f.GetTypeFromName(GetIdentName(expr.(*ast.Ident)))
+	case *ast.ValueSpec:
+		expr := id.Decl.(*ast.ValueSpec).Type.(*ast.ArrayType).Elt
+		return f.GetTypeFromName(GetIdentName(expr.(*ast.Ident)))
+	default:
+		logrus.Error("not find Slice em type")
 	}
 	return nil
 }

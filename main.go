@@ -8,10 +8,9 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"os/exec"
 	"toir/compile"
 	"toir/runtime/core"
-
-	"os/exec"
 )
 
 func init() {
@@ -74,7 +73,7 @@ func main() {
 		"bc.ll",                // Path to LLVM IR
 		"-o", outputBinaryPath, // Output path
 	}
-
+	//fmt.Println(clangArgs)
 	// Invoke clang compiler to compile LLVM IR to a binary executable
 	cmd := exec.Command("clang", clangArgs...)
 	output, err := cmd.CombinedOutput()

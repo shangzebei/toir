@@ -63,19 +63,6 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	return nil
 }
 
-//convert param type to target
-func (f *FuncDecl) checkAndConvert(funPars []*ir.Param, params []value.Value) []value.Value {
-	var re []value.Value
-	for index, value := range funPars { //func type
-		if value.Typ != params[index].Type() {
-			re = append(re, f.convertTypeTo(params[index], value.Typ))
-		} else {
-			re = append(re, params[index])
-		}
-	}
-	return re
-}
-
 func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 	block := f.GetCurrentBlock()
 	////recursion
@@ -86,7 +73,12 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 		switch id.Obj.Decl.(type) {
 		case *ast.FuncDecl:
 			funDecl := f.DoFunDecl("", id.Obj.Decl.(*ast.FuncDecl))
-			return block.NewCall(funDecl, values...)
+			//auto convert param type
+			var cor []value.Value
+			for index, value := range values {
+				cor = append(cor, f.ConvertType(funDecl.Sig.Params[index], value))
+			}
+			return block.NewCall(funDecl, cor...)
 		case *ast.Field:
 			return block.NewCall(f.GetVariable(GetIdentName(id)), values...)
 		default:
