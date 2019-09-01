@@ -70,7 +70,7 @@ define void @main() {
 	%9 = bitcast [4 x i32]* @main.1 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %8, i8* %9, i32 16, i1 false)
 	%10 = load %slice, %slice* %array.1
-	%11 = call i8* @indexSlice(%slice %10, i32 2)
+	%11 = call i8* @indexSlice(%slice* %array.1, i32 2)
 	%12 = bitcast i8* %11 to i32*
 	%13 = load i32, i32* %12
 	call void @nn(i32 %13)

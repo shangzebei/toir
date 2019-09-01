@@ -69,6 +69,9 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 }
 
 func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
+	if l, ok := v.(*ir.InstLoad); ok {
+		v = l.Src
+	}
 	decl := f.DoFunDecl("runtime", f.r.GetFunc("indexSlice"))
 	return f.StdCall(decl, v, index)
 }

@@ -121,8 +121,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				}
 				rep = append(rep, f.GetVariable(vName))
 			} else if f.IsSlice(r[lindex]) {
-				//array := r[lindex].(*SliceArray)
-			        //newAllocSlice := f.NewAllocSlice(types.NewArray(0, array.emt))
+				//newAllocSlice := f.NewAllocSlice(types.NewArray(0, array.emt))
 				//f.CopySlice(newAllocSlice, array)
 				//f.PutVariable(vName, newAllocSlice)
 				//rep = append(rep, newAllocSlice)
