@@ -11,6 +11,7 @@ import (
 	"go/token"
 	"strconv"
 	"toir/runtime/core"
+	"toir/utils"
 )
 
 type StructDef struct {
@@ -146,10 +147,7 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	}
 	switch unaryExpr.Op {
 	case token.AND:
-		if v, ok := variable.(*ir.InstLoad); ok {
-			return v.Src
-		}
-		return variable
+		return utils.GetSrcPtr(variable)
 	case token.RANGE:
 		return f.doIdent(unaryExpr.X.(*ast.Ident))
 	default:
