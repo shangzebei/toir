@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"toir/llvm"
 	"toir/stdlib"
+	"toir/utils"
 )
 
 func (f *FuncDecl) IntType(value2 value.Value, typ types.Type) value.Value {
@@ -106,16 +107,18 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value {
 	if f.IsSlice(value2) {
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("checkGrow"))
+		srcPtr := utils.GetSrcPtr(value2)
+
 		//malloc
 		call := f.StdCall(
 			decl,
-			value2,
+			srcPtr,
 		)
-		slicePtr := f.GetVSlice(value2)
+		slicePtr := f.GetVSlice(srcPtr)
 		f.GetCurrentBlock().NewStore(call, slicePtr)
 
 		//append
-		lenPtr := f.GetPLen(value2)
+		lenPtr := f.GetPLen(srcPtr)
 		len := f.GetCurrentBlock().NewLoad(lenPtr)
 		i := elems[0]
 		bitCast := f.GetCurrentBlock().NewBitCast(slicePtr, types.NewPointer(i.Type()))

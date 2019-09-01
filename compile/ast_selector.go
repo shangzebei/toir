@@ -31,7 +31,7 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 						}
 						if def.Fun == nil {
 							index := utils.IndexStruct(f.GetCurrentBlock(), variable, def.Order)
-							return index
+							return utils.LoadValue(f.GetCurrentBlock(), index)
 						} else {
 							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
 						}

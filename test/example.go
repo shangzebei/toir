@@ -8,8 +8,10 @@ type UU struct {
 
 func main() {
 	a := []int{1, 2, 3, 4, 5}
-	b := a[2]
-
+	a = append(a, 6)
+	//b := a[2]
+	//jj(&b)
+	//nn(b)
 }
 
 //func sh(uu UU)  {
@@ -21,9 +23,10 @@ func main() {
 //	nn(uu.Len)
 //}
 //
-//func jj(int2 *int)  {
-//
-//}
+func jj(int2 *int) {
+
+}
+
 //
 func nn(int2 int) {
 	fmt.Printf("%d\n", int2)

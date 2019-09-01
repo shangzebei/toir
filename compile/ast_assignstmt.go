@@ -145,10 +145,13 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	case token.ASSIGN: // =
 		var rep []value.Value
 		for lIndex, lvalue := range l {
+			if v, ok := lvalue.(*ir.InstLoad); ok {
+				lvalue = v.Src
+			}
 			switch r[lIndex].(type) {
 			case *ir.InstAlloca:
-				//ri := r[lIndex].(*ir.InstAlloca)
-				//r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
+				ri := r[lIndex].(*ir.InstAlloca)
+				r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
 				f.GetCurrentBlock().NewStore(r[lIndex], utils.GetSrcPtr(lvalue))
 			case *SliceArray:
 				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[lIndex]), lvalue)

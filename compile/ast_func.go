@@ -146,6 +146,9 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	}
 	switch unaryExpr.Op {
 	case token.AND:
+		if v, ok := variable.(*ir.InstLoad); ok {
+			return v.Src
+		}
 		return variable
 	case token.RANGE:
 		return f.doIdent(unaryExpr.X.(*ast.Ident))

@@ -56,6 +56,7 @@ func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value
 		if types.IsPointer(exportType) == types.IsPointer(current.Type()) {
 			return current
 		} else {
+			logrus.Warn("conver pointer to")
 			load := f.GetCurrentBlock().NewLoad(current)
 			return f.ConvertType(exportType, load)
 		}
@@ -63,6 +64,7 @@ func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value
 		if types.IsInt(exportType) == types.IsInt(current.Type()) {
 			return current
 		} else {
+			logrus.Warn("conver int to")
 			load := f.GetCurrentBlock().NewLoad(current)
 			return f.ConvertType(exportType, load)
 		}

@@ -1,7 +1,5 @@
 package def
 
-func SliceIntToI8([]int) I8p { return I8p(0) }
-
 func Unreachable() {}
 
 func Malloc(size int) I8p { return I8p(0) }
