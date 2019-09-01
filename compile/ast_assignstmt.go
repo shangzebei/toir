@@ -172,10 +172,11 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	variable := f.GetVariable(varName)
 	structDefs := f.StructDefs[doSymbol(variable.Type().String())]
 	def := structDefs[GetIdentName(selectorExpr.Sel)]
-	if _, ok := GetRealType(variable.Type()).(*types.PointerType); ok { //support pointer a.b
+	if _, ok := variable.(*ir.InstAlloca); ok { //support pointer a.b
 		variable = f.GetCurrentBlock().NewLoad(variable)
 	}
-	indexStruct := utils.IndexStruct(f.GetCurrentBlock(), variable, def.Order)
+	//TODO ERROR variable type
+	indexStruct := utils.IndexStruct(f.GetCurrentBlock(), utils.GetSrcPtr(variable), def.Order)
 	return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 }
 

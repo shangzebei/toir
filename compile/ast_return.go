@@ -1,12 +1,12 @@
 package compile
 
 import (
-	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
+	"toir/utils"
 )
 
 func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
@@ -26,12 +26,7 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 			rev = f.doCallExpr(val.(*ast.CallExpr))
 		case *ast.Ident:
 			//TODO return
-			identToValue := f.IdentToValue(val.(*ast.Ident))[0]
-			if _, ok := identToValue.(*ir.InstAlloca); ok {
-				rev = f.GetCurrentBlock().NewLoad(identToValue)
-			} else {
-				rev = identToValue
-			}
+			rev = f.IdentToValue(val.(*ast.Ident))[0]
 		case *ast.SelectorExpr:
 			rev = f.doSelector(nil, val.(*ast.SelectorExpr), "call")
 		default:
@@ -56,17 +51,13 @@ func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value
 		if types.IsPointer(exportType) == types.IsPointer(current.Type()) {
 			return current
 		} else {
-			logrus.Warn("conver pointer to")
-			load := f.GetCurrentBlock().NewLoad(current)
-			return f.ConvertType(exportType, load)
+			return utils.GetSrcPtr(current)
 		}
 	} else if types.IsInt(exportType) {
 		if types.IsInt(exportType) == types.IsInt(current.Type()) {
 			return current
 		} else {
-			logrus.Warn("conver int to")
-			load := f.GetCurrentBlock().NewLoad(current)
-			return f.ConvertType(exportType, load)
+			return utils.LoadValue(f.GetCurrentBlock(), current)
 		}
 	} else {
 		logrus.Error("unkonw")

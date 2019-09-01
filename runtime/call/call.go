@@ -30,6 +30,7 @@ func (c *Call) SliceToI8(v value.Value) value.Value {
 //
 func (c *Call) Unreachable() {
 	c.Block.NewUnreachable()
+	utils.StdCall(c.M, c.Block, stdlib.Exit, constant.NewInt(types.I32, 0))
 }
 
 func (c *Call) MemCopy(dst value.Value, src value.Value, len value.Value) {

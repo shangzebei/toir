@@ -7,8 +7,11 @@ type UU struct {
 }
 
 func main() {
+	//uu := new(UU)
+	//uu.Len=90
+	//test.test()
 	a := []int{1, 2, 3, 4, 5}
-	a = append(a, 6)
+	b := a[1:4]
 	//b := a[2]
 	//jj(&b)
 	//nn(b)
@@ -23,11 +26,11 @@ func main() {
 //	nn(uu.Len)
 //}
 //
-func jj(int2 *int) {
-
-}
-
+//func jj(int2 *int) {
 //
-func nn(int2 int) {
-	fmt.Printf("%d\n", int2)
-}
+//}
+//
+////
+//func nn(int2 int) {
+//	fmt.Printf("%d\n", int2)
+//}

@@ -50,7 +50,7 @@ func copySlice(dst *slice, src *slice) int {
 
 func rangeSlice(s *slice, low int, high int) *slice {
 	l := high - low
-	i := new(slice)
+	i := makeSlice(s.bytes)
 	malloc := def.Malloc(l * s.bytes)
 	i.Cap = l
 	i.Len = l
@@ -60,6 +60,8 @@ func rangeSlice(s *slice, low int, high int) *slice {
 }
 
 //new slice
-func makeSlice() *slice {
-	return new(slice)
+func makeSlice(types int) *slice {
+	i := new(slice)
+	i.bytes = types
+	return i
 }

@@ -115,6 +115,8 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 		case *ast.SelectorExpr:
 			selector := f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type")
 			ty = append(ty, selector.Type())
+		case *ast.StarExpr:
+			ty = append(ty, f.doStartExpr(value.Type.(*ast.StarExpr)).Type())
 		default:
 			logrus.Error("not known type")
 		}
@@ -449,7 +451,7 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 	higt := f.BasicLitToConstant(expr.High.(*ast.BasicLit))
 	if f.IsSlice(variable) { //
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
-		stdCall := f.StdCall(decl, variable, low, higt)
+		stdCall := f.StdCall(decl, utils.GetSrcPtr(variable), low, higt)
 		return stdCall
 	}
 	logrus.Error("doSliceExpr not sliceArray")
