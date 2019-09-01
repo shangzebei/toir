@@ -228,9 +228,13 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 		instBitCast := f.GetCurrentBlock().NewBitCast(f.GetSliceIndex(variable, kv), types.NewPointer(f.FindSliceEmType(ident.Obj)))
 		return utils.LoadValue(f.GetCurrentBlock(), instBitCast)
 	case *ast.CallExpr:
-		return f.doCallExpr(index.X.(*ast.CallExpr))
+		expr := f.doCallExpr(index.X.(*ast.CallExpr))
+		return f.GetSliceIndex(expr, kv)
+	case *ast.SliceExpr: //return slice
+		expr := f.doSliceExpr(index.X.(*ast.SliceExpr))
+		return utils.LoadValue(f.GetCurrentBlock(), f.GetSliceIndex(utils.GetSrcPtr(expr), kv))
 	default:
-		fmt.Println("no impl index.X")
+		logrus.Error("no impl index.X")
 	}
 	return nil
 }

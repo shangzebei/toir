@@ -452,7 +452,7 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 	if f.IsSlice(variable) { //
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
 		stdCall := f.StdCall(decl, utils.GetSrcPtr(variable), low, higt)
-		return stdCall
+		return utils.LoadValue(f.GetCurrentBlock(), stdCall)
 	}
 	logrus.Error("doSliceExpr not sliceArray")
 	return nil

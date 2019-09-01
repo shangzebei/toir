@@ -3,10 +3,13 @@
 
 @main.0 = constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5]
 @str.0 = constant [3 x i8] c"%d\00"
-@str.1 = constant [19 x i8] c"out of range [%d]\0A\00"
-@str.2 = constant [19 x i8] c"bytes=%d index=%d\0A\00"
+@str.1 = constant [10 x i8] c"bytes=%d\0A\00"
+@str.2 = constant [19 x i8] c"out of range [%d]\0A\00"
+@str.3 = constant [19 x i8] c"bytes=%d index=%d\0A\00"
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i1)
+
+declare i32 @printf(i8*, ...)
 
 define %slice* @makeSlice(i32 %types) {
 ; <label>:0
@@ -29,47 +32,48 @@ define %slice* @rangeSlice(%slice* %s, i32 %low, i32 %high) {
 	store i32 %low, i32* %1
 	%2 = alloca i32
 	store i32 %high, i32* %2
-	%3 = load i32, i32* %2
-	%4 = load i32, i32* %1
-	%5 = sub i32 %3, %4
-	%6 = alloca i32
-	store i32 %5, i32* %6
-	%7 = getelementptr %slice, %slice* %s, i32 0, i32 2
-	%8 = load i32, i32* %7
-	%9 = call %slice* @makeSlice(i32 %8)
+	%3 = getelementptr %slice, %slice* %s, i32 0, i32 2
+	%4 = load i32, i32* %3
+	%5 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([10 x i8], [10 x i8]* @str.1, i64 0, i64 0), i32 %4)
+	%6 = load i32, i32* %2
+	%7 = load i32, i32* %1
+	%8 = sub i32 %6, %7
+	%9 = alloca i32
+	store i32 %8, i32* %9
 	%10 = getelementptr %slice, %slice* %s, i32 0, i32 2
 	%11 = load i32, i32* %10
-	%12 = load i32, i32* %6
-	%13 = mul i32 %12, %11
-	%14 = call i8* @malloc(i32 %13)
-	%15 = alloca i8*
-	store i8* %14, i8** %15
-	%16 = getelementptr %slice, %slice* %9, i32 0, i32 1
-	%17 = load i32, i32* %16
-	%18 = load i32, i32* %6
-	store i32 %18, i32* %16
-	%19 = getelementptr %slice, %slice* %9, i32 0, i32 0
+	%12 = call %slice* @makeSlice(i32 %11)
+	%13 = getelementptr %slice, %slice* %s, i32 0, i32 2
+	%14 = load i32, i32* %13
+	%15 = load i32, i32* %9
+	%16 = mul i32 %15, %14
+	%17 = call i8* @malloc(i32 %16)
+	%18 = alloca i8*
+	store i8* %17, i8** %18
+	%19 = getelementptr %slice, %slice* %12, i32 0, i32 1
 	%20 = load i32, i32* %19
-	%21 = load i32, i32* %6
+	%21 = load i32, i32* %9
 	store i32 %21, i32* %19
-	%22 = load i8*, i8** %15
-	%23 = getelementptr %slice, %slice* %s, i32 0, i32 3
-	%24 = load i8*, i8** %23
-	%25 = getelementptr %slice, %slice* %s, i32 0, i32 2
-	%26 = load i32, i32* %25
-	%27 = load i32, i32* %6
-	%28 = mul i32 %26, %27
-	%29 = getelementptr i8, i8* %24, i32 %28
-	%30 = load i32, i32* %6
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %22, i8* %29, i32 %30, i1 false)
-	%31 = getelementptr %slice, %slice* %9, i32 0, i32 3
-	%32 = load i8*, i8** %31
-	%33 = load i8*, i8** %15
-	store i8* %33, i8** %31
-	ret %slice* %9
+	%22 = getelementptr %slice, %slice* %12, i32 0, i32 0
+	%23 = load i32, i32* %22
+	%24 = load i32, i32* %9
+	store i32 %24, i32* %22
+	%25 = load i8*, i8** %18
+	%26 = getelementptr %slice, %slice* %s, i32 0, i32 3
+	%27 = load i8*, i8** %26
+	%28 = getelementptr %slice, %slice* %s, i32 0, i32 2
+	%29 = load i32, i32* %28
+	%30 = load i32, i32* %9
+	%31 = mul i32 %29, %30
+	%32 = getelementptr i8, i8* %27, i32 %31
+	%33 = load i32, i32* %9
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %25, i8* %32, i32 %33, i1 false)
+	%34 = getelementptr %slice, %slice* %12, i32 0, i32 3
+	%35 = load i8*, i8** %34
+	%36 = load i8*, i8** %18
+	store i8* %36, i8** %34
+	ret %slice* %12
 }
-
-declare i32 @printf(i8*, ...)
 
 declare void @exit(i32)
 
@@ -85,7 +89,7 @@ define i8* @indexSlice(%slice* %s, i32 %index) {
 
 ; <label>:6
 	%7 = load i32, i32* %1
-	%8 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([19 x i8], [19 x i8]* @str.1, i64 0, i64 0), i32 %7)
+	%8 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([19 x i8], [19 x i8]* @str.2, i64 0, i64 0), i32 %7)
 	call void @exit(i32 0)
 	unreachable
 
@@ -96,7 +100,7 @@ define i8* @indexSlice(%slice* %s, i32 %index) {
 	%11 = getelementptr %slice, %slice* %s, i32 0, i32 2
 	%12 = load i32, i32* %11
 	%13 = load i32, i32* %1
-	%14 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([19 x i8], [19 x i8]* @str.2, i64 0, i64 0), i32 %12, i32 %13)
+	%14 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([19 x i8], [19 x i8]* @str.3, i64 0, i64 0), i32 %12, i32 %13)
 	%15 = getelementptr %slice, %slice* %s, i32 0, i32 3
 	%16 = load i8*, i8** %15
 	%17 = getelementptr %slice, %slice* %s, i32 0, i32 2
@@ -126,9 +130,9 @@ define void @main() {
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %8, i8* %9, i32 20, i1 false)
 	%10 = load %slice, %slice* %array.1
 	%11 = call %slice* @rangeSlice(%slice* %array.1, i32 1, i32 4)
-	%12 = call i8* @indexSlice(%slice* %11, i32 0)
-	%13 = bitcast i8* %12 to i32*
-	%14 = load i32, i32* %13
-	%15 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @str.0, i64 0, i64 0), i32 %14)
+	%12 = load %slice, %slice* %11
+	%13 = call i8* @indexSlice(%slice* %11, i32 0)
+	%14 = load i8, i8* %13
+	%15 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @str.0, i64 0, i64 0), i8 %14)
 	ret void
 }

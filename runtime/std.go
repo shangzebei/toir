@@ -49,6 +49,7 @@ func copySlice(dst *slice, src *slice) int {
 }
 
 func rangeSlice(s *slice, low int, high int) *slice {
+	fmt.Printf("rangeSlice bytes=%d\n", s.bytes)
 	l := high - low
 	i := makeSlice(s.bytes)
 	malloc := def.Malloc(l * s.bytes)
