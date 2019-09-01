@@ -52,12 +52,24 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 }
 
 func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value.Value {
-	if exportType == current.Type() {
-		return current
+	if types.IsPointer(exportType) {
+		if types.IsPointer(exportType) == types.IsPointer(current.Type()) {
+			return current
+		} else {
+			load := f.GetCurrentBlock().NewLoad(current)
+			return f.ConvertType(exportType, load)
+		}
+	} else if types.IsInt(exportType) {
+		if types.IsInt(exportType) == types.IsInt(current.Type()) {
+			return current
+		} else {
+			load := f.GetCurrentBlock().NewLoad(current)
+			return f.ConvertType(exportType, load)
+		}
 	} else {
-		load := f.GetCurrentBlock().NewLoad(current)
-		return f.ConvertType(exportType, load)
+		logrus.Error("unkonw")
 	}
+	return nil
 
 }
 

@@ -46,9 +46,8 @@ define i8* @indexSlice(%slice* %s, i32 %index) {
 	%17 = load i32, i32* %16
 	%18 = load i32, i32* %1
 	%19 = mul i32 %17, %18
-	%20 = getelementptr i8*, i8** %14, i32 %19
-	%21 = load i8*, i8** %20
-	ret i8* %21
+	%20 = getelementptr i8, i8* %15, i32 %19
+	ret i8* %20
 }
 
 define void @main() {

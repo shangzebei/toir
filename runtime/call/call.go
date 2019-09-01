@@ -48,6 +48,7 @@ func (c *Call) Malloc(size value.Value) value.Value {
 //
 func (c *Call) ArrayPtr(src value.Value, bytes value.Value, index value.Value) value.Value {
 	fmt.Println(src)
-	ptr := c.Block.NewGetElementPtr(utils.GetSrcPtr(src), c.Block.NewMul(bytes, index))
+	ptr := c.Block.NewGetElementPtr(src, c.Block.NewMul(bytes, index))
+	fmt.Println("aaa")
 	return ptr
 }
