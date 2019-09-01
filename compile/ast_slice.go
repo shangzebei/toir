@@ -78,7 +78,7 @@ func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
 
 //slice*** [char **]
 func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
-	return utils.Index(f.GetCurrentBlock(), v, 3)
+	return utils.IndexStruct(f.GetCurrentBlock(), v, 3)
 }
 
 //addr char *
@@ -87,15 +87,15 @@ func (f *FuncDecl) GetVSlice(v value.Value) value.Value {
 }
 
 func (f *FuncDecl) GetPLen(v value.Value) value.Value {
-	return utils.Index(f.GetCurrentBlock(), v, 0)
+	return utils.IndexStruct(f.GetCurrentBlock(), v, 0)
 }
 
 func (f *FuncDecl) GetPBytes(v value.Value) value.Value {
-	return utils.Index(f.GetCurrentBlock(), v, 2)
+	return utils.IndexStruct(f.GetCurrentBlock(), v, 2)
 }
 
 func (f *FuncDecl) GetPCap(v value.Value) value.Value {
-	return utils.Index(f.GetCurrentBlock(), v, 1)
+	return utils.IndexStruct(f.GetCurrentBlock(), v, 1)
 }
 
 ////////////////////////v////////////////////////////////////////////

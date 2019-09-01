@@ -15,10 +15,10 @@ type slice struct {
 //return Slice ptr
 func indexSlice(s *slice, index int) def.I8p {
 	if index >= s.Len {
-		fmt.Printf("out of range\n")
+		fmt.Printf("out of range [%d]\n", index)
 		def.Unreachable()
 	}
-	fmt.Printf("bytes=%d index=%d\n",s.bytes,index)
+	fmt.Printf("bytes=%d index=%d\n", s.bytes, index)
 	return def.ArrayPtr(s.ptr, s.bytes, index)
 }
 

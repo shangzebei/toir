@@ -2,20 +2,13 @@ package test
 
 import "fmt"
 
-//type UU struct {
-//	Len int
-//}
+type UU struct {
+	Len int
+}
 
 func main() {
-	//test.test()
-	//uu := UU{Len: 23}
-	//sh(uu)
-	//pp(&uu)
-	//jj(&uu.Len)
-	//nn(uu.Len)
-	b := []int{1, 2, 3, 4}
-	//b = append(b, 11)
-	nn(b[2])
+	a := []int{1, 2, 3, 4, 5}
+	b := a[2]
 
 }
 

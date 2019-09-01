@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func Index(block *ir.Block, src value.Value, index int) *ir.InstGetElementPtr {
+func IndexStruct(block *ir.Block, src value.Value, index int) *ir.InstGetElementPtr {
 	return block.NewGetElementPtr(src, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(index)))
 }
 
@@ -95,4 +95,8 @@ func GetSrcPtr(src value.Value) value.Value {
 		return l.Src
 	}
 	return nil
+}
+
+func LoadValue(block *ir.Block, v value.Value) value.Value {
+	return block.NewLoad(v)
 }

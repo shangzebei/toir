@@ -32,7 +32,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 		case *ast.IndexExpr:
 			params = append(params, f.doIndexExpr(value.(*ast.IndexExpr)))
 		case *ast.SelectorExpr:
-			params = append(params, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
+			params = append(params, f.doSelectorExpr(value.(*ast.SelectorExpr)))
 		case *ast.UnaryExpr: //get addr
 			unaryExpr := value.(*ast.UnaryExpr)
 			params = append(params, f.doUnaryExpr(unaryExpr))
@@ -40,7 +40,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			//TODO
 			params = append(params, f.doCompositeLit(value.(*ast.CompositeLit)))
 		case *ast.StarExpr:
-			params = append(params, f.GetCurrentBlock().NewLoad(f.doStartExpr(value.(*ast.StarExpr))))
+			params = append(params, f.doStartExpr(value.(*ast.StarExpr)))
 		case *ast.SliceExpr:
 			params = append(params, f.doSliceExpr(value.(*ast.SliceExpr)))
 		case *ast.ArrayType:

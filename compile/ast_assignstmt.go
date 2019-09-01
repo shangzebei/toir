@@ -11,6 +11,7 @@ import (
 	"go/token"
 	"strconv"
 	"strings"
+	"toir/utils"
 )
 
 func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
@@ -42,11 +43,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		case *ast.CompositeLit:
 			r = append(r, f.doCompositeLit(value.(*ast.CompositeLit)))
 		case *ast.SelectorExpr:
-			r = append(r, f.GetCurrentBlock().NewLoad(f.doSelectorExpr(value.(*ast.SelectorExpr))))
+			r = append(r, f.doSelectorExpr(value.(*ast.SelectorExpr)))
 		case *ast.UnaryExpr:
 			r = append(r, f.doUnaryExpr(value.(*ast.UnaryExpr)))
 		case *ast.StarExpr:
-			r = append(r, f.GetCurrentBlock().NewLoad(f.doStartExpr(value.(*ast.StarExpr))))
+			r = append(r, f.doStartExpr(value.(*ast.StarExpr)))
 		case *ast.SliceExpr:
 			r = append(r, f.doSliceExpr(value.(*ast.SliceExpr)))
 		default:
@@ -146,9 +147,9 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		for lIndex, lvalue := range l {
 			switch r[lIndex].(type) {
 			case *ir.InstAlloca:
-				ri := r[lIndex].(*ir.InstAlloca)
-				r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
-				f.GetCurrentBlock().NewStore(r[lIndex], lvalue)
+				//ri := r[lIndex].(*ir.InstAlloca)
+				//r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
+				f.GetCurrentBlock().NewStore(r[lIndex], utils.GetSrcPtr(lvalue))
 			case *SliceArray:
 				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[lIndex]), lvalue)
 			default:
@@ -173,7 +174,8 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	if _, ok := GetRealType(variable.Type()).(*types.PointerType); ok { //support pointer a.b
 		variable = f.GetCurrentBlock().NewLoad(variable)
 	}
-	return f.GetCurrentBlock().NewGetElementPtr(variable, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(def.Order)))
+	indexStruct := utils.IndexStruct(f.GetCurrentBlock(), variable, def.Order)
+	return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 }
 
 //do Boolean
@@ -208,7 +210,7 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.IndexExpr:
 		kv = f.doIndexExpr(index.Index.(*ast.IndexExpr))
 	case *ast.SelectorExpr:
-		kv = f.GetCurrentBlock().NewLoad(f.doSelectorExpr(index.Index.(*ast.SelectorExpr)))
+		kv = f.doSelectorExpr(index.Index.(*ast.SelectorExpr))
 	default:
 		fmt.Println("doIndex not impl")
 	}
@@ -221,7 +223,8 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		return f.GetCurrentBlock().NewBitCast(f.GetSliceIndex(variable, kv), types.NewPointer(f.FindSliceEmType(ident.Obj)))
+		instBitCast := f.GetCurrentBlock().NewBitCast(f.GetSliceIndex(variable, kv), types.NewPointer(f.FindSliceEmType(ident.Obj)))
+		return utils.LoadValue(f.GetCurrentBlock(), instBitCast)
 	case *ast.CallExpr:
 		return f.doCallExpr(index.X.(*ast.CallExpr))
 	default:

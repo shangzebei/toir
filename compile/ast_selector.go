@@ -30,7 +30,7 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 							kk = append(kk, params...)
 						}
 						if def.Fun == nil {
-							index := utils.Index(f.GetCurrentBlock(), variable, def.Order)
+							index := utils.IndexStruct(f.GetCurrentBlock(), variable, def.Order)
 							return index
 						} else {
 							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
