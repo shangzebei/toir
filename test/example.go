@@ -15,7 +15,7 @@ func main() {
 	//nn(uu.Len)
 	b := []int{1, 2, 3, 4}
 	//b = append(b, 11)
-	nn(b[0])
+	nn(b[2])
 
 }
 

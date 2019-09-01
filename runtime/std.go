@@ -18,6 +18,7 @@ func indexSlice(s *slice, index int) def.I8p {
 		fmt.Printf("out of range\n")
 		def.Unreachable()
 	}
+	fmt.Printf("bytes=%d index=%d\n",s.bytes,index)
 	return def.ArrayPtr(s.ptr, s.bytes, index)
 }
 
