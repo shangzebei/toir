@@ -145,9 +145,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	case token.ASSIGN: // =
 		var rep []value.Value
 		for lIndex, lvalue := range l {
-			if v, ok := lvalue.(*ir.InstLoad); ok {
-				lvalue = v.Src
-			}
+			lvalue = utils.GetSrcPtr(lvalue)
 			switch r[lIndex].(type) {
 			case *ir.InstAlloca:
 				ri := r[lIndex].(*ir.InstAlloca)
