@@ -52,10 +52,11 @@ func rangeSlice(s *slice, low int, high int) *slice {
 	fmt.Printf("rangeSlice bytes=%d\n", s.bytes)
 	l := high - low
 	i := makeSlice(s.bytes)
-	malloc := def.Malloc(l * s.bytes)
+	i2 := l * s.bytes
+	malloc := def.Malloc(i2)
+	def.MemCopy(malloc, def.ArrayPtr(s.ptr, s.bytes, l), i2)
 	i.Cap = l
 	i.Len = l
-	def.MemCopy(malloc, def.ArrayPtr(s.ptr, s.bytes, l), l*s.bytes)
 	i.ptr = malloc
 	return i
 }

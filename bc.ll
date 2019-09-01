@@ -47,34 +47,34 @@ define %slice* @rangeSlice(%slice* %s, i32 %low, i32 %high) {
 	%14 = load i32, i32* %13
 	%15 = load i32, i32* %9
 	%16 = mul i32 %15, %14
-	%17 = call i8* @malloc(i32 %16)
-	%18 = alloca i8*
-	store i8* %17, i8** %18
-	%19 = getelementptr %slice, %slice* %12, i32 0, i32 1
-	%20 = load i32, i32* %19
-	%21 = load i32, i32* %9
-	store i32 %21, i32* %19
-	%22 = getelementptr %slice, %slice* %12, i32 0, i32 0
-	%23 = load i32, i32* %22
-	%24 = load i32, i32* %9
-	store i32 %24, i32* %22
-	%25 = load i8*, i8** %18
-	%26 = getelementptr %slice, %slice* %s, i32 0, i32 3
-	%27 = load i8*, i8** %26
-	%28 = getelementptr %slice, %slice* %s, i32 0, i32 2
-	%29 = load i32, i32* %28
-	%30 = load i32, i32* %9
-	%31 = mul i32 %29, %30
-	%32 = getelementptr i8, i8* %27, i32 %31
-	%33 = getelementptr %slice, %slice* %s, i32 0, i32 2
+	%17 = alloca i32
+	store i32 %16, i32* %17
+	%18 = load i32, i32* %17
+	%19 = call i8* @malloc(i32 %18)
+	%20 = alloca i8*
+	store i8* %19, i8** %20
+	%21 = load i8*, i8** %20
+	%22 = getelementptr %slice, %slice* %s, i32 0, i32 3
+	%23 = load i8*, i8** %22
+	%24 = getelementptr %slice, %slice* %s, i32 0, i32 2
+	%25 = load i32, i32* %24
+	%26 = load i32, i32* %9
+	%27 = mul i32 %25, %26
+	%28 = getelementptr i8, i8* %23, i32 %27
+	%29 = load i32, i32* %17
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %21, i8* %28, i32 %29, i1 false)
+	%30 = getelementptr %slice, %slice* %12, i32 0, i32 1
+	%31 = load i32, i32* %30
+	%32 = load i32, i32* %9
+	store i32 %32, i32* %30
+	%33 = getelementptr %slice, %slice* %12, i32 0, i32 0
 	%34 = load i32, i32* %33
 	%35 = load i32, i32* %9
-	%36 = mul i32 %35, %34
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %25, i8* %32, i32 %36, i1 false)
-	%37 = getelementptr %slice, %slice* %12, i32 0, i32 3
-	%38 = load i8*, i8** %37
-	%39 = load i8*, i8** %18
-	store i8* %39, i8** %37
+	store i32 %35, i32* %33
+	%36 = getelementptr %slice, %slice* %12, i32 0, i32 3
+	%37 = load i8*, i8** %36
+	%38 = load i8*, i8** %20
+	store i8* %38, i8** %36
 	ret %slice* %12
 }
 
