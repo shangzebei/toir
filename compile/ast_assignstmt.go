@@ -239,6 +239,11 @@ func (f *FuncDecl) FindSliceEmType(id *ast.Object) types.Type {
 	switch id.Decl.(type) {
 	case *ast.AssignStmt:
 		exprs := id.Decl.(*ast.AssignStmt).Rhs
+		switch exprs[0].(type) {
+		case *ast.SliceExpr:
+			expr := exprs[0].(*ast.SliceExpr)
+			return f.FindSliceEmType(expr.X.(*ast.Ident).Obj)
+		}
 		expr := (exprs[0].(*ast.CompositeLit).Type).(*ast.ArrayType).Elt
 		return f.GetTypeFromName(GetIdentName(expr.(*ast.Ident)))
 	case *ast.ValueSpec:

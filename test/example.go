@@ -12,6 +12,7 @@ func main() {
 	//test.test()
 	a := []int{1, 2, 3, 4, 5}
 	b := a[1:4]
+	fmt.Printf("%d", b[0])
 	//b := a[2]
 	//jj(&b)
 	//nn(b)
