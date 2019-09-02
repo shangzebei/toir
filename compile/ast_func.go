@@ -29,7 +29,7 @@ type KVVariable struct {
 type FuncDecl struct {
 	mPackage  string
 	m         *ir.Module
-	fset      *token.FileSet
+	fSet      *token.FileSet
 	Funs      map[string]*ir.Func
 	FuncHeap  *[]*ir.Func
 	FuncDecls map[*ast.FuncDecl]*ir.Func
@@ -46,12 +46,14 @@ type FuncDecl struct {
 	forContinue *ir.Block
 	//runtime
 	r *core.Runtime
+	//slice cast map
+	sliceCastPool map[*ir.InstAlloca]value.Value
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
 	return &FuncDecl{
 		m:          m,
-		fset:       fset,
+		fSet:       fset,
 		FuncHeap:   new([]*ir.Func),
 		Variables:  make(map[*ir.Block]map[string]value.Value),
 		blockHeap:  make(map[*ir.Func][]*ir.Block),
@@ -149,7 +151,7 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	}
 	switch unaryExpr.Op {
 	case token.AND:
-		return utils.GetSrcPtr(variable)
+		return f.GetSrcPtr(variable)
 	case token.RANGE:
 		return f.doIdent(unaryExpr.X.(*ast.Ident))
 	default:
@@ -258,7 +260,7 @@ func (f *FuncDecl) pop() *ir.Func {
 
 //must return start
 func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.Block) {
-	//ast.Print(f.fset, block)
+	//ast.Print(f.fSet, block)
 	newBlock := f.newBlock()
 	startBlock := newBlock
 	endBlock := newBlock
@@ -451,7 +453,7 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 	higt := f.BasicLitToConstant(expr.High.(*ast.BasicLit))
 	if f.IsSlice(variable) { //
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
-		stdCall := f.StdCall(decl, utils.GetSrcPtr(variable), low, higt)
+		stdCall := f.StdCall(decl, f.GetSrcPtr(variable), low, higt)
 		return utils.LoadValue(f.GetCurrentBlock(), stdCall)
 	}
 	logrus.Error("doSliceExpr not sliceArray")

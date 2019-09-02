@@ -32,7 +32,7 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 		default:
 			logrus.Debug("doBlockStmt return not impl!")
 		}
-		values = append(values, rev)
+		values = append(values, FixAlloc(f.GetCurrentBlock(), rev))
 	}
 	if !mul {
 		f.GetCurrentBlock().NewRet(f.ConvertType(f.GetCurrent().Sig.RetType, values[0]))
@@ -51,7 +51,7 @@ func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value
 		if types.IsPointer(exportType) == types.IsPointer(current.Type()) {
 			return current
 		} else {
-			return utils.GetSrcPtr(current)
+			return f.GetSrcPtr(current)
 		}
 	} else if types.IsInt(exportType) {
 		if types.IsInt(exportType) == types.IsInt(current.Type()) {

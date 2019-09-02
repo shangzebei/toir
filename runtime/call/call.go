@@ -1,7 +1,6 @@
 package call
 
 import (
-	"fmt"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
@@ -48,8 +47,7 @@ func (c *Call) Malloc(size value.Value) value.Value {
 }
 
 //
-func (c *Call) ArrayPtr(src value.Value, bytes value.Value, index value.Value) value.Value {
-	fmt.Println(src)
+func (c *Call) ArrayPtr(src value.Value /* i8* */, bytes value.Value, index value.Value) value.Value {
 	ptr := c.Block.NewGetElementPtr(src, c.Block.NewMul(bytes, index))
 	return ptr
 }

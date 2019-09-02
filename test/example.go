@@ -2,24 +2,17 @@ package test
 
 import "fmt"
 
-type UU struct {
-	Len int
-}
-
 func main() {
-	//uu := new(UU)
-	//uu.Len=90
+
 	//test.test()
-	a := []int{1, 2, 3, 4, 5}
-	fmt.Printf("%d", a[1:4][0])
-	//b := a[2]
-	//jj(&b)
-	//nn(b)
+	a := []int{1, 22, 33, 44, 5}
+	//fmt.Printf("%d\n", len(a))
+	f := append(a, 89)
+	for i := 0; i < len(f); i++ {
+		fmt.Printf("%d\n", f[i])
+	}
 }
 
-//func sh(uu UU)  {
-//
-//}
 //
 //func pp(uu *UU)  {
 //	jj(&uu.Len)

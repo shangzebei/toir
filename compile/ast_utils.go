@@ -6,6 +6,7 @@ import (
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
 	"regexp"
@@ -157,6 +158,18 @@ func (f *FuncDecl) ToPtr(src value.Value) *ir.InstGetElementPtr {
 	return utils.Toi8Ptr(f.GetCurrentBlock(), src)
 }
 
+//return i8*
+func (f *FuncDecl) GetSrcPtr(src value.Value) value.Value {
+	logrus.Debugf("GetSrcPtr  %s", src)
+	if a, ok := src.(*ir.InstAlloca); ok && types.IsPointer(a.ElemType) {
+		return f.GetCurrentBlock().NewLoad(src)
+	}
+	if l, ok := src.(*ir.InstLoad); ok {
+		return l.Src
+	}
+	return src
+}
+
 func GetRealType(value2 types.Type) types.Type {
 	typ := value2
 	if t, ok := value2.(*types.PointerType); ok {
@@ -218,8 +231,15 @@ func GetStructBytes(v value.Value) int {
 			a += GetBytes(value)
 		}
 	}
-	if _, ok := v.(*SliceArray); ok {
+	if _, ok := v.(*SliceValue); ok {
 		a += 24
 	}
 	return a
+}
+
+func FixAlloc(b *ir.Block, value2 value.Value) value.Value {
+	if a, ok := value2.(*ir.InstAlloca); ok {
+		return b.NewLoad(a)
+	}
+	return value2
 }

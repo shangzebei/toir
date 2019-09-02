@@ -91,13 +91,6 @@ func StdCall(m *ir.Module, b *ir.Block, v value.Value, args ...value.Value) valu
 	return nil
 }
 
-func GetSrcPtr(src value.Value) value.Value {
-	if l, ok := src.(*ir.InstLoad); ok {
-		return l.Src
-	}
-	return src
-}
-
 func LoadValue(block *ir.Block, v value.Value) value.Value {
 	return block.NewLoad(v)
 }

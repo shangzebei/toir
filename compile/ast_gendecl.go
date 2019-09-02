@@ -179,18 +179,16 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
 			}
 			strums = append(strums, ftyp)
 		}
-		//if len(strums) == 0 {
-		//	strums = append(strums, types.I8)
-		//}
 		//get value
-		newTypeDef := f.m.NewTypeDef(name, types.NewStruct(strums...))
+
+		typeDef := f.m.NewTypeDef(name, types.NewStruct(strums...))
 		_, ok := f.GlobDef[name]
 		if ok {
 			logrus.Error("GlobDef has name", name)
 		}
-		f.GlobDef[name] = newTypeDef
+		f.GlobDef[name] = typeDef
 		if f.GetCurrent() != nil {
-			f.PutVariable(name, f.GetCurrentBlock().NewAlloca(newTypeDef))
+			f.PutVariable(name, f.GetCurrentBlock().NewAlloca(typeDef))
 		}
 	case *ast.Ident:
 		typDef := spec.Type.(*ast.Ident)

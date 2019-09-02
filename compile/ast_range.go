@@ -15,7 +15,7 @@ import (
  */
 func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) {
 	fmt.Println("not impl doRangeStmt")
-	ast.Print(f.fset, stmt)
+	ast.Print(f.fSet, stmt)
 	fmt.Println(stmt.Key.(*ast.Ident).Obj.Decl == stmt.Value.(*ast.Ident).Obj.Decl)
 	fmt.Println(stmt.Key)
 	fmt.Println(stmt.Value)
@@ -24,7 +24,7 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) {
 	f.PutVariable(keyName, f.GetCurrentBlock().NewAlloca(types.I32))
 	//
 	value := f.doIdent(stmt.X.(*ast.Ident))
-	if v, ok := value.(*SliceArray); ok {
+	if v, ok := value.(*SliceValue); ok {
 		valueName := GetIdentName(stmt.Value.(*ast.Ident))
 		f.PutVariable(valueName, f.GetCurrentBlock().NewAlloca(v.emt))
 	}

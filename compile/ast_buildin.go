@@ -84,7 +84,6 @@ func (f *FuncDecl) Copy(dst value.Value, src value.Value) value.Value {
 		logrus.Error("copy dst or src is not sliceArray")
 		return nil
 	}
-
 }
 
 func (f *FuncDecl) NewType(tp types.Type) value.Value {
@@ -99,7 +98,8 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 		}
 	default:
 		logrus.Warnf("default NewAlloca %s", tp.String())
-		return f.GetCurrentBlock().NewAlloca(tp)
+		alloca := f.GetCurrentBlock().NewAlloca(tp)
+		return alloca
 	}
 	return nil
 }
@@ -107,35 +107,45 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value {
 	if f.IsSlice(value2) {
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("checkGrow"))
-		srcPtr := utils.GetSrcPtr(value2)
-
+		srcPtr := f.GetSrcPtr(value2)
+		utils.NewComment(f.GetCurrentBlock(), "append start---------------------")
 		//malloc
 		call := f.StdCall(
 			decl,
 			srcPtr,
 		)
-		slicePtr := f.GetVSlice(srcPtr)
+
+		lenPtr := f.GetPLen(srcPtr)
+		len := f.GetCurrentBlock().NewLoad(lenPtr)
+
+		slice := f.CopyNewSlice(f.GetSrcPtr(value2))
+
+		slicePtr := f.GetPSlice(slice)
+		newPtr := f.GetPLen(slice)
+
+		//store call
 		f.GetCurrentBlock().NewStore(call, slicePtr)
 
 		//append
-		lenPtr := f.GetPLen(srcPtr)
-		len := f.GetCurrentBlock().NewLoad(lenPtr)
+		utils.NewComment(f.GetCurrentBlock(), "append value")
 		i := elems[0]
-		bitCast := f.GetCurrentBlock().NewBitCast(slicePtr, types.NewPointer(i.Type()))
+		bitCast := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(slicePtr), types.NewPointer(i.Type()))
 		ptr := f.GetCurrentBlock().NewGetElementPtr(bitCast, len)
 		f.GetCurrentBlock().NewStore(i, ptr)
-		//store len+1
-		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewAdd(len, constant.NewInt(types.I32, 1)), lenPtr)
-		//
 
-		return value2
+		utils.NewComment(f.GetCurrentBlock(), "store len value")
+		newAdd := f.GetCurrentBlock().NewAdd(len, constant.NewInt(types.I32, 1))
+		f.GetCurrentBlock().NewStore(newAdd, newPtr)
+		utils.NewComment(f.GetCurrentBlock(), "append end-------------------------")
+
+		return utils.LoadValue(f.GetCurrentBlock(), slice)
 	}
 	return nil
 }
 
 //TODO
 func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
-	if t, ok := v.(*SliceArray); ok {
+	if t, ok := v.(*SliceValue); ok {
 		allocSlice := f.NewAllocSlice(types.NewArray(0, t.emt))
 		call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], f.GetBytes(v)))
 		f.GetCurrentBlock().NewStore(call, f.GetPSlice(allocSlice))
@@ -148,6 +158,6 @@ func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
 }
 
 func (f *FuncDecl) New(v value.Value) value.Value {
-	alloca := f.GetCurrentBlock().NewAlloca(v.Type())
+	alloca := f.NewType(v.Type())
 	return alloca
 }
