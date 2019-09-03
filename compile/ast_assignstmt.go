@@ -58,12 +58,8 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	for _, value := range assignStmt.Lhs {
 		switch value.(type) {
 		case *ast.Ident:
-			variable := f.GetVariable(value.(*ast.Ident).Name)
-			if variable == nil {
-				l = append(l, ir.NewParam(value.(*ast.Ident).Name, nil))
-			} else {
-				l = append(l, f.GetVariable(value.(*ast.Ident).Name))
-			}
+			s := value.(*ast.Ident)
+			l = append(l, ir.NewParam(s.Name, nil))
 		case *ast.BinaryExpr:
 			l = append(l, f.doBinary(value.(*ast.BinaryExpr)))
 		case *ast.BasicLit:
@@ -144,16 +140,20 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	case token.ASSIGN: // =
 		var rep []value.Value
 		for lIndex, lvalue := range l {
-			lvalue = f.GetSrcPtr(lvalue)
+			var lv value.Value
+			if p, ok := lvalue.(*ir.Param); ok {
+				lv = f.GetVariable(p.Name())
+			}
+			lv = f.GetSrcPtr(lvalue)
 			switch r[lIndex].(type) {
 			case *ir.InstAlloca:
 				ri := r[lIndex].(*ir.InstAlloca)
 				r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
-				f.GetCurrentBlock().NewStore(r[lIndex], f.GetSrcPtr(lvalue))
+				f.GetCurrentBlock().NewStore(r[lIndex], f.GetSrcPtr(lv))
 			case *SliceValue:
-				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[lIndex]), lvalue)
+				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[lIndex]), lv)
 			default:
-				f.GetCurrentBlock().NewStore(r[lIndex], lvalue)
+				f.GetCurrentBlock().NewStore(r[lIndex], lv)
 				fmt.Println("token.ASSIGN unknown type")
 			}
 			rep = append(rep, lvalue)

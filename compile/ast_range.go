@@ -56,7 +56,5 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) {
 	forStmt.Body.List = append(forStmt.Body.List, stmt.Body.List...)
 
 	f.doForStmt(forStmt)
-	//ast.Print(f.fSet, forStmt)
-
 	utils.NewComment(f.GetCurrentBlock(), "[range end]")
 }

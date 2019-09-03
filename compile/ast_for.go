@@ -9,9 +9,13 @@ import (
 func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 
 	temp := f.GetCurrentBlock()
+
+	f.OpenTempVariable()
+	block := f.newBlock() //for init
 	// INIT
 	dd := f.doAssignStmt(st.Init.(*ast.AssignStmt))
-
+	f.popBlock()
+	temp.NewBr(block)
 	// ADD
 	addBlock := f.newBlock()
 	switch st.Post.(type) {
@@ -35,7 +39,7 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 	f.popBlock() //END COND
 	//
 
-	f.GetCurrentBlock().NewBr(sBody)
+	block.NewBr(sBody)
 	f.popBlock() //Close MAIN
 
 	// EMPTY
@@ -53,6 +57,7 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 		f.forContinue.NewBr(addBlock)
 		f.forContinue = nil
 	}
+	f.CloseTempVariable()
 	//
 	addBlock.NewBr(condBlock)
 	return temp, empty

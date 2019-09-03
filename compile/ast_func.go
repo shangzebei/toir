@@ -21,11 +21,6 @@ type StructDef struct {
 	Fun   *ir.Func
 }
 
-type KVVariable struct {
-	Key string
-	V   value.Value
-}
-
 type FuncDecl struct {
 	mPackage  string
 	m         *ir.Module
@@ -35,7 +30,9 @@ type FuncDecl struct {
 	FuncDecls map[*ast.FuncDecl]*ir.Func
 	blockHeap map[*ir.Func][]*ir.Block
 	//variables
-	Variables map[*ir.Block]map[string]value.Value
+	Variables     map[*ir.Block]map[string]value.Value
+	tempVariables map[string]value.Value
+	tempV         bool
 	//struct---
 	GlobDef    map[string]types.Type           //for type
 	StructDefs map[string]map[string]StructDef //Strut.Field
@@ -44,6 +41,7 @@ type FuncDecl struct {
 	//for
 	forBreak    *ir.Block
 	forContinue *ir.Block
+	forVarBlock *ir.Block
 	//runtime
 	r *core.Runtime
 	//slice cast map
@@ -52,16 +50,18 @@ type FuncDecl struct {
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
 	return &FuncDecl{
-		m:          m,
-		fSet:       fset,
-		FuncHeap:   new([]*ir.Func),
-		Variables:  make(map[*ir.Block]map[string]value.Value),
-		blockHeap:  make(map[*ir.Func][]*ir.Block),
-		FuncDecls:  make(map[*ast.FuncDecl]*ir.Func),
-		GlobDef:    make(map[string]types.Type),
-		StructDefs: make(map[string]map[string]StructDef),
-		mPackage:   pkg,
-		r:          r,
+		m:             m,
+		fSet:          fset,
+		FuncHeap:      new([]*ir.Func),
+		Variables:     make(map[*ir.Block]map[string]value.Value),
+		tempVariables: make(map[string]value.Value),
+		tempV:         false,
+		blockHeap:     make(map[*ir.Func][]*ir.Block),
+		FuncDecls:     make(map[*ast.FuncDecl]*ir.Func),
+		GlobDef:       make(map[string]types.Type),
+		StructDefs:    make(map[string]map[string]StructDef),
+		mPackage:      pkg,
+		r:             r,
 	}
 }
 
@@ -350,18 +350,25 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
+	if f.tempV {
+
+		i, ok := f.tempVariables[name]
+		if ok {
+			logrus.Debugf("get temp Variable %s", name)
+			return i
+		}
+	}
 	//find which glob
 	for _, value := range f.m.Globals {
 		if value.Name() == name {
 			return value
 		}
 	}
-
 	//find with block
 	for _, block := range f.GetCurrent().Blocks {
 		values, ok := f.Variables[block]
 		if !ok {
-			logrus.Debugf("not find Variable %s", name)
+
 			continue
 		}
 		i, ok := values[name]
@@ -369,7 +376,18 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 			return i
 		}
 	}
+
+	logrus.Debugf("not find Variable %s", name)
 	return nil
+}
+
+func (f *FuncDecl) OpenTempVariable() {
+	f.tempV = true
+}
+
+func (f *FuncDecl) CloseTempVariable() {
+	f.tempV = false
+	f.tempVariables = make(map[string]value.Value)
 }
 
 func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
@@ -377,11 +395,18 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 		logrus.Errorf("%d is keyword", name)
 		return
 	}
-	_, ok := f.Variables[f.GetCurrentBlock()]
-	if !ok {
-		f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
+	if f.tempV {
+		f.tempVariables[name] = value2
+		logrus.Debugf("PutVariable name %s to temp", name)
+	} else {
+		_, ok := f.Variables[f.GetCurrentBlock()]
+		if !ok {
+			f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
+		}
+		logrus.Debugf("PutVariable name %s", name)
+		f.Variables[f.GetCurrentBlock()][name] = value2
 	}
-	f.Variables[f.GetCurrentBlock()][name] = value2
+
 }
 
 //only for array and struts return value

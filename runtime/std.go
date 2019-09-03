@@ -29,6 +29,7 @@ func rangeSlice(ptr def.I8p, low int, high int, bytes int) def.I8p {
 	return malloc
 }
 
+//use for range
 func rangeTemp() {
 	var key int
 	var value int
