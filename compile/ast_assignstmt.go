@@ -144,7 +144,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			if p, ok := lvalue.(*ir.Param); ok {
 				lv = f.GetVariable(p.Name())
 			}
-			lv = f.GetSrcPtr(lvalue)
+			lv = f.GetSrcPtr(lv)
 			switch r[lIndex].(type) {
 			case *ir.InstAlloca:
 				ri := r[lIndex].(*ir.InstAlloca)

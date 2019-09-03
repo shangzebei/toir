@@ -248,3 +248,11 @@ func FixAlloc(b *ir.Block, value2 value.Value) value.Value {
 	}
 	return value2
 }
+
+func IsIgnore(i *ast.Ident) bool {
+	if i.Name == "_" {
+		return true
+	} else {
+		return false
+	}
+}

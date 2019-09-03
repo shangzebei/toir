@@ -16,5 +16,5 @@ func main() {
 	for i := 0; i < len(b); i++ {
 		fmt.Printf("%d\n", b[i])
 	}
-	fmt.Println(i)
+	fmt.Printf("%d\n", i)
 }

@@ -34,7 +34,6 @@ func rangeTemp() {
 	var key int
 	var value int
 	var zrangzwrLen int
-
 	var f []int
 	for zrangzwr := 0; zrangzwr < zrangzwrLen; zrangzwr++ {
 		key = zrangzwr

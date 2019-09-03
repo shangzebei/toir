@@ -28,7 +28,6 @@ func Init(fileName string) *Runtime {
 func (r *Runtime) GetFunc(name string) *ast.FuncDecl {
 	for _, value := range r.f.Decls {
 		switch value.(type) {
-		case *ast.GenDecl:
 		case *ast.FuncDecl:
 			if value.(*ast.FuncDecl).Name.Name == name {
 				return value.(*ast.FuncDecl)

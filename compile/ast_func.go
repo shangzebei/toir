@@ -351,7 +351,6 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
 	if f.tempV {
-
 		i, ok := f.tempVariables[name]
 		if ok {
 			logrus.Debugf("get temp Variable %s", name)
@@ -368,7 +367,6 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 	for _, block := range f.GetCurrent().Blocks {
 		values, ok := f.Variables[block]
 		if !ok {
-
 			continue
 		}
 		i, ok := values[name]
