@@ -131,12 +131,18 @@ func (f *FuncDecl) SetCap(slice value.Value, v value.Value) {
 	f.GetCurrentBlock().NewStore(v, f.GetPCap(slice))
 }
 
+func GetSliceEmType(p types.Type) types.Type {
+	if t, ok := p.(*types.StructType); ok {
+		return t.Fields[3]
+	}
+	return nil
+}
+
 func (f *FuncDecl) CopyNewSlice(src value.Value) value.Value {
 	if f.IsSlice(src) {
 		utils.NewComment(f.GetCurrentBlock(), "copy and new slice")
 		baseType := GetBaseType(src.Type())
-		structType := baseType.(*types.StructType)
-		i := structType.Fields[3]
+		i := GetSliceEmType(baseType)
 		getLen := f.GetLen(utils.LoadValue(f.GetCurrentBlock(), utils.LoadValue(f.GetCurrentBlock(), src)))
 		dstSlice := f.NewAllocSlice(GetBaseType(i), getLen)
 		f.CopyStruct(dstSlice, f.GetSrcPtr(src))

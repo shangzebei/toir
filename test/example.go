@@ -2,28 +2,14 @@ package test
 
 import "fmt"
 
+//import "fmt"
+
 func main() {
 
 	//test.test()
-	a := []int{1, 22, 33, 44, 5}
-	//fmt.Printf("%d\n", len(a))
-	f := append(a, 89)
-	for i := 0; i < len(f); i++ {
-		fmt.Printf("%d\n", f[i])
+	a := []int{21, 22, 33, 44, 55}
+	ints := a[1:3]
+	for key, value := range ints {
+		fmt.Printf("%d-%d\n", key, value)
 	}
 }
-
-//
-//func pp(uu *UU)  {
-//	jj(&uu.Len)
-//	nn(uu.Len)
-//}
-//
-//func jj(int2 *int) {
-//
-//}
-//
-////
-//func nn(int2 int) {
-//	fmt.Printf("%d\n", int2)
-//}

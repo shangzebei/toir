@@ -28,3 +28,15 @@ func rangeSlice(ptr def.I8p, low int, high int, bytes int) def.I8p {
 	def.MemCopy(malloc, def.ArrayPtr(ptr, bytes, low), i2)
 	return malloc
 }
+
+func rangeTemp() {
+	var key int
+	var value int
+	var zrangzwrLen int
+
+	var f []int
+	for zrangzwr := 0; zrangzwr < zrangzwrLen; zrangzwr++ {
+		key = zrangzwr
+		value = f[zrangzwr]
+	}
+}
