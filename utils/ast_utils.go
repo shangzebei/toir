@@ -19,6 +19,10 @@ func IndexStruct(block *ir.Block, src value.Value, index int) *ir.InstGetElement
 	return block.NewGetElementPtr(src, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(index)))
 }
 
+func IndexStructValue(block *ir.Block, src value.Value, index int) value.Value {
+	return block.NewExtractValue(src, uint64(index))
+}
+
 func CompileRuntime(fileName string, funName string) *ast.FuncDecl {
 	fSet := token.NewFileSet()
 	bytes, _ := ioutil.ReadFile(fileName)
@@ -92,5 +96,8 @@ func StdCall(m *ir.Module, b *ir.Block, v value.Value, args ...value.Value) valu
 }
 
 func LoadValue(block *ir.Block, v value.Value) value.Value {
+	if v, ok := v.(*ir.InstLoad); ok {
+		return v
+	}
 	return block.NewLoad(v)
 }

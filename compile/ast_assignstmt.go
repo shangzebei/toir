@@ -237,16 +237,16 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		emType := f.FindSliceEmType(ident.Obj)
-		return f.GetSliceIndex(variable, kv, types.NewPointer(emType))
+		//emType := f.FindSliceEmType(ident.Obj)
+		return f.GetSliceIndex(variable, kv)
 	//case *ast.CallExpr:
 	//	expr := f.doCallExpr(index.X.(*ast.CallExpr))
 	//	return f.GetSliceIndex(expr, kv)
 	case *ast.SliceExpr: //return slice
 		sliceExpr := index.X.(*ast.SliceExpr)
-		emType := f.FindSliceEmType(sliceExpr.X.(*ast.Ident).Obj)
+		//emType := f.FindSliceEmType(sliceExpr.X.(*ast.Ident).Obj)
 		expr := f.doSliceExpr(sliceExpr)
-		return f.GetSliceIndex(expr, kv, types.NewPointer(emType))
+		return f.GetSliceIndex(expr, kv)
 	default:
 		logrus.Error("no impl index.X")
 	}

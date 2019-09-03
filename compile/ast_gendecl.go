@@ -109,17 +109,19 @@ func (f *FuncDecl) InitValue(kind types.Type, def value.Value) value.Value {
 	}
 	switch kind.(type) {
 	case *types.ArrayType:
-		sliceValue := f.NewType(GetBaseType(kind))
-		alloca = sliceValue
 		arrayType := kind.(*types.ArrayType)
+		sliceValue := f.NewType(arrayType)
+		f.SetLen(sliceValue, constant.NewInt(types.I32, int64(arrayType.Len)))
+		alloca = sliceValue
 		bytes := GetSliceBytes(arrayType)
 		f.StdCall(
 			llvm.Mencpy,
-			f.GetCurrentBlock().NewLoad(f.GetVSlice(alloca)),
+			f.GetCurrentBlock().NewBitCast(f.GetVSlice(alloca), types.I8Ptr),
 			f.GetCurrentBlock().NewBitCast(def, types.I8Ptr),
 			constant.NewInt(types.I32, bytes),
 			constant.NewBool(false),
 		)
+
 	case *types.StructType:
 		var l int64
 		alloca = f.NewType(GetBaseType(kind))

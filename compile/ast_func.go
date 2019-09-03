@@ -390,8 +390,14 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	case *ast.ArrayType: //array
 		var c []constant.Constant
 		for _, value := range lit.Elts {
-			toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
-			c = append(c, toConstant)
+			switch value.(type) {
+			case *ast.Ident:
+				c = append(c, f.doIdent(value.(*ast.Ident)).(constant.Constant))
+			case *ast.BasicLit:
+				toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
+				c = append(c, toConstant)
+			}
+
 		}
 		name := f.GetCurrent().Name()
 		array := constant.NewArray(c...)
@@ -452,9 +458,25 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 	low := f.BasicLitToConstant(expr.Low.(*ast.BasicLit))
 	higt := f.BasicLitToConstant(expr.High.(*ast.BasicLit))
 	if f.IsSlice(variable) { //
+		//i8* rangeSlice(i8* ptr,int low ,int high,int bytes)
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
-		stdCall := f.StdCall(decl, f.GetSrcPtr(variable), low, higt)
-		return utils.LoadValue(f.GetCurrentBlock(), stdCall)
+		utils.NewComment(f.GetCurrentBlock(), "end slice[]")
+		pSlice := f.GetPSlice(f.GetSrcPtr(variable))
+		slice := f.GetCurrentBlock().NewLoad(pSlice)
+		stdCall := f.StdCall(decl,
+			f.GetCurrentBlock().NewBitCast(slice, types.I8Ptr),
+			low,
+			higt,
+			f.GetBytes(utils.LoadValue(f.GetCurrentBlock(), variable)),
+		)
+		newSlice := f.CopyNewSlice(variable)
+		getSlice := f.GetPSlice(newSlice)
+		sub := f.GetCurrentBlock().NewSub(higt, low)
+		f.SetLen(newSlice, sub)
+		f.SetCap(newSlice, sub)
+		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(stdCall, types.NewPointer(GetBaseType(getSlice.Type()))), getSlice)
+		utils.NewComment(f.GetCurrentBlock(), "end slice[]")
+		return utils.LoadValue(f.GetCurrentBlock(), newSlice)
 	}
 	logrus.Error("doSliceExpr not sliceArray")
 	return nil

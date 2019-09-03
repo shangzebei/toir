@@ -6,134 +6,12 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
-	"toir/llvm"
-	"toir/utils"
-
 	"strconv"
 	"strings"
+	"toir/llvm"
+	"toir/stdlib"
+	"toir/utils"
 )
-
-// --- [ Structure types ] -----------------------------------------------------
-
-// StructType is an LLVM IR structure type. Identified (named) struct types are
-// uniqued by type names, not by structural identity.
-type SliceType struct {
-	types.StructType
-	// Type name; or empty if not present.
-	TypeName string
-	// Packed memory layout.
-	Packed bool
-	// Struct fields.
-	Fields []types.Type
-	// Opaque struct type.
-	Opaque bool
-
-	EmType types.Type
-}
-
-func NewCopySlice(s *SliceType, em types.Type) *SliceType {
-	return &SliceType{
-		TypeName: s.TypeName,
-		Packed:   s.Packed,
-		Fields:   s.Fields,
-		Opaque:   s.Opaque,
-		EmType:   em,
-	}
-}
-
-// NewStruct returns a new struct type based on the given field types.
-func NewSlice(em types.Type, fields ...types.Type) *SliceType {
-	return &SliceType{
-		Fields: fields,
-		EmType: em,
-	}
-}
-
-// Equal reports whether t and u are of equal type.
-func (t *SliceType) Equal(u types.Type) bool {
-	if u, ok := u.(*SliceType); ok {
-		if len(t.TypeName) > 0 || len(u.TypeName) > 0 {
-			// Identified struct types are uniqued by type names, not by structural
-			// identity.
-			//
-			// t or u is an identified struct type.
-			return t.TypeName == u.TypeName
-		}
-		// Literal struct types are uniqued by structural identity.
-		if t.Packed != u.Packed {
-			return false
-		}
-		if len(t.Fields) != len(u.Fields) {
-			return false
-		}
-		for i := range t.Fields {
-			if !t.Fields[i].Equal(u.Fields[i]) {
-				return false
-			}
-		}
-		return true
-	}
-	return false
-}
-
-// String returns the string representation of the structure type.
-func (t *SliceType) String() string {
-	if len(t.TypeName) > 0 {
-		return utils.Local(t.TypeName)
-	}
-	return t.LLString()
-}
-
-// LLString returns the LLVM syntax representation of the definition of the
-// type.
-func (t *SliceType) LLString() string {
-	// Opaque struct type.
-	//
-	//    'opaque'
-	//
-	// Struct type.
-	//
-	//    '{' Fields=(Type separator ',')+? '}'
-	//
-	// Packed struct type.
-	//
-	//    '<' '{' Fields=(Type separator ',')+? '}' '>'   -> PackedStructType
-	if t.Opaque {
-		return "opaque"
-	}
-	if len(t.Fields) == 0 {
-		if t.Packed {
-			return "<{}>"
-		}
-		return "{}"
-	}
-	buf := &strings.Builder{}
-	if t.Packed {
-		buf.WriteString("<")
-	}
-	buf.WriteString("{ ")
-	for i, field := range t.Fields {
-		if i != 0 {
-			buf.WriteString(", ")
-		}
-		buf.WriteString(field.String())
-	}
-	buf.WriteString(" }")
-	if t.Packed {
-		buf.WriteString(">")
-	}
-	return buf.String()
-}
-
-// Name returns the type name of the type.
-func (t *SliceType) Name() string {
-	return t.TypeName
-}
-
-// SetName sets the type name of the type.
-func (t *SliceType) SetName(name string) {
-	t.TypeName = name
-}
 
 type SliceValue struct {
 	p   value.Value
@@ -152,27 +30,25 @@ func (i *SliceValue) Ident() string {
 	return i.p.Ident()
 }
 
-var stTypeDef types.Type
+var sliceTypes []types.Type
 
-func (f *FuncDecl) NewAllocSlice(array types.Type) value.Value {
-	alloca := f.GetCurrentBlock().NewAlloca(f.GetSliceType())
-	alloca.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)))
-	if t, ok := array.(*types.ArrayType); ok {
-		//set types
-		f.GetCurrentBlock().NewStore(constant.NewInt(types.I32, int64(GetBytes(t.ElemType))), f.GetPBytes(alloca))
-		//len,cap,elem bytes,ptr//TODO
-		if t.Len != 0 {
-			array := f.GetCurrentBlock().NewAlloca(t)
-			cast := f.GetCurrentBlock().NewBitCast(array, types.I8Ptr)
-			f.GetCurrentBlock().NewStore(cast, f.GetPSlice(alloca))
-			f.SetLen(alloca, constant.NewInt(types.I32, int64(t.Len)))
-			f.SetCap(alloca, constant.NewInt(types.I32, int64(t.Len)))
-		}
-		return &SliceValue{p: alloca, emt: t.ElemType}
-	} else {
-		logrus.Debugf("not init slice type %s", array)
+func (f *FuncDecl) NewAllocSlice(em types.Type, arrayLen value.Value) value.Value {
+	if em == nil {
+		panic("error type in NewAllocSlice")
 	}
-	return &SliceValue{p: alloca}
+	utils.NewComment(f.GetCurrentBlock(), "init slice...............")
+	newStruct := types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
+	sliceTypes = append(sliceTypes, newStruct)
+	alloc := f.GetCurrentBlock().NewAlloca(newStruct)
+	i := int64(GetBytes(em))
+	f.SetBytes(alloc, constant.NewInt(types.I32, i))
+	alloc.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)))
+	call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(arrayLen, constant.NewInt(types.I32, i)))
+	slice := f.GetPSlice(alloc)
+	f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(em)), slice)
+	f.SetCap(alloc, arrayLen)
+	utils.NewComment(f.GetCurrentBlock(), "end init slice.................")
+	return &SliceValue{p: alloc, emt: em}
 }
 
 func (f *FuncDecl) GetSliceType() types.Type {
@@ -186,25 +62,23 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 	if _, ok := v.(*SliceValue); ok {
 		return true
 	}
-	if GetBaseType(v.Type()) == f.GetSliceType() {
-		return true
+	baseType := GetBaseType(v.Type())
+	for _, value := range sliceTypes {
+		if baseType == value {
+			return true
+		}
 	}
 	return false
 }
 
-var cast value.Value
+func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
 
-func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value, p types.Type) value.Value {
-	if l, ok := v.(*ir.InstLoad); ok {
-		v = l.Src
-	}
+	utils.NewComment(f.GetCurrentBlock(), "get slice index")
 	//decl := f.DoFunDecl("runtime", f.r.GetFunc("indexSlice"))
 	//return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewBitCast(f.StdCall(decl, v, index), p))
-	slice := f.GetPSlice(v)
-	if cast == nil {
-		cast = f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(slice), p)
-	}
-	return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewGetElementPtr(cast, index))
+	slice := f.GetPSlice(f.GetSrcPtr(v))
+
+	return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewGetElementPtr(f.GetCurrentBlock().NewLoad(slice), index))
 }
 
 //slice*** [char **]
@@ -214,7 +88,7 @@ func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
 
 //addr char *
 func (f *FuncDecl) GetVSlice(v value.Value) value.Value {
-	return f.GetPSlice(v)
+	return f.GetCurrentBlock().NewLoad(f.GetPSlice(v))
 }
 
 func (f *FuncDecl) GetPLen(v value.Value) value.Value {
@@ -232,6 +106,9 @@ func (f *FuncDecl) GetPCap(v value.Value) value.Value {
 ////////////////////////v////////////////////////////////////////////
 func (f *FuncDecl) SetLen(slice value.Value, v value.Value) {
 	f.GetCurrentBlock().NewStore(v, f.GetPLen(slice))
+}
+func (f *FuncDecl) SetBytes(slice value.Value, v value.Value) {
+	f.GetCurrentBlock().NewStore(v, f.GetPBytes(slice))
 }
 
 //func (f *FuncDecl) GetSlice(slice value.Value) value.Value {
@@ -256,11 +133,15 @@ func (f *FuncDecl) SetCap(slice value.Value, v value.Value) {
 
 func (f *FuncDecl) CopyNewSlice(src value.Value) value.Value {
 	if f.IsSlice(src) {
-		decl := f.DoFunDecl("runtime", f.r.GetFunc("copyNewSlice"))
-		call := f.StdCall(decl, src)
-		alloca := f.GetCurrentBlock().NewAlloca(call.Type())
-		f.GetCurrentBlock().NewStore(call, alloca)
-		return f.GetCurrentBlock().NewLoad(alloca)
+		utils.NewComment(f.GetCurrentBlock(), "copy and new slice")
+		baseType := GetBaseType(src.Type())
+		structType := baseType.(*types.StructType)
+		i := structType.Fields[3]
+		getLen := f.GetLen(utils.LoadValue(f.GetCurrentBlock(), utils.LoadValue(f.GetCurrentBlock(), src)))
+		dstSlice := f.NewAllocSlice(GetBaseType(i), getLen)
+		f.CopyStruct(dstSlice, f.GetSrcPtr(src))
+		utils.NewComment(f.GetCurrentBlock(), "copy and end slice")
+		return dstSlice
 	} else {
 		logrus.Error("copy dst or src is not sliceArray")
 	}
@@ -269,8 +150,8 @@ func (f *FuncDecl) CopyNewSlice(src value.Value) value.Value {
 
 func (f *FuncDecl) CopyStruct(dst value.Value, src value.Value) {
 	f.StdCall(llvm.Mencpy,
-		f.GetCurrentBlock().NewBitCast(dst, types.I8Ptr),
-		f.GetCurrentBlock().NewBitCast(src, types.I8Ptr),
+		f.GetCurrentBlock().NewBitCast(f.GetSrcPtr(dst), types.I8Ptr),
+		f.GetCurrentBlock().NewBitCast(f.GetSrcPtr(src), types.I8Ptr),
 		constant.NewInt(types.I32, int64(GetStructBytes(src))),
 		constant.NewBool(false))
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"toir/llvm"
-	"toir/stdlib"
 	"toir/utils"
 )
 
@@ -72,13 +71,16 @@ func (f *FuncDecl) Cap(value2 value.Value) value.Value {
 
 //func copy(dst, src []Type) int
 func (f *FuncDecl) Copy(dst value.Value, src value.Value) value.Value {
+	utils.NewComment(f.GetCurrentBlock(), "copy ptr..........start")
 	if f.IsSlice(dst) && f.IsSlice(src) {
-		len := f.Len(src)
-		return f.StdCall(llvm.Mencpy,
-			f.GetVSlice(dst),
-			f.GetVSlice(src),
-			f.GetCurrentBlock().NewMul(len, f.GetBytes(src)),
+		loadValue := utils.LoadValue(f.GetCurrentBlock(), src)
+		len := f.Len(loadValue)
+		f.StdCall(llvm.Mencpy,
+			f.GetCurrentBlock().NewBitCast(f.GetVSlice(dst), types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(f.GetVSlice(src), types.I8Ptr),
+			f.GetCurrentBlock().NewMul(len, f.GetBytes(loadValue)),
 			constant.NewBool(false))
+		utils.NewComment(f.GetCurrentBlock(), "copy ptr..........end")
 		return len
 	} else {
 		logrus.Error("copy dst or src is not sliceArray")
@@ -89,13 +91,8 @@ func (f *FuncDecl) Copy(dst value.Value, src value.Value) value.Value {
 func (f *FuncDecl) NewType(tp types.Type) value.Value {
 	switch tp.(type) {
 	case *types.ArrayType:
-		return f.NewAllocSlice(tp)
-	case *types.StructType:
-		if tp == f.GetSliceType() && tp.Name() == "slice" {
-			return f.NewAllocSlice(tp)
-		} else {
-			return f.GetCurrentBlock().NewAlloca(tp)
-		}
+		arrayType := tp.(*types.ArrayType)
+		return f.NewAllocSlice(arrayType.ElemType, constant.NewInt(types.I32, int64(arrayType.Len)))
 	default:
 		logrus.Warnf("default NewAlloca %s", tp.String())
 		alloca := f.GetCurrentBlock().NewAlloca(tp)
@@ -109,33 +106,41 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("checkGrow"))
 		srcPtr := f.GetSrcPtr(value2)
 		utils.NewComment(f.GetCurrentBlock(), "append start---------------------")
-		//malloc
+		//i8 * checkGrow(i8 *,len i32,cap i32,bytes i32)
 		call := f.StdCall(
 			decl,
-			srcPtr,
+			f.GetCurrentBlock().NewBitCast(f.GetVSlice(srcPtr), types.I8Ptr),
+			f.GetLen(value2),
+			f.GetCap(value2),
+			f.GetBytes(value2),
 		)
-
 		lenPtr := f.GetPLen(srcPtr)
 		len := f.GetCurrentBlock().NewLoad(lenPtr)
 
-		slice := f.CopyNewSlice(f.GetSrcPtr(value2))
+		slice := f.CopyNewSlice(srcPtr)
 
 		slicePtr := f.GetPSlice(slice)
 		newPtr := f.GetPLen(slice)
 
 		//store call
-		f.GetCurrentBlock().NewStore(call, slicePtr)
+		indexStruct := utils.IndexStructValue(f.GetCurrentBlock(), call, 0) //ptr
+		indexCap := utils.IndexStructValue(f.GetCurrentBlock(), call, 1)    //cap
+		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(indexStruct, types.NewPointer(GetBaseType(slicePtr.Type()))), slicePtr)
 
 		//append
-		utils.NewComment(f.GetCurrentBlock(), "append value")
+		utils.NewComment(f.GetCurrentBlock(), "store value")
 		i := elems[0]
 		bitCast := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(slicePtr), types.NewPointer(i.Type()))
 		ptr := f.GetCurrentBlock().NewGetElementPtr(bitCast, len)
 		f.GetCurrentBlock().NewStore(i, ptr)
 
-		utils.NewComment(f.GetCurrentBlock(), "store len value")
+		utils.NewComment(f.GetCurrentBlock(), "add 1 len")
 		newAdd := f.GetCurrentBlock().NewAdd(len, constant.NewInt(types.I32, 1))
 		f.GetCurrentBlock().NewStore(newAdd, newPtr)
+
+		//set cap
+		f.SetCap(slice, indexCap)
+
 		utils.NewComment(f.GetCurrentBlock(), "append end-------------------------")
 
 		return utils.LoadValue(f.GetCurrentBlock(), slice)
@@ -145,14 +150,14 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 
 //TODO
 func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
-	if t, ok := v.(*SliceValue); ok {
-		allocSlice := f.NewAllocSlice(types.NewArray(0, t.emt))
-		call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], f.GetBytes(v)))
-		f.GetCurrentBlock().NewStore(call, f.GetPSlice(allocSlice))
-		f.SetCap(allocSlice, size[0])
-		f.SetLen(allocSlice, size[0])
-		return allocSlice
-	}
+	//if t, ok := v.(*SliceValue); ok {
+	//	allocSlice := f.NewAllocSlice(t.emt)
+	//	call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], f.GetBytes(v)))
+	//	f.GetCurrentBlock().NewStore(call, f.GetPSlice(allocSlice))
+	//	f.SetCap(allocSlice, size[0])
+	//	f.SetLen(allocSlice, size[0])
+	//	return allocSlice
+	//}
 	return nil
 
 }

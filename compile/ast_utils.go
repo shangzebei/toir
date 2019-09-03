@@ -163,6 +163,8 @@ func (f *FuncDecl) GetSrcPtr(src value.Value) value.Value {
 	logrus.Debugf("GetSrcPtr  %s", src)
 	if a, ok := src.(*ir.InstAlloca); ok && types.IsPointer(a.ElemType) {
 		return f.GetCurrentBlock().NewLoad(src)
+	} else if _, ok := src.(*ir.InstAlloca); ok {
+		return src
 	}
 	if l, ok := src.(*ir.InstLoad); ok {
 		return l.Src
@@ -192,6 +194,9 @@ func GetBytes(typ types.Type) int {
 		l = 8
 	case *types.FloatType:
 		l = 8
+	case *types.ArrayType:
+		arrayType := typ.(*types.ArrayType)
+		l = int(GetSliceBytes(arrayType))
 	default:
 		fmt.Println("unkonw types size")
 	}
