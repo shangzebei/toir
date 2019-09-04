@@ -517,7 +517,7 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 			f.GetCurrentBlock().NewBitCast(slice, types.I8Ptr),
 			low,
 			higt,
-			f.GetBytes(utils.LoadValue(f.GetCurrentBlock(), variable)),
+			f.GetBytes(f.GetSrcPtr(variable)),
 		)
 		newSlice := f.CopyNewSlice(variable)
 		getSlice := f.GetPSlice(newSlice)

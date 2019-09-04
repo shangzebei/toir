@@ -82,14 +82,14 @@ func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
 	return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewGetElementPtr(f.GetCurrentBlock().NewLoad(slice), index))
 }
 
-//slice*** [char **]
-func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
-	return utils.IndexStruct(f.GetCurrentBlock(), v, 3)
-}
-
 //addr char *
 func (f *FuncDecl) GetVSlice(v value.Value) value.Value {
 	return f.GetCurrentBlock().NewLoad(f.GetPSlice(v))
+}
+
+//slice*** [char **]
+func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
+	return utils.IndexStruct(f.GetCurrentBlock(), v, 3)
 }
 
 func (f *FuncDecl) GetPLen(v value.Value) value.Value {
@@ -118,16 +118,17 @@ func (f *FuncDecl) SetBytes(slice value.Value, v value.Value) {
 //}
 
 func (f *FuncDecl) GetLen(slice value.Value) value.Value {
-	return f.GetCurrentBlock().NewExtractValue(slice, 0)
+	return f.GetCurrentBlock().NewLoad(utils.IndexStruct(f.GetCurrentBlock(), slice, 0))
 }
 
 func (f *FuncDecl) GetBytes(slice value.Value) value.Value {
-	return f.GetCurrentBlock().NewExtractValue(slice, 2)
+	return f.GetCurrentBlock().NewLoad(utils.IndexStruct(f.GetCurrentBlock(), slice, 2))
 }
 
 func (f *FuncDecl) GetCap(slice value.Value) value.Value {
-	return f.GetCurrentBlock().NewExtractValue(slice, 1)
+	return f.GetCurrentBlock().NewLoad(utils.IndexStruct(f.GetCurrentBlock(), slice, 1))
 }
+
 func (f *FuncDecl) SetCap(slice value.Value, v value.Value) {
 	f.GetCurrentBlock().NewStore(v, f.GetPCap(slice))
 }
@@ -144,9 +145,10 @@ func (f *FuncDecl) CopyNewSlice(src value.Value) value.Value {
 		utils.NewComment(f.GetCurrentBlock(), "copy and new slice")
 		baseType := GetBaseType(src.Type())
 		i := GetSliceEmType(baseType)
-		getLen := f.GetLen(utils.LoadValue(f.GetCurrentBlock(), utils.LoadValue(f.GetCurrentBlock(), src)))
+		ptr := f.GetSrcPtr(src)
+		getLen := f.GetLen(ptr)
 		dstSlice := f.NewAllocSlice(GetBaseType(i), getLen)
-		f.CopyStruct(dstSlice, f.GetSrcPtr(src))
+		f.CopyStruct(dstSlice, ptr)
 		utils.NewComment(f.GetCurrentBlock(), "copy and end slice")
 		return dstSlice
 	} else {

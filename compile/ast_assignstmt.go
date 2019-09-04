@@ -145,17 +145,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			} else {
 				lv = f.GetSrcPtr(lvalue)
 			}
-			switch r[lIndex].(type) {
-			case *ir.InstAlloca:
-				ri := r[lIndex].(*ir.InstAlloca)
-				r[lIndex] = f.GetCurrentBlock().NewLoad(ri)
-				f.GetCurrentBlock().NewStore(r[lIndex], f.GetSrcPtr(lv))
-			case *SliceValue:
-				f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewLoad(r[lIndex]), lv)
-			default:
-				f.GetCurrentBlock().NewStore(r[lIndex], lv)
-				fmt.Println("token.ASSIGN unknown type")
-			}
+			f.GetCurrentBlock().NewStore(FixAlloc(f.GetCurrentBlock(), r[lIndex]), lv)
 			rep = append(rep, lvalue)
 		}
 		return rep

@@ -12,7 +12,6 @@ func main() {
 	make1()
 }
 
-////1-2-3-7-8-9
 func copyt() {
 	s := []int{1, 2, 3}
 	ii := []int{4, 5, 6, 7, 8, 9}

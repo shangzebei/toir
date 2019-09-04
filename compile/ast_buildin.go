@@ -62,23 +62,23 @@ func (f *FuncDecl) Float64(value2 value.Value) value.Value {
 
 //////////////////slice////////////////////
 func (f *FuncDecl) Len(value2 value.Value) value.Value {
-	return f.GetLen(value2)
+	return f.GetLen(f.GetSrcPtr(value2))
 }
 
 func (f *FuncDecl) Cap(value2 value.Value) value.Value {
-	return f.GetCap(value2)
+	return f.GetCap(f.GetSrcPtr(value2))
 }
 
 //func copy(dst, src []Type) int
 func (f *FuncDecl) Copy(dst value.Value, src value.Value) value.Value {
 	utils.NewComment(f.GetCurrentBlock(), "copy ptr..........start")
 	if f.IsSlice(dst) && f.IsSlice(src) {
-		loadValue := utils.LoadValue(f.GetCurrentBlock(), src)
-		len := f.Len(loadValue)
+		srcPtr := f.GetSrcPtr(src)
+		len := f.GetLen(srcPtr)
 		f.StdCall(llvm.Mencpy,
 			f.GetCurrentBlock().NewBitCast(f.GetVSlice(f.GetSrcPtr(dst)), types.I8Ptr),
 			f.GetCurrentBlock().NewBitCast(f.GetVSlice(f.GetSrcPtr(src)), types.I8Ptr),
-			f.GetCurrentBlock().NewMul(len, f.GetBytes(loadValue)),
+			f.GetCurrentBlock().NewMul(len, f.GetBytes(srcPtr)),
 			constant.NewBool(false))
 		utils.NewComment(f.GetCurrentBlock(), "copy ptr..........end")
 		return len
@@ -110,41 +110,46 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 		call := f.StdCall(
 			decl,
 			f.GetCurrentBlock().NewBitCast(f.GetVSlice(srcPtr), types.I8Ptr),
-			f.GetLen(value2),
-			f.GetCap(value2),
-			f.GetBytes(value2),
+			f.GetLen(srcPtr),
+			f.GetCap(srcPtr),
+			f.GetBytes(srcPtr),
+			constant.NewInt(types.I32, int64(len(elems))),
 		)
 		lenPtr := f.GetPLen(srcPtr)
-		len := f.GetCurrentBlock().NewLoad(lenPtr)
+		length := f.GetCurrentBlock().NewLoad(lenPtr)
 
-		slice := f.CopyNewSlice(srcPtr)
+		newSlice := f.CopyNewSlice(srcPtr)
 
-		slicePtr := f.GetPSlice(slice)
-		newPtr := f.GetPLen(slice)
+		slicePtr := f.GetPSlice(newSlice)
+		newLenPtr := f.GetPLen(newSlice)
 
 		//store call
 		indexStruct := utils.IndexStructValue(f.GetCurrentBlock(), call, 0) //ptr
 		indexCap := utils.IndexStructValue(f.GetCurrentBlock(), call, 1)    //cap
+
 		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(indexStruct, types.NewPointer(GetBaseType(slicePtr.Type()))), slicePtr)
 
 		//append
 		utils.NewComment(f.GetCurrentBlock(), "store value")
-		i := elems[0]
-		bitCast := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(slicePtr), types.NewPointer(i.Type()))
-		ptr := f.GetCurrentBlock().NewGetElementPtr(bitCast, len)
-		f.GetCurrentBlock().NewStore(i, ptr)
 
-		utils.NewComment(f.GetCurrentBlock(), "add 1 len")
-		newAdd := f.GetCurrentBlock().NewAdd(len, constant.NewInt(types.I32, 1))
-		f.GetCurrentBlock().NewStore(newAdd, newPtr)
+		for index, value := range elems {
+			bitCast := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(slicePtr), types.NewPointer(value.Type()))
+			ptr := f.GetCurrentBlock().NewGetElementPtr(bitCast, f.GetCurrentBlock().NewAdd(length, constant.NewInt(types.I32, int64(index))))
+			f.GetCurrentBlock().NewStore(value, ptr)
+		}
+
+		utils.NewComment(f.GetCurrentBlock(), "add len")
+		newAdd := f.GetCurrentBlock().NewAdd(length, constant.NewInt(types.I32, int64(len(elems))))
+		f.GetCurrentBlock().NewStore(newAdd, newLenPtr)
 
 		//set cap
-		f.SetCap(slice, indexCap)
+		f.SetCap(newSlice, indexCap)
 
 		utils.NewComment(f.GetCurrentBlock(), "append end-------------------------")
 
-		return utils.LoadValue(f.GetCurrentBlock(), slice)
+		return utils.LoadValue(f.GetCurrentBlock(), newSlice)
 	}
+	logrus.Error("Append return nil")
 	return nil
 }
 

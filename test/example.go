@@ -5,16 +5,16 @@ import "fmt"
 //import "fmt"
 
 func main() {
-
-	//test.test()
-	//a := []int{21, 22, 33, 44, 55}
-	i := 78
-	b := []int{121, 122, 133, 144, 155}
-	for i := 0; i < len(b); i++ {
-		fmt.Printf("%d\n", b[i])
+	var name = []int{1, 2, 3}
+	//name = append(name, 1)
+	//fmt.Printf("len=%d,cap=%d\n", len(name), cap(name))
+	//fmt.Printf("%d\n", name[3])
+	//fmt.Printf("%d\n", name[4])
+	for i := 0; i < 30; i++ {
+		name = append(name, i)
+		fmt.Printf("len-%d cap-%d %d\n", len(name), cap(name), name[i])
 	}
-	for i := 0; i < len(b); i++ {
-		fmt.Printf("%d\n", b[i])
-	}
-	fmt.Printf("%d\n", i)
+	//for j := 0; j < 33; j++ {
+	//	fmt.Printf("%d\n", name[j])
+	//}
 }
