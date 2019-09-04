@@ -82,8 +82,7 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type()
 			case *ast.ArrayType:
 				arrayType := value.Type.(*ast.ArrayType)
-				typeFromName := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
-				paramKind = f.GetSliceType(typeFromName) //slice type
+				paramKind = f.doArrayType(arrayType)
 			case *ast.SelectorExpr:
 				paramKind = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
 			default:
@@ -121,6 +120,8 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 			ty = append(ty, selector.Type())
 		case *ast.StarExpr:
 			ty = append(ty, f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type())
+		case *ast.ArrayType:
+			ty = append(ty, f.doArrayType(value.Type.(*ast.ArrayType)))
 		default:
 			logrus.Error("not known type")
 		}
@@ -532,10 +533,18 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 	return nil
 }
 
-func (f *FuncDecl) doArrayType(arrayType *ast.ArrayType) value.Value {
-	identName := GetIdentName(arrayType.Elt.(*ast.Ident))
-	typ := f.GetTypeFromName(identName)
-	return ir.NewParam("", types.NewArray(0, typ))
+func (f *FuncDecl) doArrayType(arrayType *ast.ArrayType) types.Type {
+	var kind types.Type
+	switch arrayType.Elt.(type) {
+	case *ast.Ident:
+		ki := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
+		kind = f.GetSliceType(ki)
+	case *ast.ArrayType:
+		kind = f.GetSliceType(f.doArrayType(arrayType.Elt.(*ast.ArrayType)))
+	default:
+		logrus.Error("not find doArrayType")
+	}
+	return kind
 }
 
 //inline func

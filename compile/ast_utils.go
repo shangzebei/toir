@@ -197,6 +197,8 @@ func GetBytes(typ types.Type) int {
 	case *types.ArrayType:
 		arrayType := typ.(*types.ArrayType)
 		l = int(GetSliceBytes(arrayType))
+	case *types.StructType:
+		l = 8
 	default:
 		fmt.Println("unkonw types size")
 	}

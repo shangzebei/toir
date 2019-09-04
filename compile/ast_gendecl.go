@@ -8,9 +8,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
-	"toir/llvm"
-
 	"strconv"
+	"toir/llvm"
 )
 
 //glob is Glob def
@@ -39,14 +38,20 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 		switch spec.Type.(type) {
 		case *ast.Ident:
 			kind = f.GetTypeFromName(spec.Type.(*ast.Ident).Name)
-		case *ast.ArrayType:
+		case *ast.ArrayType: //TODO Warn must return types.NewArray
 			arrayType := spec.Type.(*ast.ArrayType)
+			var doArrayType types.Type
+			if i, ok := arrayType.Elt.(*ast.Ident); ok {
+				doArrayType = f.GetTypeFromName(GetIdentName(i))
+			} else if a, ok := arrayType.Elt.(*ast.ArrayType); ok {
+				doArrayType = f.doArrayType(a)
+			}
 			if arrayType.Len == nil {
-				kind = types.NewArray(0, f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident))))
+				kind = types.NewArray(0, doArrayType)
 			} else {
 				toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
 				len, _ := strconv.Atoi(toConstant.Ident())
-				kind = types.NewArray(uint64(len), toConstant.Type())
+				kind = types.NewArray(uint64(len), doArrayType)
 			}
 		case *ast.StarExpr:
 			kind = f.doStartExpr(spec.Type.(*ast.StarExpr), "type").Type()

@@ -29,6 +29,10 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) {
 		va = f.doCallExpr(stmt.X.(*ast.CallExpr))
 		f.tempVariables["rangeV"] = va
 		name = "rangeV"
+	case *ast.IndexExpr:
+		va = f.doIndexExpr(stmt.X.(*ast.IndexExpr))
+		f.tempVariables["rangeV"] = va
+		name = "rangeV"
 	default:
 		logrus.Error("not doRangeStmt")
 	}

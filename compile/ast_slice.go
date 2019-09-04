@@ -53,7 +53,9 @@ func (f *FuncDecl) NewAllocSlice(em types.Type, arrayLen value.Value) value.Valu
 }
 
 func (f *FuncDecl) GetSliceType(em types.Type) types.Type {
-	return types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
+	newStruct := types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
+	sliceTypes = append(sliceTypes, newStruct)
+	return newStruct
 }
 
 func (f *FuncDecl) IsSlice(v value.Value) bool {
@@ -64,6 +66,16 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 		return true
 	}
 	baseType := GetBaseType(v.Type())
+	for _, value := range sliceTypes {
+		if baseType == value {
+			return true
+		}
+	}
+	return false
+}
+
+func (f *FuncDecl) IsSliceType(v types.Type) bool {
+	baseType := GetBaseType(v)
 	for _, value := range sliceTypes {
 		if baseType == value {
 			return true

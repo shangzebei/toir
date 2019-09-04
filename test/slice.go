@@ -5,6 +5,7 @@ import "fmt"
 // %len|%cap|%offset|%backing
 func main() {
 	sliceRange()
+	sliceslice()
 }
 
 //len=2 cap=9 5-5
@@ -45,4 +46,16 @@ func slicet() {
 	//	//var b int = a[0]
 	fmt.Printf("%s\n", aa[a[0]])
 	//show(a[1])
+}
+
+func sliceslice() {
+	var kk [1][]int
+	kk[0] = []int{1, 2, 3, 4, 5}
+	for _, value := range kk[0] {
+		fmt.Printf("%d\n", value)
+	}
+}
+
+func kkp(kk [][]int) [][]int {
+	return kk
 }
