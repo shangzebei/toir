@@ -5,8 +5,8 @@ import "fmt"
 func main() {
 	range1asdfasdfs()
 	range2()
-	//range3()
-	//range4()
+	range3()
+	range4()
 }
 
 func range1asdfasdfs() {
@@ -24,17 +24,16 @@ func range2() {
 	}
 }
 
-//
-//func range3() {
-//	a := []int{1, 2, 3, 4, 5}
-//	for _, value := range a {
-//		fmt.Printf("%d\n", value)
-//	}
-//}
+func range3() {
+	a := []int{1, 2, 3, 4, 5}
+	for _, value := range a {
+		fmt.Printf("%d\n", value)
+	}
+}
 
-//func range4() {
-//	a := []int{1, 2, 3, 4, 5}
-//	for key, _ := range a {
-//		fmt.Printf("%d\n", key)
-//	}
-//}
+func range4() {
+	a := []int{1, 2, 3, 4, 5}
+	for key, _ := range a {
+		fmt.Printf("%d\n", key)
+	}
+}

@@ -20,7 +20,7 @@ func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 }
 
-func Build(file string) {
+func Build(file string, outputBinaryPath string) {
 	fset := token.NewFileSet()
 	bytes, _ := ioutil.ReadFile(file)
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
@@ -68,8 +68,6 @@ func Build(file string) {
 
 	ioutil.WriteFile("bc.ll", []byte(m.String()), 0644)
 
-	outputBinaryPath := "binary"
-
 	clangArgs := []string{
 		"-Wno-override-module", // Disable override target triple warnings
 		"bc.ll",                // Path to LLVM IR
@@ -95,6 +93,6 @@ func main() {
 		flag.Usage()
 		return
 	}
-	Build(*i)
+	Build(*i, "binary")
 
 }

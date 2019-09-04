@@ -108,7 +108,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				//case *types.StructType, *types.ArrayType:
 				//	f.PutVariable(vName, f.InitValue(realType, r[lindex]))
 				case *types.IntType:
-					newAlloc := f.NewType(GetRealType(r[lindex].Type()))
+					newAlloc := f.NewType(r[lindex].Type())
 					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
 					f.PutVariable(vName, newAlloc)
 				default:

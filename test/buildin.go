@@ -7,7 +7,9 @@ type Per struct {
 }
 
 func main() {
-	//newF()
+	copyt()
+	newF()
+	make1()
 }
 
 ////1-2-3-7-8-9
@@ -18,25 +20,23 @@ func copyt() {
 	fmt.Printf("%d-%d-%d-%d-%d-%d\n", ii[0], ii[1], ii[2], ii[3], ii[4], ii[5])
 }
 
-//ERROR
-//func maket() {
-//	a := make([]int, 3)
-//	printSlice("see@ ", a)
-//	a[0] = 90
-//	a[1] = 50
-//	a[2] = 70
-//	for i := 0; i < 3; i++ {
-//		fmt.Printf("%d\n", a[i])
-//	}
-//
-//}
+func make1() {
+	a := make([]int, 3)
+	printSlice("see@ ", a)
+	a[0] = 90
+	a[1] = 50
+	a[2] = 70
+	for i := 0; i < 3; i++ {
+		fmt.Printf("%d\n", a[i])
+	}
+}
 
-//func printSlice(s string, x []int) {
-//	fmt.Printf("%s len=%d cap=%d \n", s, len(x), cap(x))
-//}
+func printSlice(s string, x []int) {
+	fmt.Printf("%s len=%d cap=%d \n", s, len(x), cap(x))
+}
 
-//func newF() {
-//	per := new(Per)
-//	per.Name = "asdfasdfasd"
-//	fmt.Printf("%s\n", per.Name)
-//}
+func newF() {
+	per := new(Per)
+	per.Name = "asdfasdfasd"
+	fmt.Printf("%s\n", per.Name)
+}

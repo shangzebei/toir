@@ -81,7 +81,9 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 			case *ast.StarExpr:
 				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type()
 			case *ast.ArrayType:
-				paramKind = types.NewPointer(f.GetSliceType()) //slice type
+				arrayType := value.Type.(*ast.ArrayType)
+				typeFromName := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
+				paramKind = f.GetSliceType(typeFromName) //slice type
 			case *ast.SelectorExpr:
 				paramKind = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
 			default:

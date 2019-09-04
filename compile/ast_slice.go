@@ -47,12 +47,13 @@ func (f *FuncDecl) NewAllocSlice(em types.Type, arrayLen value.Value) value.Valu
 	slice := f.GetPSlice(alloc)
 	f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(em)), slice)
 	f.SetCap(alloc, arrayLen)
+	f.SetLen(alloc, arrayLen)
 	utils.NewComment(f.GetCurrentBlock(), "end init slice.................")
 	return &SliceValue{p: alloc, emt: em}
 }
 
-func (f *FuncDecl) GetSliceType() types.Type {
-	return f.GlobDef["slice"]
+func (f *FuncDecl) GetSliceType(em types.Type) types.Type {
+	return types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
 }
 
 func (f *FuncDecl) IsSlice(v value.Value) bool {

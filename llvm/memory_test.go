@@ -1,7 +1,6 @@
 package llvm
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -9,11 +8,10 @@ type TT struct {
 }
 
 func TestName(t *testing.T) {
-	aa := aaa(TT{})
-	fmt.Printf("%p\n", &aa)
+	ints := make([]int, 3)
+	kk(ints)
 }
 
-func aaa(t TT) TT {
-	fmt.Printf("%p\n", &t)
-	return t
+func kk(x []int) {
+
 }

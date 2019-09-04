@@ -18,23 +18,23 @@ func initS() {
 	fmt.Printf("%s-%s-%d\n", ad.Name, ad.Sex, ad.Age)
 }
 
-//func sFunc()  {
-//	var ad = Person{Sex: "man", Age: 12}
-//	//ad := Person{}
-//	//ad.Name = "asdf"
-//	//ad.Age = 45
-//	fmt.Printf("%s\n", ad.Name)
-//
-//	//pp = ad
-//
-//	show(ad.Age)
-//	ad.Show()
-//}
+func sFunc() {
+	var ad = Person{Sex: "man", Age: 12}
+	//ad := Person{}
+	//ad.Name = "asdf"
+	//ad.Age = 45
+	fmt.Printf("%s\n", ad.Name)
 
-//func show(a int) {
-//	fmt.Printf("%d\n", a)
-//}
+	//pp = ad
 
-//func (p *Person) Show() {
-//	fmt.Printf("asdfasdfasdfsdfsd\n")
-//}
+	show(ad.Age)
+	ad.Show()
+}
+
+func show(a int) {
+	fmt.Printf("%d\n", a)
+}
+
+func (p *Person) Show() {
+	fmt.Printf("asdfasdfasdfsdfsd\n")
+}

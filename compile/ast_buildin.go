@@ -148,18 +148,8 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 	return nil
 }
 
-//TODO
 func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
-	//if t, ok := v.(*SliceValue); ok {
-	//	allocSlice := f.NewAllocSlice(t.emt)
-	//	call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(size[0], f.GetBytes(v)))
-	//	f.GetCurrentBlock().NewStore(call, f.GetPSlice(allocSlice))
-	//	f.SetCap(allocSlice, size[0])
-	//	f.SetLen(allocSlice, size[0])
-	//	return allocSlice
-	//}
-	return nil
-
+	return f.GetCurrentBlock().NewLoad(f.NewAllocSlice(v.Type(), size[0]))
 }
 
 func (f *FuncDecl) New(v value.Value) value.Value {
