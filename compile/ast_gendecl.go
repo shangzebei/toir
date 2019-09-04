@@ -49,7 +49,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 				kind = types.NewArray(uint64(len), toConstant.Type())
 			}
 		case *ast.StarExpr:
-			kind = f.doStartExpr(spec.Type.(*ast.StarExpr)).Type()
+			kind = f.doStartExpr(spec.Type.(*ast.StarExpr), "type").Type()
 		default:
 			fmt.Println("not impl DoGenDecl")
 		}

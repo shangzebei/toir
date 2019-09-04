@@ -76,8 +76,8 @@ func (f *FuncDecl) Copy(dst value.Value, src value.Value) value.Value {
 		loadValue := utils.LoadValue(f.GetCurrentBlock(), src)
 		len := f.Len(loadValue)
 		f.StdCall(llvm.Mencpy,
-			f.GetCurrentBlock().NewBitCast(f.GetVSlice(dst), types.I8Ptr),
-			f.GetCurrentBlock().NewBitCast(f.GetVSlice(src), types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(f.GetVSlice(f.GetSrcPtr(dst)), types.I8Ptr),
+			f.GetCurrentBlock().NewBitCast(f.GetVSlice(f.GetSrcPtr(src)), types.I8Ptr),
 			f.GetCurrentBlock().NewMul(len, f.GetBytes(loadValue)),
 			constant.NewBool(false))
 		utils.NewComment(f.GetCurrentBlock(), "copy ptr..........end")

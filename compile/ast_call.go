@@ -40,11 +40,11 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 			//TODO
 			params = append(params, f.doCompositeLit(value.(*ast.CompositeLit)))
 		case *ast.StarExpr:
-			params = append(params, f.doStartExpr(value.(*ast.StarExpr)))
+			params = append(params, f.doStartExpr(value.(*ast.StarExpr), "value"))
 		case *ast.SliceExpr:
 			params = append(params, f.doSliceExpr(value.(*ast.SliceExpr)))
 		//case *ast.ArrayType:
-		//params = append(params, f.NewAllocSlice(f.doArrayType(value.(*ast.ArrayType)).Type()))
+		//	params = append(params, f.NewAllocSlice(f.doArrayType(value.(*ast.ArrayType)).Type()))
 		case *ast.FuncLit:
 			params = append(params, f.doFuncLit(value.(*ast.FuncLit)))
 		default:

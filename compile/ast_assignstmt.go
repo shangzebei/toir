@@ -47,7 +47,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		case *ast.UnaryExpr:
 			r = append(r, f.doUnaryExpr(value.(*ast.UnaryExpr)))
 		case *ast.StarExpr:
-			r = append(r, f.doStartExpr(value.(*ast.StarExpr)))
+			r = append(r, f.doStartExpr(value.(*ast.StarExpr), "value"))
 		case *ast.SliceExpr:
 			r = append(r, f.doSliceExpr(value.(*ast.SliceExpr)))
 		default:
@@ -72,7 +72,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			selectorExpr := value.(*ast.SelectorExpr)
 			l = append(l, f.doSelectorExpr(selectorExpr))
 		case *ast.StarExpr:
-			l = append(l, f.doStartExpr(value.(*ast.StarExpr)))
+			l = append(l, f.doStartExpr(value.(*ast.StarExpr), "value"))
 		default:
 			fmt.Println("no impl assignStmt.Lhs")
 		}

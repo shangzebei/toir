@@ -79,7 +79,7 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 				param := (value.Type.(*ast.Ident)).Name
 				paramKind = f.GetTypeFromName(param)
 			case *ast.StarExpr:
-				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr)).Type()
+				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type()
 			case *ast.ArrayType:
 				paramKind = types.NewPointer(f.GetSliceType()) //slice type
 			case *ast.SelectorExpr:
@@ -118,7 +118,7 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 			selector := f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type")
 			ty = append(ty, selector.Type())
 		case *ast.StarExpr:
-			ty = append(ty, f.doStartExpr(value.Type.(*ast.StarExpr)).Type())
+			ty = append(ty, f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type())
 		default:
 			logrus.Error("not known type")
 		}
@@ -176,25 +176,37 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 }
 
 //*
-func (f *FuncDecl) doStartExpr(x *ast.StarExpr) value.Value {
-	var v value.Value
-	switch x.X.(type) {
-	case *ast.Ident:
-		v = f.GetCurrentBlock().NewLoad(FixAlloc(f.GetCurrentBlock(), f.doIdent(x.X.(*ast.Ident))))
-	case *ast.StarExpr:
-		v = f.GetCurrentBlock().NewLoad(f.doStartExpr(x.X.(*ast.StarExpr)))
-	default:
-		name := GetIdentName(x.X.(*ast.Ident))
-		if p := f.GetVariable(name); p != nil {
-			v = FixAlloc(f.GetCurrentBlock(), p)
-		} else {
-			fmt.Println("not find in doStartExpr")
+func (f *FuncDecl) doStartExpr(x *ast.StarExpr, typ string) value.Value {
+	switch typ {
+	case "type":
+		switch x.X.(type) {
+		case *ast.Ident:
+			ident := f.doIdent(x.X.(*ast.Ident))
+			return ir.NewParam("", types.NewPointer(ident.Type()))
+		default:
+			logrus.Error("type not impl")
 		}
+	case "value":
+		var v value.Value
+		switch x.X.(type) {
+		case *ast.Ident:
+			v = f.GetCurrentBlock().NewLoad(FixAlloc(f.GetCurrentBlock(), f.doIdent(x.X.(*ast.Ident))))
+		case *ast.StarExpr:
+			v = f.GetCurrentBlock().NewLoad(f.doStartExpr(x.X.(*ast.StarExpr), "value"))
+		default:
+			name := GetIdentName(x.X.(*ast.Ident))
+			if p := f.GetVariable(name); p != nil {
+				v = FixAlloc(f.GetCurrentBlock(), p)
+			} else {
+				fmt.Println("not find in doStartExpr")
+			}
+		}
+		if p, ok := v.(*ir.Param); ok {
+			return ir.NewParam(p.Name(), types.NewPointer(p.Type()))
+		}
+		return v
 	}
-	if p, ok := v.(*ir.Param); ok {
-		return ir.NewParam(p.Name(), types.NewPointer(p.Type()))
-	}
-	return v
+	return nil
 }
 
 func (f *FuncDecl) GetCurrent() *ir.Func {

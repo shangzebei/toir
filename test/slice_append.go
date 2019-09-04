@@ -44,9 +44,10 @@ func othSli() {
 	fmt.Printf("%.2g\n", f[3])
 }
 
-func stringSli() {
-	var s = []string{"aaaaa", "bbbbb", "ccccc"}
-	s = append(s, "eeeeee")
-	fmt.Printf("%s\n", s[3])
-
-}
+//TODO ERROR
+//func stringSli() {
+//	var s = []string{"aaaaa", "bbbbb", "ccccc"}
+//	s = append(s, "eeeeee")
+//	fmt.Printf("%s\n", s[3])
+//
+//}

@@ -60,7 +60,9 @@ func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value
 			return utils.LoadValue(f.GetCurrentBlock(), current)
 		}
 	} else {
-		logrus.Error("unkonw")
+		logrus.Warn("unkonw ConvertType type")
+		return current
+
 	}
 	return nil
 
