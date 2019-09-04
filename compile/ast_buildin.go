@@ -40,6 +40,10 @@ func (f *FuncDecl) Int16(value2 value.Value) value.Value {
 	return f.IntType(value2, types.I16)
 }
 
+func (f *FuncDecl) Uint(value2 value.Value) value.Value {
+	return f.IntType(value2, types.I32)
+}
+
 //to int64
 func (f *FuncDecl) Int64(value2 value.Value) value.Value {
 	return f.IntType(value2, types.I64)

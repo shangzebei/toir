@@ -149,6 +149,26 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			rep = append(rep, lvalue)
 		}
 		return rep
+	case token.ADD_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewAdd(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
+	case token.SHR_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewAShr(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}

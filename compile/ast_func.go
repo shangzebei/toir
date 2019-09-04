@@ -317,7 +317,7 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 		case *ast.DeclStmt:
 			f.doDeclStmt(value.(*ast.DeclStmt))
 		case *ast.RangeStmt:
-			f.doRangeStmt(value.(*ast.RangeStmt))
+			startBlock, endBlock = f.doRangeStmt(value.(*ast.RangeStmt))
 		case *ast.BranchStmt:
 			f.doBranchStmt(value.(*ast.BranchStmt))
 		default:
@@ -408,12 +408,14 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 }
 
 func (f *FuncDecl) OpenTempVariable() {
+	logrus.Debug("open temp variable")
 	f.tempV = true
 }
 
 func (f *FuncDecl) CloseTempVariable() {
 	f.tempV = false
 	f.tempVariables = make(map[string]value.Value)
+	logrus.Debug("close temp variable")
 }
 
 func (f *FuncDecl) PutVariable(name string, value2 value.Value) {

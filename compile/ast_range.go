@@ -2,6 +2,7 @@ package compile
 
 import (
 	"github.com/jinzhu/copier"
+	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
@@ -16,7 +17,7 @@ import (
  *     v=d[i]
  *  }
  */
-func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) {
+func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Block) {
 	utils.NewComment(f.GetCurrentBlock(), "[range start]")
 	var va value.Value
 	var name string
@@ -83,7 +84,6 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) {
 
 	forStmt.Body.List = append(st, stmt.Body.List...)
 
-	//ast.Print(f.fSet, forStmt)
-	f.doForStmt(&forStmt)
 	utils.NewComment(f.GetCurrentBlock(), "[range end]")
+	return f.doForStmt(&forStmt)
 }

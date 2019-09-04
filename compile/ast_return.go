@@ -25,8 +25,7 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 		case *ast.CallExpr:
 			rev = f.doCallExpr(val.(*ast.CallExpr))
 		case *ast.Ident:
-			//TODO return
-			rev = f.IdentToValue(val.(*ast.Ident))[0]
+			rev = f.doIdent(val.(*ast.Ident))
 		case *ast.SelectorExpr:
 			rev = f.doSelector(nil, val.(*ast.SelectorExpr), "call")
 		default:

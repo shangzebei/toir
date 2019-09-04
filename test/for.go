@@ -6,6 +6,7 @@ import "fmt"
 
 func main() {
 	for2()
+	for23()
 }
 
 func show(a int) {
@@ -32,4 +33,13 @@ func for2() {
 	for i := 0; i < 10; i++ {
 		fmt.Printf("%d\n", i)
 	}
+}
+
+func for23() int {
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			fmt.Printf("asdfasdfasd%d-%d\n", i, j)
+		}
+	}
+	return 0
 }

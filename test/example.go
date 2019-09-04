@@ -5,13 +5,14 @@ import "fmt"
 //import "fmt"
 
 func main() {
-	var kk [1][]int
-	kk[0] = []int{1, 2, 3, 4, 5}
-	for _, value := range kk[0] {
-		fmt.Printf("%d\n", value)
-	}
+	forr()
 }
 
-func kkp(kk [][]int) [][]int {
-	return kk
+func forr() int {
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			fmt.Printf("asdfasdfasd%d-%d\n", i, j)
+		}
+	}
+	return 0
 }

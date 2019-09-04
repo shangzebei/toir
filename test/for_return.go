@@ -12,8 +12,7 @@ func forr() int {
 	for i := 0; i <= 11; i++ {
 		fmt.Printf("asdfasdfsdf--%d\n", i)
 		if i > 5 {
-			fmt.Printf("aaaaaaaaaaa\n")
-			return i
+			fmt.Printf(">5 \n")
 		}
 	}
 	return 0
