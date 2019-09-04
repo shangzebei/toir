@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/llir/llvm/ir"
 	"github.com/sirupsen/logrus"
@@ -8,6 +9,7 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"toir/compile"
 	"toir/runtime/core"
@@ -18,9 +20,9 @@ func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 }
 
-func main() {
+func Build(file string) {
 	fset := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile("test/range.go")
+	bytes, _ := ioutil.ReadFile(file)
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
 	if err != nil {
 		fmt.Print(err) // parse error
@@ -84,4 +86,15 @@ func main() {
 	if len(output) > 0 {
 		fmt.Println(string(output))
 	}
+}
+
+func main() {
+	i := flag.String("file", ".", "go files")
+	flag.Parse()
+	if len(os.Args) == 0 {
+		flag.Usage()
+		return
+	}
+	Build(*i)
+
 }

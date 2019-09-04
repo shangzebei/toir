@@ -127,11 +127,18 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 		ty = append(ty, types.Void)
 	}
 	if mul {
-		i := len(f.m.Funcs)
-		newTypeDef := f.m.NewTypeDef("return."+strconv.Itoa(i)+"."+strconv.Itoa(len(f.m.Funcs[i-1].Blocks)), types.NewStruct(ty...))
+		newTypeDef := f.m.NewTypeDef("return."+f.GetReturnName(), types.NewStruct(ty...))
 		return params, types.NewFunc(newTypeDef, paramTypes...)
 	} else {
 		return params, types.NewFunc(ty[0], paramTypes...)
+	}
+}
+func (f *FuncDecl) GetReturnName() string {
+	i := len(f.m.Funcs)
+	if i == 0 {
+		return "0.0"
+	} else {
+		return strconv.Itoa(i) + "." + strconv.Itoa(len(f.m.Funcs[i-1].Blocks))
 	}
 }
 
@@ -151,7 +158,14 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	}
 	switch unaryExpr.Op {
 	case token.AND:
-		return f.GetSrcPtr(variable)
+		if a, ok := variable.(*ir.InstAlloca); ok {
+			return a
+		}
+		if l, ok := variable.(*ir.InstLoad); ok {
+			return l.Src
+		}
+		logrus.Error("doUnaryExpr not find the type")
+		return nil
 	case token.RANGE:
 		return f.doIdent(unaryExpr.X.(*ast.Ident))
 	default:
@@ -166,22 +180,21 @@ func (f *FuncDecl) doStartExpr(x *ast.StarExpr) value.Value {
 	var v value.Value
 	switch x.X.(type) {
 	case *ast.Ident:
-		v = f.doIdent(x.X.(*ast.Ident))
+		v = f.GetCurrentBlock().NewLoad(FixAlloc(f.GetCurrentBlock(), f.doIdent(x.X.(*ast.Ident))))
 	case *ast.StarExpr:
-		v = f.doStartExpr(x.X.(*ast.StarExpr))
+		v = f.GetCurrentBlock().NewLoad(f.doStartExpr(x.X.(*ast.StarExpr)))
 	default:
 		name := GetIdentName(x.X.(*ast.Ident))
 		if p := f.GetVariable(name); p != nil {
-			v = p
+			v = FixAlloc(f.GetCurrentBlock(), p)
 		} else {
 			fmt.Println("not find in doStartExpr")
 		}
 	}
 	if p, ok := v.(*ir.Param); ok {
 		return ir.NewParam(p.Name(), types.NewPointer(p.Type()))
-	} else {
-		return f.GetCurrentBlock().NewLoad(v)
 	}
+	return v
 }
 
 func (f *FuncDecl) GetCurrent() *ir.Func {

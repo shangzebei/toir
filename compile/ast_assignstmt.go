@@ -122,7 +122,6 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				//f.CopySlice(newAllocSlice, array)
 				//f.PutVariable(vName, newAllocSlice)
 				//rep = append(rep, newAllocSlice)
-
 				i := r[lindex]
 				//newType := f.NewType(i.Type())
 				//f.GetCurrentBlock().NewStore(i, newType)
@@ -142,9 +141,10 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		for lIndex, lvalue := range l {
 			var lv value.Value
 			if p, ok := lvalue.(*ir.Param); ok {
-				lv = f.GetVariable(p.Name())
+				lv = f.GetSrcPtr(f.GetVariable(p.Name()))
+			} else {
+				lv = f.GetSrcPtr(lvalue)
 			}
-			lv = f.GetSrcPtr(lv)
 			switch r[lIndex].(type) {
 			case *ir.InstAlloca:
 				ri := r[lIndex].(*ir.InstAlloca)
