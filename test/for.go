@@ -8,18 +8,15 @@ func main() {
 	for2()
 	for23()
 	for1()
-}
-
-func show(a int) {
-	fmt.Printf("%d\n", a)
+	for4()
 }
 
 func max() int {
-	return 10
+	return 3
 }
 
 func for1() {
-	for i := 0; i <= 3; i++ {
+	for i := 0; i <= max(); i++ {
 		fmt.Printf("aaaaaaaaaaa\n")
 	}
 	fmt.Printf("bbbbbbbbbbbb\n")
@@ -42,4 +39,27 @@ func for23() int {
 		}
 	}
 	return 0
+}
+
+/**
+  bbbbbbbbbbbb
+  aaaaaaaaaaa
+  aaaaaaaaaaa
+  bbbbbbbbbbbb
+  aaaaaaaaaaa
+  aaaaaaaaaaa
+  bbbbbbbbbbbb
+  aaaaaaaaaaa
+  aaaaaaaaaaa
+  cccccccccccc 90
+*/
+func for4() {
+	i := 90
+	for i := 0; i < 3; i++ {
+		fmt.Printf("bbbbbbbbbbbb\n")
+		for i := 0; i < 2; i++ {
+			fmt.Printf("aaaaaaaaaaa\n")
+		}
+	}
+	fmt.Printf("cccccccccccc %d\n", i)
 }

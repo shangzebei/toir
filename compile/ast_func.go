@@ -385,10 +385,10 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
 	if f.tempV > 0 {
-		for i := 1; i <= f.tempV; i++ {
+		for i := f.tempV; i > 0; i-- {
 			i, ok := f.tempVariables[i][name]
 			if ok {
-				logrus.Debugf("get temp[%d] Variable %s", f.tempV, name)
+				logrus.Debugf("get temp[%d] name %s", f.tempV, name)
 				return i
 			}
 		}
@@ -418,7 +418,7 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 func (f *FuncDecl) OpenTempVariable() {
 	f.tempV++
 	logrus.Debugf("open temp variable %d", f.tempV)
-	if f.tempVariables[0] != nil {
+	if len(f.tempVariables[0]) != 0 {
 		f.tempVariables[f.tempV] = f.tempVariables[0]
 	} else {
 		f.tempVariables[f.tempV] = make(map[string]value.Value)
@@ -440,7 +440,7 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 	}
 	if f.tempV > 0 {
 		f.tempVariables[f.tempV][name] = value2
-		logrus.Debugf("Put temp Variable name %s to [%d]", name, f.tempV)
+		logrus.Debugf("Put temp[%d] name %s", f.tempV, name)
 	} else {
 		_, ok := f.Variables[f.GetCurrentBlock()]
 		if !ok {
