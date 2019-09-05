@@ -31,8 +31,8 @@ type FuncDecl struct {
 	blockHeap map[*ir.Func][]*ir.Block
 	//variables
 	Variables     map[*ir.Block]map[string]value.Value
-	tempVariables map[string]value.Value
-	tempV         bool
+	tempVariables []map[string]value.Value
+	tempV         int
 	//struct---
 	GlobDef    map[string]types.Type           //for type
 	StructDefs map[string]map[string]StructDef //Strut.Field
@@ -49,13 +49,13 @@ type FuncDecl struct {
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
-	return &FuncDecl{
+	decl := &FuncDecl{
 		m:             m,
 		fSet:          fset,
 		FuncHeap:      new([]*ir.Func),
 		Variables:     make(map[*ir.Block]map[string]value.Value),
-		tempVariables: make(map[string]value.Value),
-		tempV:         false,
+		tempVariables: make([]map[string]value.Value, 10),
+		tempV:         0,
 		blockHeap:     make(map[*ir.Func][]*ir.Block),
 		FuncDecls:     make(map[*ast.FuncDecl]*ir.Func),
 		GlobDef:       make(map[string]types.Type),
@@ -63,6 +63,12 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *Fun
 		mPackage:      pkg,
 		r:             r,
 	}
+	decl.Init()
+	return decl
+}
+
+func (f *FuncDecl) Init() {
+	f.tempVariables[0] = make(map[string]value.Value)
 }
 
 //types.NewFunc()
@@ -378,11 +384,13 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 }
 
 func (f *FuncDecl) GetVariable(name string) value.Value {
-	if f.tempV {
-		i, ok := f.tempVariables[name]
-		if ok {
-			logrus.Debugf("get temp Variable %s", name)
-			return i
+	if f.tempV > 0 {
+		for i := 1; i <= f.tempV; i++ {
+			i, ok := f.tempVariables[i][name]
+			if ok {
+				logrus.Debugf("get temp[%d] Variable %s", f.tempV, name)
+				return i
+			}
 		}
 	}
 	//find which glob
@@ -403,19 +411,26 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 		}
 	}
 
-	logrus.Debugf("not find Variable %s", name)
+	logrus.Warnf("not find Variable %s", name)
 	return nil
 }
 
 func (f *FuncDecl) OpenTempVariable() {
-	logrus.Debug("open temp variable")
-	f.tempV = true
+	f.tempV++
+	logrus.Debugf("open temp variable %d", f.tempV)
+	if f.tempVariables[0] != nil {
+		f.tempVariables[f.tempV] = f.tempVariables[0]
+	} else {
+		f.tempVariables[f.tempV] = make(map[string]value.Value)
+	}
+
 }
 
 func (f *FuncDecl) CloseTempVariable() {
-	f.tempV = false
-	f.tempVariables = make(map[string]value.Value)
-	logrus.Debug("close temp variable")
+	f.tempVariables[0] = make(map[string]value.Value)
+	f.tempVariables[f.tempV] = make(map[string]value.Value)
+	logrus.Debugf("close temp variable %d", f.tempV)
+	f.tempV--
 }
 
 func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
@@ -423,9 +438,9 @@ func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
 		logrus.Errorf("%d is keyword", name)
 		return
 	}
-	if f.tempV {
-		f.tempVariables[name] = value2
-		logrus.Debugf("PutVariable name %s to temp", name)
+	if f.tempV > 0 {
+		f.tempVariables[f.tempV][name] = value2
+		logrus.Debugf("Put temp Variable name %s to [%d]", name, f.tempV)
 	} else {
 		_, ok := f.Variables[f.GetCurrentBlock()]
 		if !ok {

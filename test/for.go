@@ -7,6 +7,7 @@ import "fmt"
 func main() {
 	for2()
 	for23()
+	for1()
 }
 
 func show(a int) {
@@ -18,15 +19,14 @@ func max() int {
 }
 
 func for1() {
-	for i := 0; i <= 11; i++ {
+	for i := 0; i <= 3; i++ {
 		fmt.Printf("aaaaaaaaaaa\n")
 	}
 	fmt.Printf("bbbbbbbbbbbb\n")
-	for j := 0; j <= 10; j++ {
+	for j := 0; j <= 2; j++ {
 		fmt.Printf("%d\n", j)
 	}
 	fmt.Printf("ggggggggggggggg")
-
 }
 
 func for2() {

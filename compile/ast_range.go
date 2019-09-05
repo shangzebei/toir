@@ -28,11 +28,11 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bl
 		va = f.doIdent(i)
 	case *ast.CallExpr:
 		va = f.doCallExpr(stmt.X.(*ast.CallExpr))
-		f.tempVariables["rangeV"] = va
+		f.tempVariables[0]["rangeV"] = va
 		name = "rangeV"
 	case *ast.IndexExpr:
 		va = f.doIndexExpr(stmt.X.(*ast.IndexExpr))
-		f.tempVariables["rangeV"] = va
+		f.tempVariables[0]["rangeV"] = va
 		name = "rangeV"
 	default:
 		logrus.Error("not doRangeStmt")
@@ -41,7 +41,7 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bl
 	emType := GetSliceEmType(GetBaseType(va.Type())) //I32*
 	//init len
 	getLen := f.GetLen(f.GetSrcPtr(va))
-	f.tempVariables["zrangzwrLen"] = getLen
+	f.tempVariables[0]["zrangzwrLen"] = getLen
 
 	getFunc := f.r.GetFunc("rangeTemp")
 	//ast.Print(f.fSet, getFunc)
@@ -63,7 +63,7 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bl
 	if stmt.Key != nil && !IsIgnore(stmt.Key.(*ast.Ident)) {
 		keyName := GetIdentName(stmt.Key.(*ast.Ident))
 		keyAlloca := f.GetCurrentBlock().NewAlloca(types.I32)
-		f.tempVariables[keyName] = keyAlloca
+		f.tempVariables[0][keyName] = keyAlloca
 		assgn[0].Lhs[0].(*ast.Ident).Name = keyName
 		st = append(st, assgn[0])
 	}
@@ -71,7 +71,7 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bl
 	if stmt.Value != nil && !IsIgnore(stmt.Value.(*ast.Ident)) {
 		valueName := GetIdentName(stmt.Value.(*ast.Ident))
 		valueAlloca := f.GetCurrentBlock().NewAlloca(GetRealType(emType))
-		f.tempVariables[valueName] = valueAlloca
+		f.tempVariables[0][valueName] = valueAlloca
 		assgn[1].Lhs[0].(*ast.Ident).Name = valueName
 		indexExpr := assgn[1].Rhs[0].(*ast.IndexExpr)
 		indexExpr.X = &ast.Ident{
@@ -83,7 +83,6 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bl
 	}
 
 	forStmt.Body.List = append(st, stmt.Body.List...)
-
 	utils.NewComment(f.GetCurrentBlock(), "[range end]")
 	return f.doForStmt(&forStmt)
 }
