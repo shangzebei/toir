@@ -601,6 +601,9 @@ func (f *FuncDecl) doIdent(ident *ast.Ident) value.Value {
 		}
 	} else {
 		identName := GetIdentName(ident)
+		if identName == "nil" {
+			return constant.NewNull(types.I8Ptr)
+		}
 		if IsKeyWord(identName) {
 			return ir.NewParam("", f.GetTypeFromName(identName))
 		} else {

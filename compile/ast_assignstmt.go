@@ -282,8 +282,7 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.CallExpr:
 		kv = f.doCallExpr(index.Index.(*ast.CallExpr))
 	case *ast.Ident:
-		//index is one
-		kv = f.IdentToValue(index.Index.(*ast.Ident))[0]
+		kv = f.doIdent(index.Index.(*ast.Ident))
 	case *ast.BinaryExpr:
 		kv = f.doBinary(index.Index.(*ast.BinaryExpr))
 	case *ast.IndexExpr:

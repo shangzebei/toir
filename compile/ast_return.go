@@ -33,6 +33,11 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 		}
 		values = append(values, FixAlloc(f.GetCurrentBlock(), rev))
 	}
+
+	if len(returnStmt.Results) == 0 {
+		return
+	}
+
 	if !mul {
 		f.GetCurrentBlock().NewRet(f.ConvertType(f.GetCurrent().Sig.RetType, values[0]))
 	} else {

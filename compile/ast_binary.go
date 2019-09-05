@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/enum"
-	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"go/ast"
 	"go/token"
@@ -49,7 +48,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	switch expr.Y.(type) {
 	case *ast.Ident:
 		ident := expr.Y.(*ast.Ident)
-		y = f.IdentToValue(ident)[0]
+		y = f.doIdent(ident)
 	case *ast.BasicLit:
 		basicLit := expr.Y.(*ast.BasicLit)
 		y = f.BasicLitToConstant(basicLit)
@@ -71,14 +70,8 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		f.popBlock()
 	}
 
-	// change x type
-	if _, ok := x.Type().(*types.PointerType); ok {
-		x = f.GetCurrentBlock().NewLoad(x)
-	}
-	// change y type
-	if _, ok := y.Type().(*types.PointerType); ok {
-		y = f.GetCurrentBlock().NewLoad(y)
-	}
+	x = FixAlloc(f.GetCurrentBlock(), x)
+	y = FixAlloc(f.GetCurrentBlock(), y)
 
 	//get ops
 	switch expr.Op {

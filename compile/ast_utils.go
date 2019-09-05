@@ -98,31 +98,6 @@ func (f *FuncDecl) BasicLitToConstant(base *ast.BasicLit) constant.Constant {
 	return nil
 }
 
-func (f *FuncDecl) IdentToValue(id *ast.Ident) []value.Value {
-	if id.Obj.Kind == ast.Var {
-		switch id.Obj.Decl.(type) {
-		case *ast.Field:
-			//field := id.Obj.Decl.(*ast.Field)
-			fName := id.Name
-			return []value.Value{f.GetVariable(fName)}
-		case *ast.ValueSpec:
-			valueSpec := id.Obj.Decl.(*ast.ValueSpec)
-			return []value.Value{f.doValeSpec(valueSpec)}
-		case *ast.AssignStmt:
-			variable := f.GetVariable(id.Name)
-			if variable == nil {
-				return f.doAssignStmt(id.Obj.Decl.(*ast.AssignStmt))
-			} else {
-				return []value.Value{variable}
-			}
-		default:
-			fmt.Println("id.Obj.Decl.(type)")
-		}
-	}
-	fmt.Println("IdentToValue no impl")
-	return nil
-}
-
 func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
 	name := GetIdentName(spec.Names[0])
 	for _, value := range spec.Values {
