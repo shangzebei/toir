@@ -15,10 +15,11 @@ import (
 )
 
 type StructDef struct {
-	Name  string
-	Order int
-	Typ   types.Type
-	Fun   *ir.Func
+	Name      string
+	Order     int
+	Typ       types.Type
+	Fun       *ir.Func
+	IsInherit bool
 }
 
 type FuncDecl struct {
@@ -46,6 +47,8 @@ type FuncDecl struct {
 	r *core.Runtime
 	//slice cast map
 	sliceCastPool map[*ir.InstAlloca]value.Value
+	//types
+	typeSpecs map[*ast.TypeSpec]types.Type
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
@@ -62,6 +65,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *Fun
 		StructDefs:    make(map[string]map[string]StructDef),
 		mPackage:      pkg,
 		r:             r,
+		typeSpecs:     make(map[*ast.TypeSpec]types.Type),
 	}
 	decl.Init()
 	return decl
@@ -258,7 +262,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	tempFunc := f.CreatFunc(funName, params, funTyp)
 	Push(f.FuncHeap, tempFunc)
 
-	//deal struct
+	//deal struct func
 	if funDecl.Recv != nil {
 		varName := GetIdentName(funDecl.Recv.List[0].Names[0])
 		tempFunc.Params = append(tempFunc.Params, ir.NewParam(varName, types.NewPointer(f.GlobDef[StructTyp])))
@@ -590,7 +594,7 @@ func (f *FuncDecl) doIdent(ident *ast.Ident) value.Value {
 			if ok {
 				return ir.NewParam("type", typ)
 			} else {
-				logrus.Error("GlobDef not find")
+				return ir.NewParam("type", f.typeSpec(ident.Obj.Decl.(*ast.TypeSpec)))
 			}
 		default:
 			logrus.Error("not find ast.xx")

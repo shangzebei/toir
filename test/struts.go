@@ -8,6 +8,11 @@ type Person struct {
 	Age  int
 }
 
+type ListN struct {
+	Val  int
+	Next *ListN
+}
+
 func main() {
 	initS()
 }

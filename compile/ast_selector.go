@@ -23,14 +23,14 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 			variable := f.GetVariable(varName)
 			if variable != nil {
 				if t, ok := GetBaseType(variable.Type()).(*types.StructType); ok {
-					def, ok := f.StructDefs[t.Name()][GetIdentName(fexpr.Sel)]
+					v, def, ok := f.GetStructDef(variable, t, fexpr.Sel)
 					if ok {
-						var kk = []value.Value{variable}
+						var kk = []value.Value{v}
 						if len(params) > 0 {
 							kk = append(kk, params...)
 						}
 						if def.Fun == nil {
-							index := utils.IndexStruct(f.GetCurrentBlock(), variable, def.Order)
+							index := utils.IndexStruct(f.GetCurrentBlock(), v, def.Order)
 							return utils.LoadValue(f.GetCurrentBlock(), index)
 						} else {
 							return f.GetCurrentBlock().NewCall(def.Fun, kk...)

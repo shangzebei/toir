@@ -156,55 +156,75 @@ func (f *FuncDecl) doStructType(typ *types.StructType) {
 }
 
 //for struts info reg
-func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) {
-	var strums []types.Type
+func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) types.Type {
+	if t, ok := f.typeSpecs[spec]; ok {
+		return t
+	}
 	if MapDefTypes == nil {
 		MapDefTypes = make(map[string]types.Type)
 	}
 	name := spec.Name.Name
+
 	switch spec.Type.(type) {
 	case *ast.StructType:
-		structType := spec.Type.(*ast.StructType)
 		if _, ok := f.StructDefs[name]; !ok {
 			f.StructDefs[name] = make(map[string]StructDef)
 		}
+		i := types.StructType{}
+		structType := spec.Type.(*ast.StructType)
+		typeDef := f.m.NewTypeDef(name, &i)
+		f.typeSpecs[spec] = typeDef
 		for index, value := range structType.Fields.List {
-			fname := value.Names[0].Name
 			var ftyp types.Type
 			switch value.Type.(type) {
 			case *ast.Ident:
 				ftyp = f.GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
 			case *ast.SelectorExpr:
 				ftyp = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
+			case *ast.StarExpr:
+				ftyp = f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type()
 			default:
 				logrus.Error("struct type don`t know")
 			}
-			f.StructDefs[name][fname] = StructDef{
-				Name:  fname,
-				Order: index,
-				Typ:   ftyp,
+			fName := GetBaseType(ftyp).Name()
+			if value.Names != nil {
+				fName = value.Names[0].Name
+				f.StructDefs[name][fName] = StructDef{
+					Name:      fName,
+					Order:     index,
+					Typ:       ftyp,
+					IsInherit: false,
+				}
+			} else {
+				f.StructDefs[name][fName] = StructDef{
+					Name:      fName,
+					Order:     index,
+					Typ:       ftyp,
+					IsInherit: true,
+				}
 			}
-			strums = append(strums, ftyp)
+			i.Fields = append(i.Fields, ftyp)
 		}
 		//get value
 
-		typeDef := f.m.NewTypeDef(name, types.NewStruct(strums...))
 		_, ok := f.GlobDef[name]
 		if ok {
 			logrus.Error("GlobDef has name", name)
 		}
 		f.GlobDef[name] = typeDef
-		if f.GetCurrent() != nil {
-			f.PutVariable(name, f.GetCurrentBlock().NewAlloca(typeDef))
-		}
+		//if f.GetCurrent() != nil {
+		//	f.PutVariable(name, f.GetCurrentBlock().NewAlloca(typeDef))
+		//}
 	case *ast.Ident:
 		typDef := spec.Type.(*ast.Ident)
 		MapDefTypes[name] = f.GetTypeFromName(GetIdentName(typDef))
+		f.typeSpecs[spec] = MapDefTypes[name]
 	case *ast.FuncType:
 		_, funcType := f.doFunType(spec.Type.(*ast.FuncType))
 		MapDefTypes[name] = types.NewPointer(funcType)
+		f.typeSpecs[spec] = MapDefTypes[name]
 	default:
 		logrus.Error("not find typeSpec")
 	}
-
+	return f.typeSpecs[spec]
 }

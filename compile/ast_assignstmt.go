@@ -169,6 +169,36 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			rep = append(rep, lvalue)
 		}
 		return rep
+	case token.XOR_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewXor(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
+	case token.OR_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewOr(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
+	case token.AND_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewAnd(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
 	default:
 		fmt.Println("doAssignStmt no impl")
 	}
@@ -177,31 +207,54 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 
 //struts.v
 func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
-
 	switch selectorExpr.X.(type) {
 	case *ast.Ident:
 		varName := GetIdentName(selectorExpr.X.(*ast.Ident))
 		variable := f.GetVariable(varName)
-		order := f.GetStructDefOrder(variable.Type(), selectorExpr.Sel)
+		v, order, _ := f.GetStructDef(variable, variable.Type(), selectorExpr.Sel)
 		//TODO ERROR variable type
-		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(variable), order)
+		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
 		return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 	case *ast.CallExpr:
 		callExpr := f.doCallExpr(selectorExpr.X.(*ast.CallExpr))
-		order := f.GetStructDefOrder(callExpr.Type(), selectorExpr.Sel)
-		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(callExpr), order)
+		v, order, _ := f.GetStructDef(callExpr, callExpr.Type(), selectorExpr.Sel)
+		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
 		return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
+	case *ast.SelectorExpr:
+		expr := f.doSelectorExpr(selectorExpr.X.(*ast.SelectorExpr))
+		v, order, _ := f.GetStructDef(expr, expr.Type(), selectorExpr.Sel)
+		if types.IsPointer(expr.Type()) {
+			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), v, order.Order)
+			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
+		} else {
+			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
+			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
+		}
 	default:
 		logrus.Error("doSelectorExpr not impl")
 	}
 	return nil
 }
 
-func (f *FuncDecl) GetStructDefOrder(p types.Type, sel *ast.Ident) int {
-	baseType := GetBaseType(p)
-	structDefs := f.StructDefs[doSymbol(baseType.String())]
-	def := structDefs[GetIdentName(sel)]
-	return def.Order
+func (f *FuncDecl) GetStructDef(orig value.Value, typ types.Type, sel *ast.Ident) (value.Value, *StructDef, bool) {
+	baseType := GetBaseType(typ)
+	structDefs := f.StructDefs[baseType.Name()]
+	identName := GetIdentName(sel)
+	def, ok := structDefs[identName]
+	if ok {
+		return orig, &def, true
+	} else {
+		for key, value := range structDefs {
+			if value.IsInherit {
+				sTyp := f.GlobDef[key]
+				cast := f.GetCurrentBlock().NewBitCast(f.GetSrcPtr(orig), types.NewPointer(sTyp))
+				if v, structDef, ok := f.GetStructDef(cast, sTyp, sel); ok {
+					return v, structDef, true
+				}
+			}
+		}
+	}
+	return nil, nil, false
 }
 
 //do Boolean
