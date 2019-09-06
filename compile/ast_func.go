@@ -51,6 +51,8 @@ type FuncDecl struct {
 	typeSpecs map[*ast.TypeSpec]types.Type
 	//malloc
 	openAlloc bool
+	//*ast.CompositeLit
+	compositeLits map[*ast.CompositeLit]*Composete
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
@@ -69,6 +71,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *Fun
 		r:             r,
 		typeSpecs:     make(map[*ast.TypeSpec]types.Type),
 		openAlloc:     false,
+		compositeLits: make(map[*ast.CompositeLit]*Composete),
 	}
 	decl.Init()
 	return decl
@@ -499,9 +502,19 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		structDefs := f.StructDefs[name]
 
 		for _, value := range lit.Elts {
-			keyValueExpr := value.(*ast.KeyValueExpr)
-			if _, ok := keyValueExpr.Value.(*ast.BasicLit); !ok {
+			switch value.(type) {
+			case *ast.KeyValueExpr:
+				keyValueExpr := value.(*ast.KeyValueExpr)
+				if _, ok := keyValueExpr.Value.(*ast.BasicLit); !ok {
+					base = false
+					break
+				}
+			case *ast.Ident:
 				base = false
+				break
+			case *ast.BasicLit:
+			default:
+				logrus.Warn(value)
 			}
 		}
 
@@ -521,18 +534,20 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		}
 		if base {
 			var s = make([]constant.Constant, getFieldNum(f.StructDefs[name]))
-			for _, value := range lit.Elts { //
-				keyValueExpr := value.(*ast.KeyValueExpr)
-				identName := GetIdentName(keyValueExpr.Key.(*ast.Ident))
-				def := structDefs[identName]
+			for index, value := range lit.Elts { //
 				switch value.(type) {
 				case *ast.KeyValueExpr:
+					keyValueExpr := value.(*ast.KeyValueExpr)
+					identName := GetIdentName(keyValueExpr.Key.(*ast.Ident))
+					def := structDefs[identName]
 					switch keyValueExpr.Value.(type) {
 					case *ast.BasicLit:
 						s[def.Order] = f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit))
 					default:
 						logrus.Error("bbbbbb")
 					}
+				case *ast.BasicLit:
+					s[index] = f.BasicLitToConstant(value.(*ast.BasicLit))
 				default:
 					logrus.Error("aaaaaa")
 				}
@@ -558,14 +573,112 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	return nil
 }
 
+type Composete struct {
+	pre      *Composete
+	params   []*ast.Ident
+	next     *Composete
+	param    *ir.Param
+	paramsKV map[string]int
+}
+
+func (f *FuncDecl) GetStructInitGlob(lit *ast.CompositeLit) *Composete {
+	if l, ok := f.compositeLits[lit]; ok {
+		return l
+	}
+	composete := &Composete{}
+	var ids []*ast.Ident
+	for _, value := range lit.Elts {
+		switch value.(type) {
+		case *ast.KeyValueExpr:
+			keyValueExpr := value.(*ast.KeyValueExpr)
+			if t, ok := keyValueExpr.Value.(*ast.Ident); ok {
+				ids = append(ids, t)
+			}
+			if s, ok := keyValueExpr.Value.(*ast.CompositeLit); ok {
+				glob := f.GetStructInitGlob(s)
+				composete.params = glob.params
+				glob.pre = composete
+				composete.next = glob
+				ids = append(ids, glob.params...)
+			}
+			if s, ok := keyValueExpr.Value.(*ast.UnaryExpr); ok {
+				glob := f.GetStructInitGlob(s.X.(*ast.CompositeLit))
+				composete.params = glob.params
+				glob.pre = composete
+				composete.next = glob
+				ids = append(ids, glob.params...)
+			}
+		case *ast.Ident:
+			ids = append(ids, value.(*ast.Ident))
+		case *ast.CompositeLit:
+			glob := f.GetStructInitGlob(value.(*ast.CompositeLit))
+			composete.params = glob.params
+			glob.pre = composete
+			composete.next = glob
+			ids = append(ids, glob.params...)
+		default:
+			logrus.Warn(value)
+		}
+	}
+	composete.params = ids
+	f.compositeLits[lit] = composete
+	return composete
+}
+
 func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) value.Value {
+	f.useMalloc()
+
+	//init param
+	utils.NewComment(f.GetCurrentBlock(), "init param")
+	s := &types.StructType{}
+	glob := f.GetStructInitGlob(lit)
+	var vs []value.Value
+	var paramsKV map[string]int
+	var newFunc *ir.Func
+	var initParam *ir.Param
+	var v []value.Value
+	fName := "init." + structType.Name() + "." + strconv.Itoa(len(f.m.Funcs))
 	param := ir.NewParam("", types.NewPointer(structType))
-	newFunc := ir.NewFunc("", types.Void, param)
+	if glob != nil {
+		var paKV = make(map[string]int)
+		for index, value := range glob.params {
+			if glob.pre == nil {
+				variable := FixAlloc(f.GetCurrentBlock(), f.GetVariable(value.Name))
+				s.Fields = append(s.Fields, variable.Type())
+				paKV[value.Name] = index
+				vs = append(vs, variable)
+			}
+		}
+		if glob.pre == nil {
+			typeDef := f.m.NewTypeDef("struct."+strconv.Itoa(len(f.m.TypeDefs)), s)
+			initParam = ir.NewParam("", typeDef)
+			glob.param = initParam
+			glob.paramsKV = paKV
+			ef := f.NewType(typeDef)
+			for index, value := range vs {
+				indexStruct := utils.IndexStruct(f.GetCurrentBlock(), ef, index)
+				f.GetCurrentBlock().NewStore(value, indexStruct)
+			}
+			v = append(v, f.GetCurrentBlock().NewLoad(ef))
+		} else {
+			initParam = glob.pre.param
+			glob.param = initParam
+			v = append(v, initParam)
+			paramsKV = glob.pre.paramsKV
+			glob.paramsKV = paramsKV
+		}
+		newFunc = ir.NewFunc(fName, types.Void, initParam, param)
+	} else {
+		newFunc = ir.NewFunc(fName, types.Void, param)
+	}
+	utils.NewComment(f.GetCurrentBlock(), "end param")
+
+	//
 	f.pushFunc(newFunc)
 	f.newBlock()
-	f.useMalloc()
+
 	structDefs := f.StructDefs[structType.Name()]
-	for _, val := range lit.Elts { //
+	for index, val := range lit.Elts { //
 		switch val.(type) {
 		case *ast.KeyValueExpr:
 			keyValueExpr := val.(*ast.KeyValueExpr)
@@ -581,20 +694,35 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			case *ast.CompositeLit:
 				compositeLit := f.doCompositeLit(keyValueExpr.Value.(*ast.CompositeLit))
 				f.GetCurrentBlock().NewStore(compositeLit, indexStruct)
+			case *ast.Ident:
+				name := GetIdentName(keyValueExpr.Value.(*ast.Ident))
+				index := paramsKV[name]
+				structValue := utils.IndexStructValue(f.GetCurrentBlock(), initParam, index)
+				f.GetCurrentBlock().NewStore(structValue, indexStruct)
 			default:
-				logrus.Error("bbbbbb")
+				logrus.Error("bbbbbb StructInit")
 			}
-			break
+		case *ast.BasicLit:
+			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
+			f.GetCurrentBlock().NewStore(f.BasicLitToConstant(val.(*ast.BasicLit)), indexStruct)
+		case *ast.Ident:
+			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
+			name := GetIdentName(val.(*ast.Ident))
+			index := paramsKV[name]
+			structValue := utils.IndexStructValue(f.GetCurrentBlock(), initParam, index)
+			f.GetCurrentBlock().NewStore(structValue, indexStruct)
 		default:
-			logrus.Error("aaaaaa")
+			logrus.Error("aaaaaa StructInit")
 		}
 	}
-	//f.GetCurrentBlock().NewRet(newType)
-	f.closeMalloc()
+	defer f.closeMalloc()
 	f.popBlock()
 	f.popFunc()
+	//
+
 	newType := f.NewType(structType)
-	f.GetCurrentBlock().NewCall(newFunc, newType)
+	v = append(v, newType)
+	f.GetCurrentBlock().NewCall(newFunc, v...)
 	return newType
 }
 
