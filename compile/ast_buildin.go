@@ -7,6 +7,7 @@ import (
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"toir/llvm"
+	"toir/stdlib"
 	"toir/utils"
 )
 
@@ -97,10 +98,18 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 	case *types.ArrayType:
 		arrayType := tp.(*types.ArrayType)
 		return f.NewAllocSlice(arrayType.ElemType, constant.NewInt(types.I32, int64(arrayType.Len)))
+	case *types.StructType:
+		structType := tp.(*types.StructType)
+		if f.openAlloc {
+			logrus.Warnf("default Malloc new %s", tp.String())
+			call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
+			return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
+		} else {
+			return f.GetCurrentBlock().NewAlloca(tp)
+		}
 	default:
 		logrus.Warnf("default NewAlloca %s", tp.String())
-		alloca := f.GetCurrentBlock().NewAlloca(tp)
-		return alloca
+		return f.GetCurrentBlock().NewAlloca(tp)
 	}
 	return nil
 }

@@ -173,7 +173,7 @@ func (f *FuncDecl) CopyStruct(dst value.Value, src value.Value) {
 	f.StdCall(llvm.Mencpy,
 		f.GetCurrentBlock().NewBitCast(f.GetSrcPtr(dst), types.I8Ptr),
 		f.GetCurrentBlock().NewBitCast(f.GetSrcPtr(src), types.I8Ptr),
-		constant.NewInt(types.I32, int64(GetStructBytes(src))),
+		constant.NewInt(types.I32, int64(GetStructBytes(src.Type()))),
 		constant.NewBool(false))
 }
 

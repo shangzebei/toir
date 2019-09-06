@@ -94,5 +94,7 @@ func main() {
 		return
 	}
 	Build(*i, "binary")
-
+	cmd := exec.Command("lli", "bc.ll")
+	output, _ := cmd.CombinedOutput()
+	fmt.Println(string(output))
 }

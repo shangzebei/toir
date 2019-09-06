@@ -125,7 +125,12 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				f.PutVariable(vName, newAlloc)
 				rep = append(rep, f.GetVariable(vName))
 			}
-
+			//else if types.IsStruct(r[lindex].Type()) {
+			//	newAlloc := f.NewType(r[lindex].Type())
+			//	f.CopyStruct(newAlloc, f.GetSrcPtr(r[lindex]))
+			//	f.PutVariable(vName, newAlloc)
+			//	rep = append(rep, newAlloc)
+			//}
 		}
 		return rep
 	case token.ASSIGN: // =

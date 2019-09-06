@@ -49,6 +49,8 @@ type FuncDecl struct {
 	sliceCastPool map[*ir.InstAlloca]value.Value
 	//types
 	typeSpecs map[*ast.TypeSpec]types.Type
+	//malloc
+	openAlloc bool
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
@@ -66,6 +68,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *Fun
 		mPackage:      pkg,
 		r:             r,
 		typeSpecs:     make(map[*ast.TypeSpec]types.Type),
+		openAlloc:     false,
 	}
 	decl.Init()
 	return decl
@@ -220,6 +223,14 @@ func (f *FuncDecl) doStartExpr(x *ast.StarExpr, typ string) value.Value {
 		return v
 	}
 	return nil
+}
+
+func (f *FuncDecl) useMalloc() {
+	f.openAlloc = true
+}
+
+func (f *FuncDecl) closeMalloc() {
+	f.openAlloc = false
 }
 
 func (f *FuncDecl) GetCurrent() *ir.Func {
@@ -548,11 +559,11 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 }
 
 func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) value.Value {
-
-	newFunc := ir.NewFunc("", types.NewPointer(structType))
+	param := ir.NewParam("", types.NewPointer(structType))
+	newFunc := ir.NewFunc("", types.Void, param)
 	f.pushFunc(newFunc)
 	f.newBlock()
-	newType := f.NewType(structType)
+	f.useMalloc()
 	structDefs := f.StructDefs[structType.Name()]
 	for _, val := range lit.Elts { //
 		switch val.(type) {
@@ -560,14 +571,10 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			keyValueExpr := val.(*ast.KeyValueExpr)
 			identName := GetIdentName(keyValueExpr.Key.(*ast.Ident))
 			structDef, _ := structDefs[identName]
-			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), newType, structDef.Order)
-			//if !types.IsPointer(structDef.Typ) {
-			//	indexStruct = f.GetCurrentBlock().NewLoad(indexStruct)
-			//}
+			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, structDef.Order)
 			switch keyValueExpr.Value.(type) {
 			case *ast.BasicLit:
 				f.GetCurrentBlock().NewStore(f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit)), indexStruct)
-				break
 			case *ast.UnaryExpr:
 				expr := f.doUnaryExpr(keyValueExpr.Value.(*ast.UnaryExpr))
 				f.GetCurrentBlock().NewStore(expr, indexStruct)
@@ -582,11 +589,13 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			logrus.Error("aaaaaa")
 		}
 	}
-	f.GetCurrentBlock().NewRet(newType)
+	//f.GetCurrentBlock().NewRet(newType)
+	f.closeMalloc()
 	f.popBlock()
 	f.popFunc()
-
-	return f.GetCurrentBlock().NewCall(newFunc)
+	newType := f.NewType(structType)
+	f.GetCurrentBlock().NewCall(newFunc, newType)
+	return newType
 }
 
 func (f *FuncDecl) doBranchStmt(stmt *ast.BranchStmt) {

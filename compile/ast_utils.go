@@ -219,15 +219,12 @@ func GetBaseType(v types.Type) types.Type {
 	}
 }
 
-func GetStructBytes(v value.Value) int {
+func GetStructBytes(v types.Type) int {
 	a := 0
-	if t, ok := v.Type().(*types.StructType); ok {
+	if t, ok := GetBaseType(v).(*types.StructType); ok {
 		for _, value := range t.Fields {
 			a += GetBytes(value)
 		}
-	}
-	if _, ok := v.(*SliceValue); ok {
-		a += 24
 	}
 	return a
 }
