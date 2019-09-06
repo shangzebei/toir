@@ -9,7 +9,7 @@ import (
 
 func (f *FuncDecl) popBlock() {
 	blocks := f.blockHeap[f.GetCurrent()]
-	logrus.Debugf("pop block ### %p ### ", blocks[len(blocks)-1])
+	logrus.Debugf("popFunc block ### %p ### ", blocks[len(blocks)-1])
 	f.blockHeap[f.GetCurrent()] = blocks[0 : len(blocks)-1]
 }
 

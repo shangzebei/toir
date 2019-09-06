@@ -178,7 +178,7 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 			return l.Src
 		}
 		logrus.Error("doUnaryExpr not find the type")
-		return nil
+		return variable
 	case token.RANGE:
 		return f.doIdent(unaryExpr.X.(*ast.Ident))
 	default:
@@ -260,7 +260,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	//func type
 	params, funTyp := f.doFunType(funDecl.Type)
 	tempFunc := f.CreatFunc(funName, params, funTyp)
-	Push(f.FuncHeap, tempFunc)
+	f.pushFunc(tempFunc)
 
 	//deal struct func
 	if funDecl.Recv != nil {
@@ -278,14 +278,14 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	if f.GetCurrent() != nil && f.GetCurrent().Sig.RetType == nil {
 		f.GetCurrent().Sig.RetType = types.Void
 	}
-	pop := f.pop()
+	pop := f.popFunc()
 	f.FuncDecls[funDecl] = pop
 
 	return pop
 
 }
 
-func (f *FuncDecl) pop() *ir.Func {
+func (f *FuncDecl) popFunc() *ir.Func {
 	f.m.Funcs = append(f.m.Funcs, f.GetCurrent())
 	for index, value := range f.GetCurrent().Blocks {
 		if value.Term == nil {
@@ -293,7 +293,11 @@ func (f *FuncDecl) pop() *ir.Func {
 			f.GetCurrent().Blocks[index].NewRet(nil)
 		}
 	}
-	return Pop(f.FuncHeap)
+	return PopFunc(f.FuncHeap)
+}
+
+func (f *FuncDecl) pushFunc(fun *ir.Func) {
+	PushFunc(f.FuncHeap, fun)
 }
 
 //must return start
@@ -475,31 +479,57 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 		array := constant.NewArray(c...)
 		def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), array)
 		def.Immutable = true
-		return f.InitValue(array.Type(), def)
+		return f.InitConstantValue(array.Type(), def)
 	case *ast.Ident: //struct
 		name := GetIdentName(lit.Type.(*ast.Ident))
 		structType, ok := f.GlobDef[name]
+		//check types
+		base := true
+		structDefs := f.StructDefs[name]
+
+		for _, value := range lit.Elts {
+			keyValueExpr := value.(*ast.KeyValueExpr)
+			if _, ok := keyValueExpr.Value.(*ast.BasicLit); !ok {
+				base = false
+			}
+		}
+
 		if lit.Elts == nil {
 			if !ok {
 				f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
 			}
-			return f.GetCurrentBlock().NewAlloca(structType)
-		} else {
+			return FixAlloc(f.GetCurrentBlock(), f.GetCurrentBlock().NewAlloca(structType))
+		}
+		getStructFiledType := func(structDefs map[string]StructDef, order int) types.Type {
+			for _, value := range structDefs {
+				if value.Order == order {
+					return value.Typ
+				}
+			}
+			return nil
+		}
+		if base {
 			var s = make([]constant.Constant, getFieldNum(f.StructDefs[name]))
-			for key, v := range f.StructDefs[name] {
-				if v.Fun == nil {
-					find := false
-					for _, value := range lit.Elts { //
-						keyValueExpr := value.(*ast.KeyValueExpr)
-						if key == GetIdentName(keyValueExpr.Key.(*ast.Ident)) {
-							s[v.Order] = f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit))
-							find = true
-							break
-						}
+			for _, value := range lit.Elts { //
+				keyValueExpr := value.(*ast.KeyValueExpr)
+				identName := GetIdentName(keyValueExpr.Key.(*ast.Ident))
+				def := structDefs[identName]
+				switch value.(type) {
+				case *ast.KeyValueExpr:
+					switch keyValueExpr.Value.(type) {
+					case *ast.BasicLit:
+						s[def.Order] = f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit))
+					default:
+						logrus.Error("bbbbbb")
 					}
-					if !find {
-						s[v.Order] = InitZeroConstant(v.Typ)
-					}
+				default:
+					logrus.Error("aaaaaa")
+				}
+			}
+			//init
+			for i := 0; i < len(s); i++ {
+				if s[i] == nil {
+					s[i] = InitZeroConstant(getStructFiledType(structDefs, i))
 				}
 			}
 			newStruct := constant.NewStruct(s...)
@@ -507,12 +537,56 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 			def.ContentType = structType
 			def.Typ = types.NewPointer(structType)
 			def.Immutable = true
-			return f.InitValue(structType, def)
+			return f.InitConstantValue(structType, def)
+		} else {
+			return f.GetCurrentBlock().NewLoad(f.StructInit(lit, structType))
 		}
 	default:
 		fmt.Println("not impl doCompositeLit")
 	}
 	return nil
+}
+
+func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) value.Value {
+
+	newFunc := ir.NewFunc("", types.NewPointer(structType))
+	f.pushFunc(newFunc)
+	f.newBlock()
+	newType := f.NewType(structType)
+	structDefs := f.StructDefs[structType.Name()]
+	for _, val := range lit.Elts { //
+		switch val.(type) {
+		case *ast.KeyValueExpr:
+			keyValueExpr := val.(*ast.KeyValueExpr)
+			identName := GetIdentName(keyValueExpr.Key.(*ast.Ident))
+			structDef, _ := structDefs[identName]
+			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), newType, structDef.Order)
+			//if !types.IsPointer(structDef.Typ) {
+			//	indexStruct = f.GetCurrentBlock().NewLoad(indexStruct)
+			//}
+			switch keyValueExpr.Value.(type) {
+			case *ast.BasicLit:
+				f.GetCurrentBlock().NewStore(f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit)), indexStruct)
+				break
+			case *ast.UnaryExpr:
+				expr := f.doUnaryExpr(keyValueExpr.Value.(*ast.UnaryExpr))
+				f.GetCurrentBlock().NewStore(expr, indexStruct)
+			case *ast.CompositeLit:
+				compositeLit := f.doCompositeLit(keyValueExpr.Value.(*ast.CompositeLit))
+				f.GetCurrentBlock().NewStore(compositeLit, indexStruct)
+			default:
+				logrus.Error("bbbbbb")
+			}
+			break
+		default:
+			logrus.Error("aaaaaa")
+		}
+	}
+	f.GetCurrentBlock().NewRet(newType)
+	f.popBlock()
+	f.popFunc()
+
+	return f.GetCurrentBlock().NewCall(newFunc)
 }
 
 func (f *FuncDecl) doBranchStmt(stmt *ast.BranchStmt) {
@@ -572,9 +646,9 @@ func (f *FuncDecl) doArrayType(arrayType *ast.ArrayType) types.Type {
 func (f *FuncDecl) doFuncLit(fun *ast.FuncLit) value.Value {
 	params, funTyp := f.doFunType(fun.Type)
 	tempFunc := f.CreatFunc("", params, funTyp)
-	Push(f.FuncHeap, tempFunc)
+	f.pushFunc(tempFunc)
 	f.doBlockStmt(fun.Body)
-	f.pop()
+	f.popFunc()
 	return tempFunc
 }
 
@@ -630,6 +704,9 @@ func (f *FuncDecl) doExprStmt(exprStmt *ast.ExprStmt) {
 	case *ast.UnaryExpr:
 		callExpr := exprStmt.X.(*ast.UnaryExpr)
 		f.doUnaryExpr(callExpr)
+	case *ast.SelectorExpr:
+		callExpr := exprStmt.X.(*ast.SelectorExpr)
+		f.doSelectorExpr(callExpr)
 	default:
 		logrus.Error("doBlockStmt.ExprStmt not impl")
 	}

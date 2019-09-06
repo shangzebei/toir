@@ -31,7 +31,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			if variable == nil {
 				r = append(r, ir.NewParam(value.(*ast.Ident).Name, nil))
 			} else {
-				r = append(r, variable)
+				r = append(r, FixAlloc(f.GetCurrentBlock(), variable))
 			}
 		case *ast.BasicLit:
 			toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
@@ -105,8 +105,6 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			vName := lvalue.(*ir.Param).Name()
 			if _, ok := r[lindex].(constant.Constant); ok {
 				switch GetBaseType(r[lindex].Type()).(type) {
-				//case *types.StructType, *types.ArrayType:
-				//	f.PutVariable(vName, f.InitValue(realType, r[lindex]))
 				case *types.IntType:
 					newAlloc := f.NewType(r[lindex].Type())
 					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
@@ -118,13 +116,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				}
 				rep = append(rep, f.GetVariable(vName))
 			} else if f.IsSlice(r[lindex]) {
-				//newAllocSlice := f.NewAllocSlice(types.NewArray(0, array.emt))
-				//f.CopySlice(newAllocSlice, array)
-				//f.PutVariable(vName, newAllocSlice)
-				//rep = append(rep, newAllocSlice)
 				i := r[lindex]
-				//newType := f.NewType(i.Type())
-				//f.GetCurrentBlock().NewStore(i, newType)
 				f.PutVariable(vName, i)
 				rep = append(rep, i)
 			} else {
@@ -145,7 +137,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			} else {
 				lv = f.GetSrcPtr(lvalue)
 			}
-			f.GetCurrentBlock().NewStore(FixAlloc(f.GetCurrentBlock(), r[lIndex]), lv)
+			f.GetCurrentBlock().NewStore(r[lIndex], lv)
 			rep = append(rep, lvalue)
 		}
 		return rep
@@ -230,6 +222,11 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
 			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 		}
+	case *ast.CompositeLit:
+		callExpr := f.doCompositeLit(selectorExpr.X.(*ast.CompositeLit))
+		v, order, _ := f.GetStructDef(callExpr, callExpr.Type(), selectorExpr.Sel)
+		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
+		return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 	default:
 		logrus.Error("doSelectorExpr not impl")
 	}

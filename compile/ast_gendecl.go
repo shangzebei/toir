@@ -106,7 +106,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 }
 
 //init value which def and return value
-func (f *FuncDecl) InitValue(kind types.Type, def value.Value) value.Value {
+func (f *FuncDecl) InitConstantValue(kind types.Type, def value.Value) value.Value {
 	//alloca := f.GetCurrentBlock().NewAlloca(GetRealType(kind))
 	var alloca value.Value
 	if p, ok := kind.(*types.PointerType); ok {
@@ -178,7 +178,7 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) types.Type {
 			var ftyp types.Type
 			switch value.Type.(type) {
 			case *ast.Ident:
-				ftyp = f.GetTypeFromName(GetIdentName(value.Type.(*ast.Ident)))
+				ftyp = f.doIdent(value.Type.(*ast.Ident)).Type()
 			case *ast.SelectorExpr:
 				ftyp = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
 			case *ast.StarExpr:

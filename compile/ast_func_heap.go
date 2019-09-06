@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func Push(context *[]*ir.Func, x *ir.Func) bool {
+func PushFunc(context *[]*ir.Func, x *ir.Func) bool {
 	for _, value := range *context {
 		fmt.Println("cmp", x.Name(), value.Name())
 		if x.Name() == value.Name() {
@@ -18,11 +18,11 @@ func Push(context *[]*ir.Func, x *ir.Func) bool {
 	return true
 }
 
-func Pop(context *[]*ir.Func) *ir.Func {
+func PopFunc(context *[]*ir.Func) *ir.Func {
 	old := *context
 	n := len(old)
 	x := old[n-1]
 	*context = old[0 : n-1]
-	logrus.Debugf("pop Func ========%s=======", x.Name())
+	logrus.Debugf("popFunc Func ========%s=======", x.Name())
 	return x
 }

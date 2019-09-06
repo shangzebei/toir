@@ -45,6 +45,15 @@ var MapNamesTypes = map[string]types.Type{
 	"float": types.Float,
 }
 
+func (f *FuncDecl) isBaseType(p types.Type) bool {
+	for _, value := range MapNamesTypes {
+		if p == value {
+			return true
+		}
+	}
+	return false
+}
+
 func (f *FuncDecl) GetTypes(typ token.Token) types.Type {
 	if v, ok := MapNamesTypes[strings.ToLower(typ.String())]; ok {
 		return v
@@ -135,13 +144,17 @@ func (f *FuncDecl) ToPtr(src value.Value) *ir.InstGetElementPtr {
 
 //return i8*
 func (f *FuncDecl) GetSrcPtr(src value.Value) value.Value {
-	logrus.Debugf("GetSrcPtr  %s", src)
+	logrus.Debugf("GetSrcPtr begin %s", src)
 	if a, ok := src.(*ir.InstAlloca); ok && types.IsPointer(a.ElemType) {
-		return f.GetCurrentBlock().NewLoad(src)
+		load := f.GetCurrentBlock().NewLoad(src)
+		logrus.Debugf("GetSrcPtr end NewLoad %s", load)
+		return load
 	} else if _, ok := src.(*ir.InstAlloca); ok {
+		logrus.Debugf("GetSrcPtr end %s", src)
 		return src
 	}
 	if l, ok := src.(*ir.InstLoad); ok {
+		logrus.Debugf("GetSrcPtr end InstLoad.Src %s", l.Src)
 		return l.Src
 	}
 	return src
@@ -220,6 +233,9 @@ func GetStructBytes(v value.Value) int {
 }
 
 func FixAlloc(b *ir.Block, value2 value.Value) value.Value {
+	//if _, ok := ll[value2]; ok {
+	//	return value2
+	//}
 	if a, ok := value2.(*ir.InstAlloca); ok {
 		return b.NewLoad(a)
 	}
