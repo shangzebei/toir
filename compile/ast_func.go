@@ -230,10 +230,12 @@ func (f *FuncDecl) doStartExpr(x *ast.StarExpr, typ string) value.Value {
 
 func (f *FuncDecl) useMalloc() {
 	f.openAlloc = true
+	logrus.Debug("use malloc !!!")
 }
 
 func (f *FuncDecl) closeMalloc() {
 	f.openAlloc = false
+	logrus.Debug("close malloc !!!")
 }
 
 func (f *FuncDecl) GetCurrent() *ir.Func {
@@ -432,7 +434,7 @@ func (f *FuncDecl) GetVariable(name string) value.Value {
 			return i
 		}
 	}
-
+	//
 	logrus.Warnf("not find Variable %s", name)
 	return nil
 }
@@ -592,7 +594,9 @@ func (f *FuncDecl) GetStructInitGlob(lit *ast.CompositeLit) *Composete {
 		case *ast.KeyValueExpr:
 			keyValueExpr := value.(*ast.KeyValueExpr)
 			if t, ok := keyValueExpr.Value.(*ast.Ident); ok {
-				ids = append(ids, t)
+				if t.Name != "nil" {
+					ids = append(ids, t)
+				}
 			}
 			if s, ok := keyValueExpr.Value.(*ast.CompositeLit); ok {
 				glob := f.GetStructInitGlob(s)
@@ -602,14 +606,26 @@ func (f *FuncDecl) GetStructInitGlob(lit *ast.CompositeLit) *Composete {
 				ids = append(ids, glob.params...)
 			}
 			if s, ok := keyValueExpr.Value.(*ast.UnaryExpr); ok {
-				glob := f.GetStructInitGlob(s.X.(*ast.CompositeLit))
-				composete.params = glob.params
-				glob.pre = composete
-				composete.next = glob
-				ids = append(ids, glob.params...)
+				switch s.X.(type) {
+				case *ast.CompositeLit:
+					glob := f.GetStructInitGlob(s.X.(*ast.CompositeLit))
+					composete.params = glob.params
+					glob.pre = composete
+					composete.next = glob
+					ids = append(ids, glob.params...)
+				case *ast.Ident:
+					ident := s.X.(*ast.Ident)
+					if ident.Name != "nil" {
+						ids = append(ids, ident)
+					}
+				}
+
 			}
 		case *ast.Ident:
-			ids = append(ids, value.(*ast.Ident))
+			ident := value.(*ast.Ident)
+			if ident.Name != "nil" {
+				ids = append(ids, ident)
+			}
 		case *ast.CompositeLit:
 			glob := f.GetStructInitGlob(value.(*ast.CompositeLit))
 			composete.params = glob.params
@@ -626,7 +642,6 @@ func (f *FuncDecl) GetStructInitGlob(lit *ast.CompositeLit) *Composete {
 }
 
 func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) value.Value {
-	f.useMalloc()
 
 	//init param
 	utils.NewComment(f.GetCurrentBlock(), "init param")
@@ -639,27 +654,28 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 	var v []value.Value
 	fName := "init." + structType.Name() + "." + strconv.Itoa(len(f.m.Funcs))
 	param := ir.NewParam("", types.NewPointer(structType))
-	if glob != nil {
+	if glob != nil && len(glob.params) != 0 {
 		var paKV = make(map[string]int)
 		for index, value := range glob.params {
 			if glob.pre == nil {
-				variable := FixAlloc(f.GetCurrentBlock(), f.GetVariable(value.Name))
+				variable := FixAlloc(f.GetCurrentBlock(), f.doIdent(value))
 				s.Fields = append(s.Fields, variable.Type())
 				paKV[value.Name] = index
 				vs = append(vs, variable)
 			}
 		}
-		if glob.pre == nil {
+		if glob.pre == nil && len(s.Fields) != 0 {
 			typeDef := f.m.NewTypeDef("struct."+strconv.Itoa(len(f.m.TypeDefs)), s)
-			initParam = ir.NewParam("", typeDef)
+			initParam = ir.NewParam("", types.NewPointer(typeDef))
 			glob.param = initParam
 			glob.paramsKV = paKV
+			paramsKV = paKV
 			ef := f.NewType(typeDef)
 			for index, value := range vs {
 				indexStruct := utils.IndexStruct(f.GetCurrentBlock(), ef, index)
 				f.GetCurrentBlock().NewStore(value, indexStruct)
 			}
-			v = append(v, f.GetCurrentBlock().NewLoad(ef))
+			v = append(v, ef)
 		} else {
 			initParam = glob.pre.param
 			glob.param = initParam
@@ -672,10 +688,15 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 		newFunc = ir.NewFunc(fName, types.Void, param)
 	}
 	utils.NewComment(f.GetCurrentBlock(), "end param")
-
+	f.useMalloc()
 	//
 	f.pushFunc(newFunc)
 	f.newBlock()
+	//inject ver
+	for key, value := range paramsKV {
+		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), initParam, value)
+		f.PutVariable(key, f.GetCurrentBlock().NewLoad(indexStruct))
+	}
 
 	structDefs := f.StructDefs[structType.Name()]
 	for index, val := range lit.Elts { //
@@ -696,9 +717,15 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 				f.GetCurrentBlock().NewStore(compositeLit, indexStruct)
 			case *ast.Ident:
 				name := GetIdentName(keyValueExpr.Value.(*ast.Ident))
-				index := paramsKV[name]
-				structValue := utils.IndexStructValue(f.GetCurrentBlock(), initParam, index)
-				f.GetCurrentBlock().NewStore(structValue, indexStruct)
+				//variable := f.GetVariable(name)
+				//f.GetCurrentBlock().NewStore(variable, indexStruct)
+				if name == "nil" {
+					null := constant.NewNull(types.NewPointer(GetBaseType(indexStruct.Type())))
+					f.GetCurrentBlock().NewStore(null, indexStruct)
+				} else {
+					variable := f.GetVariable(name)
+					f.GetCurrentBlock().NewStore(variable, indexStruct)
+				}
 			default:
 				logrus.Error("bbbbbb StructInit")
 			}
@@ -708,9 +735,14 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 		case *ast.Ident:
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
 			name := GetIdentName(val.(*ast.Ident))
-			index := paramsKV[name]
-			structValue := utils.IndexStructValue(f.GetCurrentBlock(), initParam, index)
-			f.GetCurrentBlock().NewStore(structValue, indexStruct)
+			if name == "nil" {
+				null := constant.NewNull(types.NewPointer(GetBaseType(indexStruct.Type())))
+				f.GetCurrentBlock().NewStore(null, indexStruct)
+			} else {
+				variable := f.GetVariable(name)
+				f.GetCurrentBlock().NewStore(variable, indexStruct)
+			}
+
 		default:
 			logrus.Error("aaaaaa StructInit")
 		}

@@ -15,6 +15,7 @@ type KK struct {
 func main() {
 	init1()
 	init2()
+	init3()
 }
 
 func init2() {
@@ -41,4 +42,26 @@ func init1() {
 	fmt.Printf("%d\n", node.Next.C)
 	fmt.Printf("%d\n", node.Next.B)
 	fmt.Printf("%d\n", node.Next.T)
+}
+
+type AA struct {
+	Val  int
+	Next *AA
+}
+
+type B struct {
+	*AA
+	Pre *B
+}
+
+func init3() {
+	aa := AA{
+		Val:  11,
+		Next: nil,
+	}
+	i := B{
+		AA:  &aa,
+		Pre: nil,
+	}
+	fmt.Printf("%d\n", i.AA.Val)
 }
