@@ -385,6 +385,8 @@ func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 	case *ast.Ident:
 		ident := decl.X.(*ast.Ident)
 		x = f.GetVariable(GetIdentName(ident))
+	case *ast.StarExpr:
+		x = f.doStartExpr(decl.X.(*ast.StarExpr), "value")
 	default:
 		fmt.Println("doIncDecStmt not impl")
 	}

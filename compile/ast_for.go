@@ -29,6 +29,8 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 			f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
 		case *ast.AssignStmt:
 			f.doAssignStmt(st.Post.(*ast.AssignStmt))
+		case *ast.ExprStmt:
+			f.doExprStmt(st.Post.(*ast.ExprStmt))
 		default:
 			logrus.Error("doForStmt not impl")
 		}
