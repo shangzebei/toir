@@ -100,7 +100,7 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 		return f.NewAllocSlice(arrayType.ElemType, constant.NewInt(types.I32, int64(arrayType.Len)))
 	case *types.StructType:
 		structType := tp.(*types.StructType)
-		if f.openAlloc {
+		if true {
 			logrus.Warnf("default Malloc new %s", tp.String())
 			call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
 			return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
@@ -108,6 +108,11 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 			return f.GetCurrentBlock().NewAlloca(tp)
 		}
 	default:
+		//if types.IsStruct(GetBaseType(tp)) {
+		//	structType := tp.(*types.StructType)
+		//	call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
+		//	return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
+		//}
 		logrus.Warnf("default NewAlloca %s", tp.String())
 		return f.GetCurrentBlock().NewAlloca(tp)
 	}

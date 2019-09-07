@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/enum"
+	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
@@ -37,7 +38,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	case *ast.ParenExpr:
 		x = f.doParenExpr(expr.X.(*ast.ParenExpr))
 	case *ast.SelectorExpr:
-		x = f.doSelector(nil, expr.X.(*ast.SelectorExpr), "type")
+		x = f.doSelectorExpr(expr.X.(*ast.SelectorExpr))
 	default:
 		fmt.Println("not impl doBinary")
 	}
@@ -60,7 +61,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	case *ast.IndexExpr:
 		y = f.doIndexExpr(expr.Y.(*ast.IndexExpr))
 	case *ast.SelectorExpr:
-		y = f.doSelector(nil, expr.Y.(*ast.SelectorExpr), "call")
+		y = f.doSelectorExpr(expr.Y.(*ast.SelectorExpr))
 	case *ast.ParenExpr:
 		y = f.doParenExpr(expr.Y.(*ast.ParenExpr))
 	default:
@@ -76,6 +77,13 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 
 	x = FixNil(x, y.Type())
 	y = FixNil(y, x.Type())
+
+	if types.IsPointer(x.Type()) {
+		x = f.GetCurrentBlock().NewLoad(x)
+	}
+	if types.IsPointer(y.Type()) {
+		y = f.GetCurrentBlock().NewLoad(y)
+	}
 
 	//get ops
 	switch expr.Op {

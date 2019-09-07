@@ -10,8 +10,11 @@ import (
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"math/rand"
 	"reflect"
+	"strconv"
 	"strings"
+	"time"
 )
 
 //src must x* type
@@ -104,4 +107,12 @@ func LoadValue(block *ir.Block, v value.Value) value.Value {
 		return v
 	}
 	return block.NewLoad(v)
+}
+
+func GetRandNum(size int) string {
+	a := ""
+	for i := 0; i < size; i++ {
+		a += strconv.Itoa(rand.Intn(10))
+	}
+	return a + strconv.Itoa(int(time.Now().Unix()))
 }

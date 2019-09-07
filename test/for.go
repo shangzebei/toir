@@ -63,3 +63,12 @@ func for4() {
 	}
 	fmt.Printf("cccccccccccc %d\n", i)
 }
+
+func for5() {
+	for i := 0; ; {
+		i++
+		if i > 5 {
+			break
+		}
+	}
+}

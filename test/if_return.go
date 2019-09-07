@@ -3,7 +3,9 @@ package test
 import "fmt"
 
 func main() {
-
+	ifr1()
+	ifr2()
+	ifr3()
 }
 
 func ifr2() int {

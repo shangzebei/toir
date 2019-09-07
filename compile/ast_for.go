@@ -2,6 +2,7 @@ package compile
 
 import (
 	"github.com/llir/llvm/ir"
+	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"toir/utils"
@@ -15,26 +16,37 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 
 	// INIT
 	utils.NewComment(f.GetCurrentBlock(), "init block")
-	dd := f.doAssignStmt(st.Init.(*ast.AssignStmt))
+	if st.Init != nil {
+		f.doAssignStmt(st.Init.(*ast.AssignStmt))
+	}
 
 	// ADD
 	addBlock := f.newBlock()
 	utils.NewComment(f.GetCurrentBlock(), "add block")
-	switch st.Post.(type) {
-	case *ast.IncDecStmt:
-		doIncDecStmt := f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
-		addBlock.NewStore(doIncDecStmt, dd[0])
-	case *ast.AssignStmt:
-		f.doAssignStmt(st.Post.(*ast.AssignStmt))
-	default:
-		logrus.Error("doForStmt not impl")
+	if st.Post != nil {
+		switch st.Post.(type) {
+		case *ast.IncDecStmt:
+			f.doIncDecStmt(st.Post.(*ast.IncDecStmt))
+		case *ast.AssignStmt:
+			f.doAssignStmt(st.Post.(*ast.AssignStmt))
+		default:
+			logrus.Error("doForStmt not impl")
+		}
 	}
 	f.popBlock() //end ADD
 
+	var doBinary value.Value
 	// COND
 	condBlock := f.newBlock() //---begin
 	utils.NewComment(f.GetCurrentBlock(), "cond Block begin")
-	doBinary := f.doBinary(st.Cond.(*ast.BinaryExpr))
+	if st.Cond != nil {
+		switch st.Cond.(type) {
+		case *ast.BinaryExpr:
+			doBinary = f.doBinary(st.Cond.(*ast.BinaryExpr))
+		case *ast.CallExpr:
+			doBinary = f.doCallExpr(st.Cond.(*ast.CallExpr))
+		}
+	}
 	utils.NewComment(f.GetCurrentBlock(), "cond Block end")
 	f.popBlock() //END COND
 	//
@@ -44,13 +56,17 @@ func (f *FuncDecl) doForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 
 	endBody.NewBr(addBlock) //end to add //!
 
-	temp.NewBr(sBody) //!
-	f.popBlock()      //Close MAIN
+	temp.NewBr(condBlock) //!
+	f.popBlock()          //Close MAIN
 
 	// EMPTY
 	empty := f.newBlock()
 	utils.NewComment(f.GetCurrentBlock(), "empty block")
-	condBlock.NewCondBr(doBinary, sBody, empty) //!
+	if doBinary != nil {
+		condBlock.NewCondBr(doBinary, sBody, empty) //!
+	} else {
+		condBlock.NewBr(sBody)
+	}
 	//
 
 	//check break

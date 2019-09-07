@@ -97,6 +97,11 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		}
 	}
 
+	//check nil
+	for index := range l {
+		r[index] = FixNil(r[index], l[index].Type())
+	}
+
 	//ops
 	switch assignStmt.Tok {
 	case token.DEFINE: // :=
@@ -271,9 +276,9 @@ func (f *FuncDecl) doBoolean(v value.Value, tyt types.Type) value.Value {
 			return v
 		}
 		if parseBool {
-			return constant.NewInt(types.I8, 1)
+			return constant.NewInt(types.I1, 1)
 		} else {
-			return constant.NewInt(types.I8, 0)
+			return constant.NewInt(types.I1, 0)
 		}
 	}
 	return v

@@ -388,12 +388,19 @@ func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 	default:
 		fmt.Println("doIncDecStmt not impl")
 	}
-	x = f.checkType(x)
+	x = FixAlloc(f.GetCurrentBlock(), x)
+	if types.IsPointer(x.Type()) {
+		x = f.GetCurrentBlock().NewLoad(x)
+	}
 	switch decl.Tok {
 	case token.INC: //++
-		return f.GetCurrentBlock().NewAdd(x, constant.NewInt(types.I32, 1))
+		add := f.GetCurrentBlock().NewAdd(x, constant.NewInt(types.I32, 1))
+		f.GetCurrentBlock().NewStore(add, f.GetSrcPtr(x))
+		return add
 	case token.DEC: //--
-		return f.GetCurrentBlock().NewSub(x, constant.NewInt(types.I32, 1))
+		sub := f.GetCurrentBlock().NewSub(x, constant.NewInt(types.I32, 1))
+		f.GetCurrentBlock().NewStore(sub, f.GetSrcPtr(x))
+		return sub
 	default:
 		fmt.Println("decl.Tok not impl")
 	}
@@ -583,7 +590,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 	var newFunc *ir.Func
 	var initParam *ir.Param
 	var v []value.Value
-	fName := "init." + structType.Name() + "." + strconv.Itoa(len(f.m.Funcs))
+	fName := "init." + structType.Name() + "." + utils.GetRandNum(4)
 	param := ir.NewParam("", types.NewPointer(structType))
 	if glob != nil && len(glob.params) != 0 {
 		var paKV = make(map[string]int)

@@ -26,7 +26,7 @@ func GetIdentName(i *ast.Ident) string {
 var MapDefTypes map[string]types.Type
 
 var MapNamesTypes = map[string]types.Type{
-	"bool":    types.I8,
+	"bool":    types.I1,
 	"int":     types.I32,
 	"int8":    types.I8,
 	"int32":   types.I32,
@@ -239,6 +239,9 @@ func FixNil(value2 value.Value, p types.Type) value.Value {
 	if t, ok := value2.(*constant.Null); ok {
 		t.Typ = types.NewPointer(GetBaseType(p))
 		return t
+	}
+	if t, ok := value2.(*ir.Param); ok && t.Name() == "nil" {
+		return constant.NewNull(types.NewPointer(GetBaseType(p)))
 	}
 	return value2
 }
