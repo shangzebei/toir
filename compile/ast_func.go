@@ -407,75 +407,6 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 	}
 }
 
-func (f *FuncDecl) GetVariable(name string) value.Value {
-	if f.tempV > 0 {
-		for i := f.tempV; i > 0; i-- {
-			i, ok := f.tempVariables[i][name]
-			if ok {
-				logrus.Debugf("get temp[%d] name %s", f.tempV, name)
-				return i
-			}
-		}
-	}
-	//find which glob
-	for _, value := range f.m.Globals {
-		if value.Name() == name {
-			return value
-		}
-	}
-	//find with block
-	for _, block := range f.GetCurrent().Blocks {
-		values, ok := f.Variables[block]
-		if !ok {
-			continue
-		}
-		i, ok := values[name]
-		if ok {
-			return i
-		}
-	}
-	//
-	logrus.Warnf("not find Variable %s", name)
-	return nil
-}
-
-func (f *FuncDecl) OpenTempVariable() {
-	f.tempV++
-	logrus.Debugf("open temp variable %d", f.tempV)
-	if len(f.tempVariables[0]) != 0 {
-		f.tempVariables[f.tempV] = f.tempVariables[0]
-	} else {
-		f.tempVariables[f.tempV] = make(map[string]value.Value)
-	}
-
-}
-
-func (f *FuncDecl) CloseTempVariable() {
-	f.tempVariables[0] = make(map[string]value.Value)
-	f.tempVariables[f.tempV] = make(map[string]value.Value)
-	logrus.Debugf("close temp variable %d", f.tempV)
-	f.tempV--
-}
-
-func (f *FuncDecl) PutVariable(name string, value2 value.Value) {
-	if IsKeyWord(name) {
-		logrus.Errorf("%d is keyword", name)
-		return
-	}
-	if f.tempV > 0 {
-		f.tempVariables[f.tempV][name] = value2
-		logrus.Debugf("Put temp[%d] name %s", f.tempV, name)
-	} else {
-		_, ok := f.Variables[f.GetCurrentBlock()]
-		if !ok {
-			f.Variables[f.GetCurrentBlock()] = make(map[string]value.Value)
-		}
-		logrus.Debugf("PutVariable name %s", name)
-		f.Variables[f.GetCurrentBlock()][name] = value2
-	}
-
-}
-
 //only for array and struts return value
 func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 	switch lit.Type.(type) {
@@ -689,13 +620,12 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 	}
 	utils.NewComment(f.GetCurrentBlock(), "end param")
 	f.useMalloc()
-	//
 	f.pushFunc(newFunc)
 	f.newBlock()
 	//inject ver
 	for key, value := range paramsKV {
 		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), initParam, value)
-		f.PutVariable(key, f.GetCurrentBlock().NewLoad(indexStruct))
+		f.PutVariable(key, &Scope{f.GetCurrentBlock().NewLoad(indexStruct), 1})
 	}
 
 	structDefs := f.StructDefs[structType.Name()]
@@ -747,6 +677,8 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			logrus.Error("aaaaaa StructInit")
 		}
 	}
+
+	f.ClearVariable(1)
 	defer f.closeMalloc()
 	f.popBlock()
 	f.popFunc()

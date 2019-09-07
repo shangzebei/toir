@@ -209,9 +209,13 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 		varName := GetIdentName(selectorExpr.X.(*ast.Ident))
 		variable := f.GetVariable(varName)
 		v, order, _ := f.GetStructDef(variable, variable.Type(), selectorExpr.Sel)
-		//TODO ERROR variable type
-		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
-		return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
+		if a, ok := v.(*ir.InstAlloca); ok && types.IsPointer(a.ElemType) { //pointer
+			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetCurrentBlock().NewLoad(a), order.Order)
+			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
+		} else {
+			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
+			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
+		}
 	case *ast.CallExpr:
 		callExpr := f.doCallExpr(selectorExpr.X.(*ast.CallExpr))
 		v, order, _ := f.GetStructDef(callExpr, callExpr.Type(), selectorExpr.Sel)

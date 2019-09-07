@@ -27,3 +27,11 @@ func ifr1() int {
 	}
 	return 0
 }
+
+func ifr3() {
+	a := 90
+	if a > 50 {
+		return
+	}
+	fmt.Printf("asdfasfdsaf")
+}

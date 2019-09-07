@@ -35,6 +35,7 @@ func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
 	}
 
 	if len(returnStmt.Results) == 0 {
+		f.GetCurrentBlock().NewRet(nil)
 		return
 	}
 
@@ -66,7 +67,6 @@ func (f *FuncDecl) ConvertType(exportType types.Type, current value.Value) value
 	} else {
 		logrus.Warn("unkonw ConvertType type")
 		return current
-
 	}
 	return nil
 

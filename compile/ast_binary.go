@@ -5,6 +5,7 @@ import (
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/enum"
 	"github.com/llir/llvm/ir/value"
+	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
 )
@@ -112,8 +113,10 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		return NewIFValue(x, y, ifBr, token.LAND)
 	case token.LOR:
 		return NewIFValue(x, y, ifBr, token.LOR)
+	case token.NEQ:
+		return block.NewICmp(enum.IPredNE, x, y)
 	default:
-		fmt.Println("not impl doBinary ops")
+		logrus.Error("not impl doBinary ops")
 	}
 	return nil
 }

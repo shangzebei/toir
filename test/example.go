@@ -12,6 +12,7 @@ type CircularListNode struct {
 	Pre *CircularListNode
 }
 
+
 func reorderList(head *ListNode) {
 	// validation
 	if nil == head {
@@ -20,10 +21,10 @@ func reorderList(head *ListNode) {
 
 	// build circular list
 	tail := &CircularListNode{head, nil}
-	//for node := head.Next; nil != node; node = node.Next {
-	//	currNode := &CircularListNode{node, tail}
-	//	tail = currNode
-	//}
+	for node := head.Next; nil != node; node = node.Next {
+		currNode := &CircularListNode{node, tail}
+		tail = currNode
+	}
 
 	//// re order
 	//for p, q := head, tail; ; {

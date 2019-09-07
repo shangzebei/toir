@@ -145,11 +145,7 @@ func (f *FuncDecl) ToPtr(src value.Value) *ir.InstGetElementPtr {
 //return i8*
 func (f *FuncDecl) GetSrcPtr(src value.Value) value.Value {
 	logrus.Debugf("GetSrcPtr begin %s", src)
-	if a, ok := src.(*ir.InstAlloca); ok && types.IsPointer(a.ElemType) {
-		load := f.GetCurrentBlock().NewLoad(src)
-		logrus.Debugf("GetSrcPtr end NewLoad %s", load)
-		return load
-	} else if _, ok := src.(*ir.InstAlloca); ok {
+	if _, ok := src.(*ir.InstAlloca); ok {
 		logrus.Debugf("GetSrcPtr end %s", src)
 		return src
 	}
