@@ -239,6 +239,14 @@ func FixAlloc(b *ir.Block, value2 value.Value) value.Value {
 	return value2
 }
 
+func FixNil(value2 value.Value, p types.Type) value.Value {
+	if t, ok := value2.(*constant.Null); ok {
+		t.Typ = types.NewPointer(GetBaseType(p))
+		return t
+	}
+	return value2
+}
+
 func IsIgnore(i *ast.Ident) bool {
 	if i.Name == "_" {
 		return true

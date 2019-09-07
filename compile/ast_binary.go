@@ -73,6 +73,9 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	x = FixAlloc(f.GetCurrentBlock(), x)
 	y = FixAlloc(f.GetCurrentBlock(), y)
 
+	x = FixNil(x, y.Type())
+	y = FixNil(y, x.Type())
+
 	//get ops
 	switch expr.Op {
 	case token.ADD: // +
