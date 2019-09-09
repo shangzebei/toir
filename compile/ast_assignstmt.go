@@ -213,11 +213,13 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	case *ast.Ident:
 		varName := GetIdentName(selectorExpr.X.(*ast.Ident))
 		variable := f.GetVariable(varName)
-		v, order, _ := f.GetStructDef(variable, variable.Type(), selectorExpr.Sel)
-		if a, ok := v.(*ir.InstAlloca); ok && types.IsPointer(a.ElemType) { //pointer
-			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetCurrentBlock().NewLoad(a), order.Order)
+		if a, ok := variable.(*ir.InstAlloca); ok && types.IsPointer(a.ElemType) { //pointer
+			load := f.GetCurrentBlock().NewLoad(a)
+			v, order, _ := f.GetStructDef(load, variable.Type(), selectorExpr.Sel)
+			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), v, order.Order)
 			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 		} else {
+			v, order, _ := f.GetStructDef(variable, variable.Type(), selectorExpr.Sel)
 			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
 			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 		}
@@ -247,6 +249,29 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	return nil
 }
 
+type Inherit struct {
+	Current StructDef
+	Next    *Inherit
+}
+
+func (f *FuncDecl) find(m map[string]StructDef, name string) *Inherit {
+	inherit := Inherit{}
+	if t, ok := m[name]; ok {
+		inherit.Current = t
+		return &inherit
+	}
+	for key, value := range m {
+		if value.IsInherit {
+			defs, ok := f.StructDefs[key]
+			if ok {
+				inherit.Current = value
+				inherit.Next = f.find(defs, name)
+			}
+		}
+	}
+	return &inherit
+}
+
 func (f *FuncDecl) GetStructDef(orig value.Value, typ types.Type, sel *ast.Ident) (value.Value, *StructDef, bool) {
 	baseType := GetBaseType(typ)
 	structDefs := f.StructDefs[baseType.Name()]
@@ -255,17 +280,19 @@ func (f *FuncDecl) GetStructDef(orig value.Value, typ types.Type, sel *ast.Ident
 	if ok {
 		return orig, &def, true
 	} else {
-		for key, value := range structDefs {
-			if value.IsInherit {
-				sTyp := f.GlobDef[key]
-				cast := f.GetCurrentBlock().NewBitCast(f.GetSrcPtr(orig), types.NewPointer(sTyp))
-				if v, structDef, ok := f.GetStructDef(cast, sTyp, sel); ok {
-					return v, structDef, true
-				}
+		find := f.find(structDefs, identName)
+		var v value.Value = orig
+		for nil != find.Next {
+			if types.IsPointer(find.Current.Typ) {
+				indexStruct := utils.IndexStruct(f.GetCurrentBlock(), v, find.Current.Order)
+				v = f.GetCurrentBlock().NewLoad(indexStruct)
+			} else {
+				v = utils.IndexStruct(f.GetCurrentBlock(), v, find.Current.Order)
 			}
+			find = find.Next
 		}
+		return v, &find.Current, true
 	}
-	return nil, nil, false
 }
 
 //do Boolean

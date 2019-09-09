@@ -634,7 +634,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 	//inject ver
 	for key, value := range paramsKV {
 		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), initParam, value)
-		f.PutVariable(key, &Scope{f.GetCurrentBlock().NewLoad(indexStruct), 1})
+		f.PutVariable(key, &Scope{f.GetCurrentBlock().NewLoad(indexStruct), 1, nil})
 	}
 
 	structDefs := f.StructDefs[structType.Name()]
@@ -656,8 +656,6 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 				f.GetCurrentBlock().NewStore(compositeLit, indexStruct)
 			case *ast.Ident:
 				name := GetIdentName(keyValueExpr.Value.(*ast.Ident))
-				//variable := f.GetVariable(name)
-				//f.GetCurrentBlock().NewStore(variable, indexStruct)
 				if name == "nil" {
 					null := constant.NewNull(types.NewPointer(GetBaseType(indexStruct.Type())))
 					f.GetCurrentBlock().NewStore(null, indexStruct)

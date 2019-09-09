@@ -17,33 +17,27 @@ func reorderList(head *ListNode) {
 	if nil == head {
 		return
 	}
-	node := head
-	for node.Next != nil {
-		node = node.Next
-		fmt.Printf("%d\n", node.Val)
-	}
 	// build circular list
-	//tail := &CircularListNode{head, nil}
-	//for node := head.Next; nil != node; node = node.Next {
-	//currNode := &CircularListNode{node, tail}
-	//tail = currNode
-	//}
-
-	// re order
-	//for p, q := head, tail; ; {
-	//	if p == q.ListNode {
-	//		p.Next = nil
-	//		break
-	//	}
-	//	if p.Next == q.ListNode {
-	//		p.Next.Next = nil
-	//		break
-	//	}
-	//	x, y := p, q
-	//	p, q = p.Next, q.Pre
-	//	x.Next = y.ListNode
-	//	y.Next = p
-	//}
+	tail := &CircularListNode{head, nil}
+	for node := head.Next; nil != node; node = node.Next {
+		currNode := &CircularListNode{node, tail}
+		tail = currNode
+	}
+	//re order
+	for p, q := head, tail; ; {
+		if p == q.ListNode {
+			p.Next = nil
+			break
+		}
+		if p.Next == q.ListNode {
+			p.Next.Next = nil
+			break
+		}
+		x, y := p, q
+		p, q = p.Next, q.Pre
+		x.Next = y.ListNode
+		y.Next = p
+	}
 }
 
 func main() {
