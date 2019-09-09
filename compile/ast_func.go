@@ -327,31 +327,11 @@ func (f *FuncDecl) BlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.Blo
 		f.initFuncParam()
 	}
 	defer f.popBlock()
-	for _, value := range block.List {
-		switch value.(type) {
-		case *ast.ExprStmt:
-			exprStmt := value.(*ast.ExprStmt)
-			f.ExprStmt(exprStmt)
-		case *ast.IfStmt: //if
-			startBlock, endBlock = f.IfStmt(value.(*ast.IfStmt))
-		case *ast.ReturnStmt:
-			returnStmt := value.(*ast.ReturnStmt)
-			f.ReturnStmt(returnStmt)
-		case *ast.ForStmt:
-			startBlock, endBlock = f.ForStmt(value.(*ast.ForStmt))
-		case *ast.IncDecStmt:
-			f.IncDecStmt(value.(*ast.IncDecStmt))
-		case *ast.AssignStmt:
-			assignStmt := value.(*ast.AssignStmt)
-			f.AssignStmt(assignStmt)
-		case *ast.DeclStmt:
-			f.DeclStmt(value.(*ast.DeclStmt))
-		case *ast.RangeStmt:
-			startBlock, endBlock = f.RangeStmt(value.(*ast.RangeStmt))
-		case *ast.BranchStmt:
-			f.BranchStmt(value.(*ast.BranchStmt))
-		default:
-			fmt.Println("BlockStmt not impl")
+	for _, v := range block.List {
+		call := utils.CCall(f, v)
+		if len(call) == 2 {
+			startBlock = call[0].(*ir.Block)
+			endBlock = call[1].(*ir.Block)
 		}
 	}
 	return startBlock, endBlock
@@ -401,10 +381,7 @@ func (f *FuncDecl) IncDecStmt(decl *ast.IncDecStmt) value.Value {
 }
 
 func (f *FuncDecl) DeclStmt(decl *ast.DeclStmt) {
-	switch decl.Decl.(type) {
-	case *ast.GenDecl:
-		f.DoGenDecl(decl.Decl.(*ast.GenDecl))
-	}
+	utils.CCall(f, decl.Decl)
 }
 
 //only for array and struts return value

@@ -57,7 +57,7 @@ func Build(file string, outputBinaryPath string) {
 	}
 	//Glob
 	for _, value := range globs {
-		doFunc.DoGenDecl(value)
+		doFunc.GenDecl(value)
 	}
 	//define func
 	for _, value := range funs {

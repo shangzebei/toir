@@ -26,16 +26,9 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		case *ast.BinaryExpr:
 			r = append(r, f.BinaryExpr(value.(*ast.BinaryExpr)))
 		case *ast.Ident: //
-			//f.IdentToValue(value.(*ast.Ident))
-			variable := f.GetVariable(value.(*ast.Ident).Name)
-			if variable == nil {
-				r = append(r, ir.NewParam(value.(*ast.Ident).Name, nil))
-			} else {
-				r = append(r, FixAlloc(f.GetCurrentBlock(), variable))
-			}
+			r = append(r, FixAlloc(f.GetCurrentBlock(), f.Ident(value.(*ast.Ident))))
 		case *ast.BasicLit:
-			toConstant := f.BasicLit(value.(*ast.BasicLit))
-			r = append(r, toConstant)
+			r = append(r, f.BasicLit(value.(*ast.BasicLit)))
 		case *ast.CallExpr:
 			r = append(r, f.CallExpr(value.(*ast.CallExpr)))
 		case *ast.IndexExpr:
@@ -82,14 +75,21 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	if len(r) != len(l) {
 		if len(r) == 1 && len(l) != 1 {
 			if re, ok := r[0].Type().(*types.StructType); ok && strings.HasPrefix(re.Name(), "return.") { //return
+				temp := r[0]
 				for index := range re.Fields {
-					r = append(r, f.GetCurrentBlock().NewExtractValue(r[0], uint64(index)))
+					if index < len(r) {
+						r[index] = f.GetCurrentBlock().NewExtractValue(temp, uint64(index))
+					} else {
+						r = append(r, f.GetCurrentBlock().NewExtractValue(temp, uint64(index)))
+					}
+
 				}
 			}
 		} else {
 			logrus.Error("not common return")
 		}
 	}
+
 	//check
 	for index := range l {
 		if len(l) > index && len(r) > index {

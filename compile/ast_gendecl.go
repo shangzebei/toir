@@ -14,7 +14,7 @@ import (
 )
 
 //glob is Glob def
-func (f *FuncDecl) DoGenDecl(decl *ast.GenDecl) {
+func (f *FuncDecl) GenDecl(decl *ast.GenDecl) {
 	switch decl.Tok {
 	case token.VAR:
 		for _, v := range decl.Specs {
@@ -29,7 +29,7 @@ func (f *FuncDecl) DoGenDecl(decl *ast.GenDecl) {
 	case token.IMPORT:
 		fmt.Println("not impl import")
 	default:
-		fmt.Println("DoGenDecl not type")
+		fmt.Println("GenDecl not type")
 	}
 }
 
@@ -57,7 +57,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 		case *ast.StarExpr:
 			kind = f.StartExpr(spec.Type.(*ast.StarExpr), "type").Type()
 		default:
-			fmt.Println("not impl DoGenDecl")
+			fmt.Println("not impl GenDecl")
 		}
 
 	}
