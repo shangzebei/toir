@@ -1,16 +1,16 @@
 package compile
 
 import (
-	"fmt"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/enum"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
+	"toir/utils"
 )
 
-func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
+func (f *FuncDecl) BinaryExpr(expr *ast.BinaryExpr) value.Value {
 	block := f.GetCurrentBlock()
 
 	ifS := false
@@ -19,53 +19,13 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 		ifS = true
 	}
 	//get x
-	var x value.Value
-	var y value.Value
-	switch expr.X.(type) {
-	case *ast.Ident:
-		ident := expr.X.(*ast.Ident)
-		x = f.doIdent(ident)
-	case *ast.BasicLit:
-		basicLit := expr.X.(*ast.BasicLit)
-		x = f.BasicLitToConstant(basicLit)
-	case *ast.BinaryExpr:
-		x = f.doBinary(expr.X.(*ast.BinaryExpr))
-	case *ast.CallExpr:
-		x = f.doCallExpr(expr.X.(*ast.CallExpr))
-	case *ast.IndexExpr:
-		x = f.doIndexExpr(expr.X.(*ast.IndexExpr))
-	case *ast.ParenExpr:
-		x = f.doParenExpr(expr.X.(*ast.ParenExpr))
-	case *ast.SelectorExpr:
-		x = f.doSelectorExpr(expr.X.(*ast.SelectorExpr))
-	default:
-		fmt.Println("not impl doBinary")
-	}
+	var x = utils.CCall(f, expr.X)[0].(value.Value)
 
 	if ifS {
 		ifBr = f.newBlock()
 	}
 	//get y
-	switch expr.Y.(type) {
-	case *ast.Ident:
-		ident := expr.Y.(*ast.Ident)
-		y = f.doIdent(ident)
-	case *ast.BasicLit:
-		basicLit := expr.Y.(*ast.BasicLit)
-		y = f.BasicLitToConstant(basicLit)
-	case *ast.BinaryExpr:
-		y = f.doBinary(expr.Y.(*ast.BinaryExpr))
-	case *ast.CallExpr:
-		y = f.doCallExpr(expr.Y.(*ast.CallExpr))
-	case *ast.IndexExpr:
-		y = f.doIndexExpr(expr.Y.(*ast.IndexExpr))
-	case *ast.SelectorExpr:
-		y = f.doSelectorExpr(expr.Y.(*ast.SelectorExpr))
-	case *ast.ParenExpr:
-		y = f.doParenExpr(expr.Y.(*ast.ParenExpr))
-	default:
-		fmt.Println("not impl doBinary")
-	}
+	var y = utils.CCall(f, expr.Y)[0].(value.Value)
 
 	if ifS {
 		f.popBlock()
@@ -123,7 +83,7 @@ func (f *FuncDecl) doBinary(expr *ast.BinaryExpr) value.Value {
 	case token.NEQ:
 		return block.NewICmp(enum.IPredNE, x, y)
 	default:
-		logrus.Error("not impl doBinary ops")
+		logrus.Error("not impl BinaryExpr ops")
 	}
 	return nil
 }

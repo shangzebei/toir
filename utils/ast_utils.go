@@ -6,6 +6,7 @@ import (
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
+	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -50,8 +51,27 @@ func CompileRuntime(fileName string, funName string) *ast.FuncDecl {
 	}
 	return nil
 }
+func CCall(owner interface{}, inf interface{}) []interface{} {
+	valueOf := reflect.ValueOf(owner)
+	of := reflect.ValueOf(inf)
+	s := of.Type().String()
+	index := strings.LastIndex(s, ".")
+	fName := s[index+1:]
+	fun := valueOf.MethodByName(fName)
+	if fun.IsValid() {
+		logrus.Debugf("call func %s", fName)
+		values := fun.Call([]reflect.Value{of})
+		var res []interface{}
+		for _, v := range values {
+			res = append(res, v.Interface())
+		}
+		return res
+	}
+	logrus.Errorf("not find method %s", fName)
+	return nil
+}
 
-func Call(i interface{}, funName string, params []value.Value) value.Value {
+func Call(i interface{}, funName string, params ...value.Value) value.Value {
 	valueOf := reflect.ValueOf(i)
 	fun := valueOf.MethodByName(funName)
 	if fun.IsValid() {

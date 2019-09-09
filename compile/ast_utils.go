@@ -83,7 +83,7 @@ func (f *FuncDecl) GetTypeFromName(name string) types.Type {
 	return nil
 }
 
-func (f *FuncDecl) BasicLitToConstant(base *ast.BasicLit) constant.Constant {
+func (f *FuncDecl) BasicLit(base *ast.BasicLit) constant.Constant {
 	switch base.Kind {
 	case token.INT:
 		atoi, _ := strconv.Atoi(base.Value)
@@ -102,26 +102,26 @@ func (f *FuncDecl) BasicLitToConstant(base *ast.BasicLit) constant.Constant {
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)
 	default:
-		fmt.Println("BasicLitToConstant not impl")
+		fmt.Println("BasicLit not impl")
 	}
 	return nil
 }
 
-func (f *FuncDecl) doValeSpec(spec *ast.ValueSpec) value.Value {
+func (f *FuncDecl) ValeSpec(spec *ast.ValueSpec) value.Value {
 	name := GetIdentName(spec.Names[0])
 	for _, value := range spec.Values {
 		switch value.(type) {
 		case ast.Expr:
 			expr := value.(ast.Expr)
-			return f.BasicLitToConstant(expr.(*ast.BasicLit))
+			return f.BasicLit(expr.(*ast.BasicLit))
 		default:
-			fmt.Println("no impl doValeSpec")
+			fmt.Println("no impl ValeSpec")
 		}
 	}
 	if len(spec.Values) == 0 {
 		return f.GetVariable(name)
 	}
-	fmt.Println("doValeSpec return null")
+	fmt.Println("ValeSpec return null")
 	return nil
 }
 

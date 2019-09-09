@@ -9,49 +9,40 @@ import (
 	"toir/utils"
 )
 
-func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
+func (f *FuncDecl) CallExpr(call *ast.CallExpr) value.Value {
 	//get call param
 	var params []value.Value
 	for _, value := range call.Args {
 		switch value.(type) {
 		case *ast.Ident:
-			doIdent := f.doIdent(value.(*ast.Ident))
-			if a, ok := doIdent.(*ir.InstAlloca); ok {
-				params = append(params, f.GetCurrentBlock().NewLoad(a))
-			} else {
-				params = append(params, doIdent)
-			}
+			params = append(params, FixAlloc(f.GetCurrentBlock(), f.Ident(value.(*ast.Ident))))
 		case *ast.BasicLit: //param
-			basicLit := value.(*ast.BasicLit)
-			constant := f.BasicLitToConstant(basicLit)
-			params = append(params, constant)
+			params = append(params, f.BasicLit(value.(*ast.BasicLit)))
 		case *ast.CallExpr:
-			params = append(params, f.doCallExpr(value.(*ast.CallExpr)))
+			params = append(params, f.CallExpr(value.(*ast.CallExpr)))
 		case *ast.BinaryExpr:
-			params = append(params, f.doBinary(value.(*ast.BinaryExpr)))
+			params = append(params, f.BinaryExpr(value.(*ast.BinaryExpr)))
 		case *ast.IndexExpr:
-			params = append(params, f.doIndexExpr(value.(*ast.IndexExpr)))
+			params = append(params, f.IndexExpr(value.(*ast.IndexExpr)))
 		case *ast.SelectorExpr:
-			params = append(params, f.doSelectorExpr(value.(*ast.SelectorExpr)))
+			params = append(params, f.SelectorExpr(value.(*ast.SelectorExpr)))
 		case *ast.UnaryExpr: //get addr
 			unaryExpr := value.(*ast.UnaryExpr)
-			params = append(params, f.doUnaryExpr(unaryExpr))
+			params = append(params, f.UnaryExpr(unaryExpr))
 		case *ast.CompositeLit:
-			//TODO
-			params = append(params, f.doCompositeLit(value.(*ast.CompositeLit)))
+			params = append(params, f.CompositeLit(value.(*ast.CompositeLit)))
 		case *ast.StarExpr:
-			params = append(params, f.doStartExpr(value.(*ast.StarExpr), "value"))
+			params = append(params, f.StartExpr(value.(*ast.StarExpr), "value"))
 		case *ast.SliceExpr:
-			params = append(params, f.doSliceExpr(value.(*ast.SliceExpr)))
+			params = append(params, f.SliceExpr(value.(*ast.SliceExpr)))
 		case *ast.ArrayType:
 			arrayType := value.(*ast.ArrayType)
 			typeFromName := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
-			//paramKind := f.GetSliceType(typeFromName)
 			params = append(params, ir.NewParam("", typeFromName)) //slice type
 		case *ast.FuncLit:
-			params = append(params, f.doFuncLit(value.(*ast.FuncLit)))
+			params = append(params, f.FuncLit(value.(*ast.FuncLit)))
 		default:
-			fmt.Println("doCallExpr args not impl")
+			fmt.Println("CallExpr args not impl")
 		}
 	}
 	switch call.Fun.(type) {
@@ -61,7 +52,7 @@ func (f *FuncDecl) doCallExpr(call *ast.CallExpr) value.Value {
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
 	default:
-		fmt.Println("doCallExpr call.Fun")
+		fmt.Println("CallExpr call.Fun")
 	}
 	return nil
 }
@@ -88,7 +79,7 @@ func (f *FuncDecl) doCallFunc(values []value.Value, id *ast.Ident) value.Value {
 			logrus.Debug("not find type doCallFunc")
 		}
 	} else { //Custom func
-		return utils.Call(f, utils.FastCharToLower(id.Name), values)
+		return utils.Call(f, utils.FastCharToLower(id.Name), values...)
 	}
 	return nil
 

@@ -2,52 +2,23 @@ package main
 
 import "fmt"
 
-type ListNode struct {
-	Val  int
-	Next *ListNode
-}
-
-type CircularListNode struct {
-	*ListNode
-	Pre *CircularListNode
-}
-
-func reorderList(head *ListNode) {
-	// validation
-	if nil == head {
-		return
-	}
-	// build circular list
-	tail := &CircularListNode{head, nil}
-	for node := head.Next; nil != node; node = node.Next {
-		currNode := &CircularListNode{node, tail}
-		tail = currNode
-	}
-	//re order
-	for p, q := head, tail; ; {
-		if p == q.ListNode {
-			p.Next = nil
-			break
-		}
-		if p.Next == q.ListNode {
-			p.Next.Next = nil
-			break
-		}
-		x, y := p, q
-		p, q = p.Next, q.Pre
-		x.Next = y.ListNode
-		y.Next = p
-	}
-}
-
 func main() {
-	head := &ListNode{Val: 1}
-	for node, v := head, 2; v <= 5; v++ {
-		node.Next = &ListNode{Val: v}
-		node = node.Next
-	}
-	reorderList(head)
-	//for n := head; nil != n; n = n.Next {
-	//	//fmt.Println(n)
+
+	//if 7%2 == 0 {
+	//	fmt.Printf("7 is even\n")
+	//} else {
+	//	fmt.Printf("7 is odd\n")
+	//}
+	//
+	//if 8%4 == 0 {
+	//	fmt.Printf("8 is divisible by 4\n")
+	//}
+	//
+	//if num := 9; num < 0 {
+	//	fmt.Printf("%d is negative\n",num)
+	//} else if num < 10 {
+	//	fmt.Printf("%d has 1 digit\n",num)
+	//} else {
+	//	fmt.Printf("%d has multiple digits\n",num)
 	//}
 }

@@ -5,10 +5,10 @@ import (
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
-	"github.com/sirupsen/logrus"
 	"go/ast"
 	"go/token"
 	"strconv"
+	"toir/utils"
 )
 
 type IFValue struct {
@@ -55,16 +55,11 @@ func (f *FuncDecl) mulCond(iv *IFValue, ifBodyBlock *ir.Block, elseBlock *ir.Blo
 
 }
 
-func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
+func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 	temp := f.GetCurrentBlock()
 	//init
 	if expr.Init != nil {
-		switch expr.Init.(type) {
-		case *ast.AssignStmt:
-			f.doAssignStmt(expr.Init.(*ast.AssignStmt))
-		default:
-			logrus.Error("expr.Init doIfStmt not impl")
-		}
+		utils.CCall(f, expr.Init)
 	}
 	//Cond
 	switch expr.Cond.(type) {
@@ -72,10 +67,12 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 		var elseBlock *ir.Block
 		//var endElseBlock *ir.Block
 		//if body
-		ifBodyBlock, _ := f.doBlockStmt(expr.Body)
+		ifBodyBlock, _ := f.BlockStmt(expr.Body)
 		//else block
 		if expr.Else != nil {
-			elseBlock, _ = f.doBlockStmt(expr.Else.(*ast.BlockStmt))
+			//elseBlock, _ = f.BlockStmt(expr.Else.(*ast.BlockStmt))
+			call := utils.CCall(f, expr.Else)
+			elseBlock = call[0].(*ir.Block)
 		}
 		//empty block
 		if elseBlock == nil {
@@ -83,7 +80,7 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 			f.popBlock()
 		}
 		//cond
-		doCond := f.doBinary(expr.Cond.(*ast.BinaryExpr))
+		doCond := f.BinaryExpr(expr.Cond.(*ast.BinaryExpr))
 		if c, ok := doCond.(*IFValue); ok {
 			c.Br.NewCondBr(doCond, ifBodyBlock, elseBlock) //end
 			f.mulCond(c, ifBodyBlock, elseBlock)
@@ -105,14 +102,14 @@ func (f *FuncDecl) doIfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 		identName := GetIdentName(expr.Cond.(*ast.Ident))
 		parseBool, _ := strconv.ParseBool(identName)
 		if parseBool {
-			_, stmt := f.doBlockStmt(expr.Body)
+			_, stmt := f.BlockStmt(expr.Body)
 			f.GetCurrentBlock().NewBr(stmt)
 			f.popBlock() //close main
 			empty := f.newBlock()
 			stmt.NewBr(empty)
 		}
 	default:
-		fmt.Println("not impl doIfStmt")
+		fmt.Println("not impl IfStmt")
 	}
 	return temp, f.GetCurrentBlock()
 }

@@ -10,6 +10,7 @@ import (
 	"go/token"
 	"strconv"
 	"toir/llvm"
+	"toir/utils"
 )
 
 //glob is Glob def
@@ -44,60 +45,47 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 			if i, ok := arrayType.Elt.(*ast.Ident); ok {
 				doArrayType = f.GetTypeFromName(GetIdentName(i))
 			} else if a, ok := arrayType.Elt.(*ast.ArrayType); ok {
-				doArrayType = f.doArrayType(a)
+				doArrayType = f.ArrayType(a)
 			}
 			if arrayType.Len == nil {
 				kind = types.NewArray(0, doArrayType)
 			} else {
-				toConstant := f.BasicLitToConstant(arrayType.Len.(*ast.BasicLit))
+				toConstant := f.BasicLit(arrayType.Len.(*ast.BasicLit))
 				len, _ := strconv.Atoi(toConstant.Ident())
 				kind = types.NewArray(uint64(len), doArrayType)
 			}
 		case *ast.StarExpr:
-			kind = f.doStartExpr(spec.Type.(*ast.StarExpr), "type").Type()
+			kind = f.StartExpr(spec.Type.(*ast.StarExpr), "type").Type()
 		default:
 			fmt.Println("not impl DoGenDecl")
 		}
 
 	}
 	for index, name := range spec.Names {
-		var value value.Value
+		var v value.Value
 		//get values
 		if len(spec.Values) > index {
-			switch spec.Values[index].(type) {
-			case *ast.BasicLit:
-				value = f.BasicLitToConstant(spec.Values[index].(*ast.BasicLit))
-			case *ast.BinaryExpr:
-				value = f.doBinary(spec.Values[index].(*ast.BinaryExpr))
-			case *ast.CompositeLit:
-				value = f.doCompositeLit(spec.Values[index].(*ast.CompositeLit))
-			case *ast.IndexExpr:
-				value = f.doIndexExpr(spec.Values[index].(*ast.IndexExpr))
-			case *ast.CallExpr:
-				value = f.doCallExpr(spec.Values[index].(*ast.CallExpr))
-			default:
-				fmt.Println("doGenDecl spec.Names not impl")
-			}
+			v = utils.CCall(f, spec.Values[index])[0].(value.Value)
 			if kind == nil {
-				kind = value.Type()
+				kind = v.Type()
 			}
 		}
 		////////////////////////////////
 		if f.GetCurrent() == nil {
-			if t == token.VAR || value != nil {
+			if t == token.VAR || v != nil {
 				var v constant.Constant
-				if value == nil {
+				if v == nil {
 					v = InitZeroConstant(kind)
 				} else {
-					v = value.(constant.Constant)
+					v = v.(constant.Constant)
 				}
 				f.m.NewGlobalDef(name.Name, v)
 			} else {
 				f.m.NewGlobal(name.Name, kind)
 			}
 		} else {
-			if value != nil {
-				f.PutVariable(name.Name, value)
+			if v != nil {
+				f.PutVariable(name.Name, v)
 			} else {
 				f.PutVariable(name.Name, f.NewType(kind))
 			}
@@ -178,11 +166,11 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) types.Type {
 			var ftyp types.Type
 			switch value.Type.(type) {
 			case *ast.Ident:
-				ftyp = f.doIdent(value.Type.(*ast.Ident)).Type()
+				ftyp = f.Ident(value.Type.(*ast.Ident)).Type()
 			case *ast.SelectorExpr:
 				ftyp = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
 			case *ast.StarExpr:
-				ftyp = f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type()
+				ftyp = f.StartExpr(value.Type.(*ast.StarExpr), "type").Type()
 			default:
 				logrus.Error("struct type don`t know")
 			}
@@ -220,7 +208,7 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) types.Type {
 		MapDefTypes[name] = f.GetTypeFromName(GetIdentName(typDef))
 		f.typeSpecs[spec] = MapDefTypes[name]
 	case *ast.FuncType:
-		_, funcType := f.doFunType(spec.Type.(*ast.FuncType))
+		_, funcType := f.FunType(spec.Type.(*ast.FuncType))
 		MapDefTypes[name] = types.NewPointer(funcType)
 		f.typeSpecs[spec] = MapDefTypes[name]
 	default:

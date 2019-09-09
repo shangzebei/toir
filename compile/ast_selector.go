@@ -70,7 +70,7 @@ func (f *FuncDecl) callSelector(params []value.Value, fexpr *ast.SelectorExpr) v
 	name := GetCallFuncName(fexpr)
 	if strings.HasPrefix(name, "def.") {
 		lastIndex := strings.LastIndex(name, ".")
-		return utils.Call(&call.Call{Block: f.GetCurrentBlock(), M: f.m}, name[lastIndex+1:], params)
+		return utils.Call(&call.Call{Block: f.GetCurrentBlock(), M: f.m}, name[lastIndex+1:], params...)
 	}
 	switch name {
 	case "fmt.Printf", "external.Printf":

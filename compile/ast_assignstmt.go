@@ -14,7 +14,7 @@ import (
 	"toir/utils"
 )
 
-func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
+func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	//ast.Print(f.fSet, assignStmt)
 	//c:=a+b
 	//a+b
@@ -24,7 +24,7 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	for _, value := range assignStmt.Rhs {
 		switch value.(type) {
 		case *ast.BinaryExpr:
-			r = append(r, f.doBinary(value.(*ast.BinaryExpr)))
+			r = append(r, f.BinaryExpr(value.(*ast.BinaryExpr)))
 		case *ast.Ident: //
 			//f.IdentToValue(value.(*ast.Ident))
 			variable := f.GetVariable(value.(*ast.Ident).Name)
@@ -34,22 +34,22 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				r = append(r, FixAlloc(f.GetCurrentBlock(), variable))
 			}
 		case *ast.BasicLit:
-			toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
+			toConstant := f.BasicLit(value.(*ast.BasicLit))
 			r = append(r, toConstant)
 		case *ast.CallExpr:
-			r = append(r, f.doCallExpr(value.(*ast.CallExpr)))
+			r = append(r, f.CallExpr(value.(*ast.CallExpr)))
 		case *ast.IndexExpr:
-			r = append(r, f.doIndexExpr(value.(*ast.IndexExpr)))
+			r = append(r, f.IndexExpr(value.(*ast.IndexExpr)))
 		case *ast.CompositeLit:
-			r = append(r, f.doCompositeLit(value.(*ast.CompositeLit)))
+			r = append(r, f.CompositeLit(value.(*ast.CompositeLit)))
 		case *ast.SelectorExpr:
-			r = append(r, f.doSelectorExpr(value.(*ast.SelectorExpr)))
+			r = append(r, f.SelectorExpr(value.(*ast.SelectorExpr)))
 		case *ast.UnaryExpr:
-			r = append(r, f.doUnaryExpr(value.(*ast.UnaryExpr)))
+			r = append(r, f.UnaryExpr(value.(*ast.UnaryExpr)))
 		case *ast.StarExpr:
-			r = append(r, f.doStartExpr(value.(*ast.StarExpr), "value"))
+			r = append(r, f.StartExpr(value.(*ast.StarExpr), "value"))
 		case *ast.SliceExpr:
-			r = append(r, f.doSliceExpr(value.(*ast.SliceExpr)))
+			r = append(r, f.SliceExpr(value.(*ast.SliceExpr)))
 		default:
 			logrus.Error("not impl assignStmt.Rhs")
 		}
@@ -61,18 +61,18 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			s := value.(*ast.Ident)
 			l = append(l, ir.NewParam(s.Name, nil))
 		case *ast.BinaryExpr:
-			l = append(l, f.doBinary(value.(*ast.BinaryExpr)))
+			l = append(l, f.BinaryExpr(value.(*ast.BinaryExpr)))
 		case *ast.BasicLit:
-			l = append(l, f.BasicLitToConstant(value.(*ast.BasicLit)))
+			l = append(l, f.BasicLit(value.(*ast.BasicLit)))
 		case *ast.IndexExpr:
-			l = append(l, f.doIndexExpr(value.(*ast.IndexExpr)))
+			l = append(l, f.IndexExpr(value.(*ast.IndexExpr)))
 		case *ast.CompositeLit:
-			l = append(l, f.doCompositeLit(value.(*ast.CompositeLit)))
+			l = append(l, f.CompositeLit(value.(*ast.CompositeLit)))
 		case *ast.SelectorExpr: //TODO struts
 			selectorExpr := value.(*ast.SelectorExpr)
-			l = append(l, f.doSelectorExpr(selectorExpr))
+			l = append(l, f.SelectorExpr(selectorExpr))
 		case *ast.StarExpr:
-			l = append(l, f.doStartExpr(value.(*ast.StarExpr), "value"))
+			l = append(l, f.StartExpr(value.(*ast.StarExpr), "value"))
 		default:
 			fmt.Println("no impl assignStmt.Lhs")
 		}
@@ -140,14 +140,12 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		return rep
 	case token.ASSIGN: // =
 		var rep []value.Value
-		for lIndex, lvalue := range l {
-			var lv value.Value
+		for index, lvalue := range l {
+			var lv = lvalue
 			if p, ok := lvalue.(*ir.Param); ok {
-				lv = f.GetSrcPtr(f.GetVariable(p.Name()))
-			} else {
-				lv = f.GetSrcPtr(lvalue)
+				lv = FixAlloc(f.GetCurrentBlock(), f.GetVariable(p.Name()))
 			}
-			f.GetCurrentBlock().NewStore(r[lIndex], lv)
+			f.GetCurrentBlock().NewStore(r[index], f.GetSrcPtr(lv))
 			rep = append(rep, lvalue)
 		}
 		return rep
@@ -202,13 +200,13 @@ func (f *FuncDecl) doAssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		}
 		return rep
 	default:
-		fmt.Println("doAssignStmt no impl")
+		fmt.Println("AssignStmt no impl")
 	}
 	return nil
 }
 
 //struts.v
-func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
+func (f *FuncDecl) SelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 	switch selectorExpr.X.(type) {
 	case *ast.Ident:
 		varName := GetIdentName(selectorExpr.X.(*ast.Ident))
@@ -224,12 +222,12 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 		}
 	case *ast.CallExpr:
-		callExpr := f.doCallExpr(selectorExpr.X.(*ast.CallExpr))
+		callExpr := f.CallExpr(selectorExpr.X.(*ast.CallExpr))
 		v, order, _ := f.GetStructDef(callExpr, callExpr.Type(), selectorExpr.Sel)
 		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
 		return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 	case *ast.SelectorExpr:
-		expr := f.doSelectorExpr(selectorExpr.X.(*ast.SelectorExpr))
+		expr := f.SelectorExpr(selectorExpr.X.(*ast.SelectorExpr))
 		v, order, _ := f.GetStructDef(expr, expr.Type(), selectorExpr.Sel)
 		if types.IsPointer(expr.Type()) {
 			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), v, order.Order)
@@ -239,12 +237,12 @@ func (f *FuncDecl) doSelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 		}
 	case *ast.CompositeLit:
-		callExpr := f.doCompositeLit(selectorExpr.X.(*ast.CompositeLit))
+		callExpr := f.CompositeLit(selectorExpr.X.(*ast.CompositeLit))
 		v, order, _ := f.GetStructDef(callExpr, callExpr.Type(), selectorExpr.Sel)
 		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
 		return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 	default:
-		logrus.Error("doSelectorExpr not impl")
+		logrus.Error("SelectorExpr not impl")
 	}
 	return nil
 }
@@ -312,24 +310,8 @@ func (f *FuncDecl) doBoolean(v value.Value, tyt types.Type) value.Value {
 }
 
 //index array return i8*
-func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
-	var kv value.Value
-	switch index.Index.(type) {
-	case *ast.BasicLit:
-		kv = f.BasicLitToConstant(index.Index.(*ast.BasicLit))
-	case *ast.CallExpr:
-		kv = f.doCallExpr(index.Index.(*ast.CallExpr))
-	case *ast.Ident:
-		kv = f.doIdent(index.Index.(*ast.Ident))
-	case *ast.BinaryExpr:
-		kv = f.doBinary(index.Index.(*ast.BinaryExpr))
-	case *ast.IndexExpr:
-		kv = f.doIndexExpr(index.Index.(*ast.IndexExpr))
-	case *ast.SelectorExpr:
-		kv = f.doSelectorExpr(index.Index.(*ast.SelectorExpr))
-	default:
-		fmt.Println("doIndex not impl")
-	}
+func (f *FuncDecl) IndexExpr(index *ast.IndexExpr) value.Value {
+	var kv = utils.CCall(f, index.Index)[0].(value.Value)
 	if _, ok := kv.Type().(*types.PointerType); ok {
 		kv = f.GetCurrentBlock().NewLoad(kv)
 	}
@@ -340,12 +322,12 @@ func (f *FuncDecl) doIndexExpr(index *ast.IndexExpr) value.Value {
 		//emType := f.FindSliceEmType(ident.Obj)
 		return f.GetSliceIndex(variable, kv)
 	//case *ast.CallExpr:
-	//	expr := f.doCallExpr(index.X.(*ast.CallExpr))
+	//	expr := f.CallExpr(index.X.(*ast.CallExpr))
 	//	return f.GetSliceIndex(expr, kv)
 	case *ast.SliceExpr: //return slice
 		sliceExpr := index.X.(*ast.SliceExpr)
 		//emType := f.FindSliceEmType(sliceExpr.X.(*ast.Ident).Obj)
-		expr := f.doSliceExpr(sliceExpr)
+		expr := f.SliceExpr(sliceExpr)
 		return f.GetSliceIndex(expr, kv)
 	default:
 		logrus.Error("no impl index.X")

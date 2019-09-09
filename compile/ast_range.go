@@ -5,7 +5,6 @@ import (
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
-	"github.com/sirupsen/logrus"
 	"go/ast"
 	"toir/utils"
 )
@@ -17,26 +16,11 @@ import (
  *     v=d[i]
  *  }
  */
-func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Block) {
+func (f *FuncDecl) RangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Block) {
 	utils.NewComment(f.GetCurrentBlock(), "[range start]")
-	var va value.Value
-	var name string
-	switch stmt.X.(type) {
-	case *ast.Ident:
-		i := stmt.X.(*ast.Ident)
-		name = GetIdentName(i)
-		va = f.doIdent(i)
-	case *ast.CallExpr:
-		va = f.doCallExpr(stmt.X.(*ast.CallExpr))
-		f.tempVariables[0]["rangeV"] = va
-		name = "rangeV"
-	case *ast.IndexExpr:
-		va = f.doIndexExpr(stmt.X.(*ast.IndexExpr))
-		f.tempVariables[0]["rangeV"] = va
-		name = "rangeV"
-	default:
-		logrus.Error("not doRangeStmt")
-	}
+	var va = utils.CCall(f, stmt.X)[0].(value.Value)
+	var name = "rangeV"
+	f.tempVariables[0][name] = va
 
 	emType := GetSliceEmType(GetBaseType(va.Type())) //I32*
 	//init len
@@ -84,5 +68,5 @@ func (f *FuncDecl) doRangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bl
 
 	forStmt.Body.List = append(st, stmt.Body.List...)
 	utils.NewComment(f.GetCurrentBlock(), "[range end]")
-	return f.doForStmt(&forStmt)
+	return f.ForStmt(&forStmt)
 }

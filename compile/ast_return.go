@@ -9,28 +9,14 @@ import (
 	"toir/utils"
 )
 
-func (f *FuncDecl) doReturnStmt(returnStmt *ast.ReturnStmt) {
+func (f *FuncDecl) ReturnStmt(returnStmt *ast.ReturnStmt) {
 	mul := false
 	if len(returnStmt.Results) > 1 {
 		mul = true
 	}
 	var values []value.Value
 	for _, val := range returnStmt.Results {
-		var rev value.Value
-		switch val.(type) {
-		case *ast.BasicLit:
-			rev = f.BasicLitToConstant(val.(*ast.BasicLit))
-		case *ast.BinaryExpr:
-			rev = f.doBinary(val.(*ast.BinaryExpr))
-		case *ast.CallExpr:
-			rev = f.doCallExpr(val.(*ast.CallExpr))
-		case *ast.Ident:
-			rev = f.doIdent(val.(*ast.Ident))
-		case *ast.SelectorExpr:
-			rev = f.doSelector(nil, val.(*ast.SelectorExpr), "call")
-		default:
-			logrus.Debug("doBlockStmt return not impl!")
-		}
+		var rev = utils.CCall(f, val)[0].(value.Value)
 		values = append(values, FixAlloc(f.GetCurrentBlock(), rev))
 	}
 

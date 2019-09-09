@@ -82,7 +82,7 @@ func (f *FuncDecl) Init() {
 }
 
 //types.NewFunc()
-func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncType) {
+func (f *FuncDecl) FunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncType) {
 	fields := funcTyp.Params.List
 	//param
 	var params []*ir.Param
@@ -95,10 +95,10 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 				param := (value.Type.(*ast.Ident)).Name
 				paramKind = f.GetTypeFromName(param)
 			case *ast.StarExpr:
-				paramKind = f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type()
+				paramKind = f.StartExpr(value.Type.(*ast.StarExpr), "type").Type()
 			case *ast.ArrayType:
 				arrayType := value.Type.(*ast.ArrayType)
-				paramKind = f.doArrayType(arrayType)
+				paramKind = f.ArrayType(arrayType)
 			case *ast.SelectorExpr:
 				paramKind = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
 			default:
@@ -135,9 +135,9 @@ func (f *FuncDecl) doFunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncTyp
 			selector := f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type")
 			ty = append(ty, selector.Type())
 		case *ast.StarExpr:
-			ty = append(ty, f.doStartExpr(value.Type.(*ast.StarExpr), "type").Type())
+			ty = append(ty, f.StartExpr(value.Type.(*ast.StarExpr), "type").Type())
 		case *ast.ArrayType:
-			ty = append(ty, f.doArrayType(value.Type.(*ast.ArrayType)))
+			ty = append(ty, f.ArrayType(value.Type.(*ast.ArrayType)))
 		default:
 			logrus.Error("not known type")
 		}
@@ -162,14 +162,14 @@ func (f *FuncDecl) GetReturnName() string {
 }
 
 //&
-func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
+func (f *FuncDecl) UnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	var variable value.Value
 	switch unaryExpr.X.(type) {
 	case *ast.Ident:
 		name := GetIdentName(unaryExpr.X.(*ast.Ident))
 		variable = f.GetVariable(name)
 	case *ast.CompositeLit: //
-		variable = f.doCompositeLit(unaryExpr.X.(*ast.CompositeLit))
+		variable = f.CompositeLit(unaryExpr.X.(*ast.CompositeLit))
 	case *ast.SelectorExpr:
 		variable = f.doSelector(nil, unaryExpr.X.(*ast.SelectorExpr), "call")
 	default:
@@ -183,24 +183,24 @@ func (f *FuncDecl) doUnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 		if l, ok := variable.(*ir.InstLoad); ok {
 			return l.Src
 		}
-		logrus.Error("doUnaryExpr not find the type")
+		logrus.Error("UnaryExpr not find the type")
 		return variable
 	case token.RANGE:
-		return f.doIdent(unaryExpr.X.(*ast.Ident))
+		return f.Ident(unaryExpr.X.(*ast.Ident))
 	default:
-		fmt.Println("doUnaryExpr not impl")
+		fmt.Println("UnaryExpr not impl")
 	}
 	return nil
 
 }
 
 //*
-func (f *FuncDecl) doStartExpr(x *ast.StarExpr, typ string) value.Value {
+func (f *FuncDecl) StartExpr(x *ast.StarExpr, typ string) value.Value {
 	switch typ {
 	case "type":
 		switch x.X.(type) {
 		case *ast.Ident:
-			ident := f.doIdent(x.X.(*ast.Ident))
+			ident := f.Ident(x.X.(*ast.Ident))
 			return ir.NewParam("", types.NewPointer(ident.Type()))
 		default:
 			logrus.Error("type not impl")
@@ -209,15 +209,15 @@ func (f *FuncDecl) doStartExpr(x *ast.StarExpr, typ string) value.Value {
 		var v value.Value
 		switch x.X.(type) {
 		case *ast.Ident:
-			v = f.GetCurrentBlock().NewLoad(FixAlloc(f.GetCurrentBlock(), f.doIdent(x.X.(*ast.Ident))))
+			v = f.GetCurrentBlock().NewLoad(FixAlloc(f.GetCurrentBlock(), f.Ident(x.X.(*ast.Ident))))
 		case *ast.StarExpr:
-			v = f.GetCurrentBlock().NewLoad(f.doStartExpr(x.X.(*ast.StarExpr), "value"))
+			v = f.GetCurrentBlock().NewLoad(f.StartExpr(x.X.(*ast.StarExpr), "value"))
 		default:
 			name := GetIdentName(x.X.(*ast.Ident))
 			if p := f.GetVariable(name); p != nil {
 				v = FixAlloc(f.GetCurrentBlock(), p)
 			} else {
-				fmt.Println("not find in doStartExpr")
+				fmt.Println("not find in StartExpr")
 			}
 		}
 		if p, ok := v.(*ir.Param); ok {
@@ -274,7 +274,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	}
 
 	//func type
-	params, funTyp := f.doFunType(funDecl.Type)
+	params, funTyp := f.FunType(funDecl.Type)
 	tempFunc := f.CreatFunc(funName, params, funTyp)
 	f.pushFunc(tempFunc)
 
@@ -287,7 +287,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 
 	//func body
 	blockStmt := funDecl.Body
-	f.doBlockStmt(blockStmt)
+	f.BlockStmt(blockStmt)
 	//body
 	////////////////////////////method end/////////////////////////
 
@@ -317,7 +317,7 @@ func (f *FuncDecl) pushFunc(fun *ir.Func) {
 }
 
 //must return start
-func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.Block) {
+func (f *FuncDecl) BlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.Block) {
 	//ast.Print(f.fSet, block)
 	newBlock := f.newBlock()
 	startBlock := newBlock
@@ -331,27 +331,27 @@ func (f *FuncDecl) doBlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.B
 		switch value.(type) {
 		case *ast.ExprStmt:
 			exprStmt := value.(*ast.ExprStmt)
-			f.doExprStmt(exprStmt)
+			f.ExprStmt(exprStmt)
 		case *ast.IfStmt: //if
-			startBlock, endBlock = f.doIfStmt(value.(*ast.IfStmt))
+			startBlock, endBlock = f.IfStmt(value.(*ast.IfStmt))
 		case *ast.ReturnStmt:
 			returnStmt := value.(*ast.ReturnStmt)
-			f.doReturnStmt(returnStmt)
+			f.ReturnStmt(returnStmt)
 		case *ast.ForStmt:
-			startBlock, endBlock = f.doForStmt(value.(*ast.ForStmt))
+			startBlock, endBlock = f.ForStmt(value.(*ast.ForStmt))
 		case *ast.IncDecStmt:
-			f.doIncDecStmt(value.(*ast.IncDecStmt))
+			f.IncDecStmt(value.(*ast.IncDecStmt))
 		case *ast.AssignStmt:
 			assignStmt := value.(*ast.AssignStmt)
-			f.doAssignStmt(assignStmt)
+			f.AssignStmt(assignStmt)
 		case *ast.DeclStmt:
-			f.doDeclStmt(value.(*ast.DeclStmt))
+			f.DeclStmt(value.(*ast.DeclStmt))
 		case *ast.RangeStmt:
-			startBlock, endBlock = f.doRangeStmt(value.(*ast.RangeStmt))
+			startBlock, endBlock = f.RangeStmt(value.(*ast.RangeStmt))
 		case *ast.BranchStmt:
-			f.doBranchStmt(value.(*ast.BranchStmt))
+			f.BranchStmt(value.(*ast.BranchStmt))
 		default:
-			fmt.Println("doBlockStmt not impl")
+			fmt.Println("BlockStmt not impl")
 		}
 	}
 	return startBlock, endBlock
@@ -379,17 +379,8 @@ func (f *FuncDecl) initFuncParam() {
 	}
 }
 
-func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
-	var x value.Value
-	switch decl.X.(type) {
-	case *ast.Ident:
-		ident := decl.X.(*ast.Ident)
-		x = f.GetVariable(GetIdentName(ident))
-	case *ast.StarExpr:
-		x = f.doStartExpr(decl.X.(*ast.StarExpr), "value")
-	default:
-		fmt.Println("doIncDecStmt not impl")
-	}
+func (f *FuncDecl) IncDecStmt(decl *ast.IncDecStmt) value.Value {
+	var x = utils.CCall(f, decl.X)[0].(value.Value)
 	x = FixAlloc(f.GetCurrentBlock(), x)
 	if types.IsPointer(x.Type()) {
 		x = f.GetCurrentBlock().NewLoad(x)
@@ -409,7 +400,7 @@ func (f *FuncDecl) doIncDecStmt(decl *ast.IncDecStmt) value.Value {
 	return nil
 }
 
-func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
+func (f *FuncDecl) DeclStmt(decl *ast.DeclStmt) {
 	switch decl.Decl.(type) {
 	case *ast.GenDecl:
 		f.DoGenDecl(decl.Decl.(*ast.GenDecl))
@@ -417,19 +408,12 @@ func (f *FuncDecl) doDeclStmt(decl *ast.DeclStmt) {
 }
 
 //only for array and struts return value
-func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
+func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 	switch lit.Type.(type) {
 	case *ast.ArrayType: //array
 		var c []constant.Constant
-		for _, value := range lit.Elts {
-			switch value.(type) {
-			case *ast.Ident:
-				c = append(c, f.doIdent(value.(*ast.Ident)).(constant.Constant))
-			case *ast.BasicLit:
-				toConstant := f.BasicLitToConstant(value.(*ast.BasicLit))
-				c = append(c, toConstant)
-			}
-
+		for _, v := range lit.Elts {
+			c = append(c, utils.CCall(f, v)[0].(constant.Constant))
 		}
 		name := f.GetCurrent().Name()
 		array := constant.NewArray(c...)
@@ -484,12 +468,12 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 					def := structDefs[identName]
 					switch keyValueExpr.Value.(type) {
 					case *ast.BasicLit:
-						s[def.Order] = f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit))
+						s[def.Order] = f.BasicLit(keyValueExpr.Value.(*ast.BasicLit))
 					default:
 						logrus.Error("bbbbbb")
 					}
 				case *ast.BasicLit:
-					s[index] = f.BasicLitToConstant(value.(*ast.BasicLit))
+					s[index] = f.BasicLit(value.(*ast.BasicLit))
 				default:
 					logrus.Error("aaaaaa")
 				}
@@ -510,7 +494,7 @@ func (f *FuncDecl) doCompositeLit(lit *ast.CompositeLit) value.Value {
 			return f.GetCurrentBlock().NewLoad(f.StructInit(lit, structType))
 		}
 	default:
-		fmt.Println("not impl doCompositeLit")
+		fmt.Println("not impl CompositeLit")
 	}
 	return nil
 }
@@ -598,7 +582,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 		var paKV = make(map[string]int)
 		for index, value := range glob.params {
 			if glob.pre == nil {
-				variable := FixAlloc(f.GetCurrentBlock(), f.doIdent(value))
+				variable := FixAlloc(f.GetCurrentBlock(), f.Ident(value))
 				s.Fields = append(s.Fields, variable.Type())
 				paKV[value.Name] = index
 				vs = append(vs, variable)
@@ -647,12 +631,12 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, structDef.Order)
 			switch keyValueExpr.Value.(type) {
 			case *ast.BasicLit:
-				f.GetCurrentBlock().NewStore(f.BasicLitToConstant(keyValueExpr.Value.(*ast.BasicLit)), indexStruct)
+				f.GetCurrentBlock().NewStore(f.BasicLit(keyValueExpr.Value.(*ast.BasicLit)), indexStruct)
 			case *ast.UnaryExpr:
-				expr := f.doUnaryExpr(keyValueExpr.Value.(*ast.UnaryExpr))
+				expr := f.UnaryExpr(keyValueExpr.Value.(*ast.UnaryExpr))
 				f.GetCurrentBlock().NewStore(expr, indexStruct)
 			case *ast.CompositeLit:
-				compositeLit := f.doCompositeLit(keyValueExpr.Value.(*ast.CompositeLit))
+				compositeLit := f.CompositeLit(keyValueExpr.Value.(*ast.CompositeLit))
 				f.GetCurrentBlock().NewStore(compositeLit, indexStruct)
 			case *ast.Ident:
 				name := GetIdentName(keyValueExpr.Value.(*ast.Ident))
@@ -668,7 +652,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			}
 		case *ast.BasicLit:
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
-			f.GetCurrentBlock().NewStore(f.BasicLitToConstant(val.(*ast.BasicLit)), indexStruct)
+			f.GetCurrentBlock().NewStore(f.BasicLit(val.(*ast.BasicLit)), indexStruct)
 		case *ast.Ident:
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
 			name := GetIdentName(val.(*ast.Ident))
@@ -697,7 +681,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 	return newType
 }
 
-func (f *FuncDecl) doBranchStmt(stmt *ast.BranchStmt) {
+func (f *FuncDecl) BranchStmt(stmt *ast.BranchStmt) {
 	switch stmt.Tok {
 	case token.BREAK:
 		f.forBreak = f.GetCurrentBlock()
@@ -707,10 +691,10 @@ func (f *FuncDecl) doBranchStmt(stmt *ast.BranchStmt) {
 
 }
 
-func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
-	variable := f.GetVariable(GetIdentName(expr.X.(*ast.Ident)))
-	low := f.BasicLitToConstant(expr.Low.(*ast.BasicLit))
-	higt := f.BasicLitToConstant(expr.High.(*ast.BasicLit))
+func (f *FuncDecl) SliceExpr(expr *ast.SliceExpr) value.Value {
+	variable := utils.CCall(f, expr.X)[0].(value.Value)
+	low := f.BasicLit(expr.Low.(*ast.BasicLit))
+	higt := f.BasicLit(expr.High.(*ast.BasicLit))
 	if f.IsSlice(variable) { //
 		//i8* rangeSlice(i8* ptr,int low ,int high,int bytes)
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
@@ -732,35 +716,35 @@ func (f *FuncDecl) doSliceExpr(expr *ast.SliceExpr) value.Value {
 		utils.NewComment(f.GetCurrentBlock(), "end slice[]")
 		return utils.LoadValue(f.GetCurrentBlock(), newSlice)
 	}
-	logrus.Error("doSliceExpr not sliceArray")
+	logrus.Error("SliceExpr not sliceArray")
 	return nil
 }
 
-func (f *FuncDecl) doArrayType(arrayType *ast.ArrayType) types.Type {
+func (f *FuncDecl) ArrayType(arrayType *ast.ArrayType) types.Type {
 	var kind types.Type
 	switch arrayType.Elt.(type) {
 	case *ast.Ident:
 		ki := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
 		kind = f.GetSliceType(ki)
 	case *ast.ArrayType:
-		kind = f.GetSliceType(f.doArrayType(arrayType.Elt.(*ast.ArrayType)))
+		kind = f.GetSliceType(f.ArrayType(arrayType.Elt.(*ast.ArrayType)))
 	default:
-		logrus.Error("not find doArrayType")
+		logrus.Error("not find ArrayType")
 	}
 	return kind
 }
 
 //inline func
-func (f *FuncDecl) doFuncLit(fun *ast.FuncLit) value.Value {
-	params, funTyp := f.doFunType(fun.Type)
+func (f *FuncDecl) FuncLit(fun *ast.FuncLit) value.Value {
+	params, funTyp := f.FunType(fun.Type)
 	tempFunc := f.CreatFunc("", params, funTyp)
 	f.pushFunc(tempFunc)
-	f.doBlockStmt(fun.Body)
+	f.BlockStmt(fun.Body)
 	f.popFunc()
 	return tempFunc
 }
 
-func (f *FuncDecl) doIdent(ident *ast.Ident) value.Value {
+func (f *FuncDecl) Ident(ident *ast.Ident) value.Value {
 	if ident.Obj != nil {
 		switch ident.Obj.Kind {
 		case ast.Var:
@@ -795,29 +779,8 @@ func (f *FuncDecl) doIdent(ident *ast.Ident) value.Value {
 	return nil
 }
 
-func (f *FuncDecl) doExprStmt(exprStmt *ast.ExprStmt) {
-	switch exprStmt.X.(type) {
-	case *ast.CallExpr:
-		callExpr := exprStmt.X.(*ast.CallExpr)
-		f.doCallExpr(callExpr)
-	case *ast.IndexExpr:
-		callExpr := exprStmt.X.(*ast.IndexExpr)
-		f.doIndexExpr(callExpr)
-	case *ast.CompositeLit:
-		callExpr := exprStmt.X.(*ast.CompositeLit)
-		f.doCompositeLit(callExpr)
-	case *ast.SliceExpr:
-		callExpr := exprStmt.X.(*ast.SliceExpr)
-		f.doSliceExpr(callExpr)
-	case *ast.UnaryExpr:
-		callExpr := exprStmt.X.(*ast.UnaryExpr)
-		f.doUnaryExpr(callExpr)
-	case *ast.SelectorExpr:
-		callExpr := exprStmt.X.(*ast.SelectorExpr)
-		f.doSelectorExpr(callExpr)
-	default:
-		logrus.Error("doBlockStmt.ExprStmt not impl")
-	}
+func (f *FuncDecl) ExprStmt(exprStmt *ast.ExprStmt) {
+	utils.CCall(f, exprStmt.X)
 }
 
 func getFieldNum(m map[string]StructDef) int {
