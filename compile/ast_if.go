@@ -59,7 +59,7 @@ func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 	temp := f.GetCurrentBlock()
 	//init
 	if expr.Init != nil {
-		utils.CCall(f, expr.Init)
+		utils.GCCall(f, expr.Init)
 	}
 	//Cond
 	switch expr.Cond.(type) {
@@ -71,7 +71,7 @@ func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 		//else block
 		if expr.Else != nil {
 			//elseBlock, _ = f.BlockStmt(expr.Else.(*ast.BlockStmt))
-			call := utils.CCall(f, expr.Else)
+			call := utils.GCCall(f, expr.Else)
 			elseBlock = call[0].(*ir.Block)
 		}
 		//empty block

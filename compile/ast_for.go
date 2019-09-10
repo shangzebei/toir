@@ -16,14 +16,14 @@ func (f *FuncDecl) ForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 	// INIT
 	utils.NewComment(f.GetCurrentBlock(), "init block")
 	if st.Init != nil {
-		utils.CCall(f, st.Init)
+		utils.GCCall(f, st.Init)
 	}
 
 	// ADD
 	addBlock := f.newBlock()
 	utils.NewComment(f.GetCurrentBlock(), "add block")
 	if st.Post != nil {
-		utils.CCall(f, st.Post)
+		utils.GCCall(f, st.Post)
 	}
 	f.popBlock() //end ADD
 
@@ -32,7 +32,7 @@ func (f *FuncDecl) ForStmt(st *ast.ForStmt) (start *ir.Block, end *ir.Block) {
 	condBlock := f.newBlock() //---begin
 	utils.NewComment(f.GetCurrentBlock(), "cond Block begin")
 	if st.Cond != nil {
-		doBinary = utils.CCall(f, st.Cond)[0].(value.Value)
+		doBinary = utils.GCCall(f, st.Cond)[0].(value.Value)
 	}
 	utils.NewComment(f.GetCurrentBlock(), "cond Block end")
 	f.popBlock() //END COND

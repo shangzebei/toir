@@ -23,11 +23,11 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	var l []value.Value
 	//0
 	for _, v := range assignStmt.Rhs {
-		r = append(r, utils.CCall(f, v)[0].(value.Value))
+		r = append(r, utils.GCCall(f, v)[0].(value.Value))
 	}
 	//V
 	for _, v := range assignStmt.Lhs {
-		//l = append(l, utils.CCall(f, v)[0].(value.Value))
+		//l = append(l, utils.GCCall(f, v)[0].(value.Value))
 		switch v.(type) {
 		case *ast.Ident:
 			s := v.(*ast.Ident)
@@ -333,7 +333,7 @@ func (f *FuncDecl) doBoolean(v value.Value, tyt types.Type) value.Value {
 
 //index array return i8*
 func (f *FuncDecl) IndexExpr(index *ast.IndexExpr) value.Value {
-	var kv = utils.CCall(f, index.Index)[0].(value.Value)
+	var kv = utils.GCCall(f, index.Index)[0].(value.Value)
 	if _, ok := kv.Type().(*types.PointerType); ok {
 		kv = f.GetCurrentBlock().NewLoad(kv)
 	}

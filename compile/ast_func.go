@@ -344,7 +344,7 @@ func (f *FuncDecl) BlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.Blo
 	}
 	defer f.popBlock()
 	for _, v := range block.List {
-		call := utils.CCall(f, v)
+		call := utils.GCCall(f, v)
 		if len(call) == 2 {
 			startBlock = call[0].(*ir.Block)
 			endBlock = call[1].(*ir.Block)
@@ -376,7 +376,7 @@ func (f *FuncDecl) initFuncParam() {
 }
 
 func (f *FuncDecl) IncDecStmt(decl *ast.IncDecStmt) value.Value {
-	var x = utils.CCall(f, decl.X)[0].(value.Value)
+	var x = utils.GCCall(f, decl.X)[0].(value.Value)
 	x = FixAlloc(f.GetCurrentBlock(), x)
 	if types.IsPointer(x.Type()) {
 		x = f.GetCurrentBlock().NewLoad(x)
@@ -397,7 +397,7 @@ func (f *FuncDecl) IncDecStmt(decl *ast.IncDecStmt) value.Value {
 }
 
 func (f *FuncDecl) DeclStmt(decl *ast.DeclStmt) {
-	utils.CCall(f, decl.Decl)
+	utils.GCCall(f, decl.Decl)
 }
 
 //only for array and struts init return value
@@ -406,7 +406,7 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 	case *ast.ArrayType: //array
 		var c []constant.Constant
 		for _, v := range lit.Elts {
-			c = append(c, utils.CCall(f, v)[0].(constant.Constant))
+			c = append(c, utils.GCCall(f, v)[0].(constant.Constant))
 		}
 		name := f.GetCurrent().Name()
 		array := constant.NewArray(c...)
@@ -689,7 +689,7 @@ func (f *FuncDecl) BranchStmt(stmt *ast.BranchStmt) {
 }
 
 func (f *FuncDecl) SliceExpr(expr *ast.SliceExpr) value.Value {
-	variable := utils.CCall(f, expr.X)[0].(value.Value)
+	variable := utils.GCCall(f, expr.X)[0].(value.Value)
 	low := f.BasicLit(expr.Low.(*ast.BasicLit))
 	higt := f.BasicLit(expr.High.(*ast.BasicLit))
 	if f.IsSlice(variable) { //
@@ -786,7 +786,7 @@ func (f *FuncDecl) Ident(ident *ast.Ident) value.Value {
 }
 
 func (f *FuncDecl) ExprStmt(exprStmt *ast.ExprStmt) {
-	utils.CCall(f, exprStmt.X)
+	utils.GCCall(f, exprStmt.X)
 }
 
 func getFieldNum(m map[string]StructDef) int {

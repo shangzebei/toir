@@ -19,13 +19,13 @@ func (f *FuncDecl) BinaryExpr(expr *ast.BinaryExpr) value.Value {
 		ifS = true
 	}
 	//get x
-	var x = utils.CCall(f, expr.X)[0].(value.Value)
+	var x = utils.GCCall(f, expr.X)[0].(value.Value)
 
 	if ifS {
 		ifBr = f.newBlock()
 	}
 	//get y
-	var y = utils.CCall(f, expr.Y)[0].(value.Value)
+	var y = utils.GCCall(f, expr.Y)[0].(value.Value)
 
 	if ifS {
 		f.popBlock()

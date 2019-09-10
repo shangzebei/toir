@@ -51,7 +51,8 @@ func CompileRuntime(fileName string, funName string) *ast.FuncDecl {
 	}
 	return nil
 }
-func CCall(owner interface{}, inf interface{}) []interface{} {
+
+func GCCall(owner interface{}, inf interface{}) []interface{} {
 	valueOf := reflect.ValueOf(owner)
 	of := reflect.ValueOf(inf)
 	s := of.Type().String()

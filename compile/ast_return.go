@@ -16,7 +16,7 @@ func (f *FuncDecl) ReturnStmt(returnStmt *ast.ReturnStmt) {
 	}
 	var values []value.Value
 	for _, val := range returnStmt.Results {
-		var rev = utils.CCall(f, val)[0].(value.Value)
+		var rev = utils.GCCall(f, val)[0].(value.Value)
 		values = append(values, FixAlloc(f.GetCurrentBlock(), rev))
 	}
 

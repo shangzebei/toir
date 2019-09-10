@@ -18,7 +18,7 @@ import (
  */
 func (f *FuncDecl) RangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Block) {
 	utils.NewComment(f.GetCurrentBlock(), "[range start]")
-	var va = utils.CCall(f, stmt.X)[0].(value.Value)
+	var va = utils.GCCall(f, stmt.X)[0].(value.Value)
 	var name = "rangeV"
 	f.tempVariables[0][name] = va
 

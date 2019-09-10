@@ -65,7 +65,7 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 		var v value.Value
 		//get values
 		if len(spec.Values) > index {
-			v = utils.CCall(f, spec.Values[index])[0].(value.Value)
+			v = utils.GCCall(f, spec.Values[index])[0].(value.Value)
 			if kind == nil {
 				kind = v.Type()
 			}

@@ -7,5 +7,5 @@ import (
 )
 
 func (f *FuncDecl) ParenExpr(expr *ast.ParenExpr) value.Value {
-	return utils.CCall(f, expr.X)[0].(value.Value)
+	return utils.GCCall(f, expr.X)[0].(value.Value)
 }
