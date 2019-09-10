@@ -131,7 +131,7 @@ func (f *FuncDecl) InitConstantValue(kind types.Type, def value.Value) value.Val
 		)
 	case *types.IntType:
 		alloca = f.NewType(GetBaseType(kind))
-		f.GetCurrentBlock().NewStore(def, alloca)
+		f.NewStore(def, alloca)
 	default:
 		alloca = f.NewType(GetBaseType(kind))
 		fmt.Println("not find types")

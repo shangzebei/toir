@@ -45,7 +45,7 @@ func (f *FuncDecl) NewAllocSlice(em types.Type, arrayLen value.Value) value.Valu
 	alloc.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)))
 	call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(arrayLen, constant.NewInt(types.I32, i)))
 	slice := f.GetPSlice(alloc)
-	f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(em)), slice)
+	f.NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(em)), slice)
 	f.SetCap(alloc, arrayLen)
 	f.SetLen(alloc, arrayLen)
 	utils.NewComment(f.GetCurrentBlock(), "end init slice.................")
@@ -118,10 +118,10 @@ func (f *FuncDecl) GetPCap(v value.Value) value.Value {
 
 ////////////////////////v////////////////////////////////////////////
 func (f *FuncDecl) SetLen(slice value.Value, v value.Value) {
-	f.GetCurrentBlock().NewStore(v, f.GetPLen(slice))
+	f.NewStore(v, f.GetPLen(slice))
 }
 func (f *FuncDecl) SetBytes(slice value.Value, v value.Value) {
-	f.GetCurrentBlock().NewStore(v, f.GetPBytes(slice))
+	f.NewStore(v, f.GetPBytes(slice))
 }
 
 //func (f *FuncDecl) GetSlice(slice value.Value) value.Value {
@@ -142,7 +142,7 @@ func (f *FuncDecl) GetCap(slice value.Value) value.Value {
 }
 
 func (f *FuncDecl) SetCap(slice value.Value, v value.Value) {
-	f.GetCurrentBlock().NewStore(v, f.GetPCap(slice))
+	f.NewStore(v, f.GetPCap(slice))
 }
 
 func GetSliceEmType(p types.Type) types.Type {

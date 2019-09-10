@@ -22,51 +22,32 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 	var r []value.Value
 	var l []value.Value
 	//0
-	for _, value := range assignStmt.Rhs {
-		switch value.(type) {
-		case *ast.BinaryExpr:
-			r = append(r, f.BinaryExpr(value.(*ast.BinaryExpr)))
-		case *ast.Ident: //
-			r = append(r, FixAlloc(f.GetCurrentBlock(), f.Ident(value.(*ast.Ident))))
-		case *ast.BasicLit:
-			r = append(r, f.BasicLit(value.(*ast.BasicLit)))
-		case *ast.CallExpr:
-			r = append(r, f.CallExpr(value.(*ast.CallExpr)))
-		case *ast.IndexExpr:
-			r = append(r, f.IndexExpr(value.(*ast.IndexExpr)))
-		case *ast.CompositeLit:
-			r = append(r, f.CompositeLit(value.(*ast.CompositeLit)))
-		case *ast.SelectorExpr:
-			r = append(r, f.SelectorExpr(value.(*ast.SelectorExpr)))
-		case *ast.UnaryExpr:
-			r = append(r, f.UnaryExpr(value.(*ast.UnaryExpr)))
-		case *ast.StarExpr:
-			r = append(r, f.StartExpr(value.(*ast.StarExpr), "value"))
-		case *ast.SliceExpr:
-			r = append(r, f.SliceExpr(value.(*ast.SliceExpr)))
-		default:
-			logrus.Error("not impl assignStmt.Rhs")
-		}
+	for _, v := range assignStmt.Rhs {
+		r = append(r, utils.CCall(f, v)[0].(value.Value))
 	}
 	//V
-	for _, value := range assignStmt.Lhs {
-		switch value.(type) {
+	for _, v := range assignStmt.Lhs {
+		//l = append(l, utils.CCall(f, v)[0].(value.Value))
+		switch v.(type) {
 		case *ast.Ident:
-			s := value.(*ast.Ident)
-			l = append(l, ir.NewParam(s.Name, nil))
+			s := v.(*ast.Ident)
+			if assignStmt.Tok == token.DEFINE {
+				l = append(l, ir.NewParam(GetIdentName(s), nil))
+			} else {
+				l = append(l, f.Ident(s))
+			}
 		case *ast.BinaryExpr:
-			l = append(l, f.BinaryExpr(value.(*ast.BinaryExpr)))
+			l = append(l, f.BinaryExpr(v.(*ast.BinaryExpr)))
 		case *ast.BasicLit:
-			l = append(l, f.BasicLit(value.(*ast.BasicLit)))
+			l = append(l, f.BasicLit(v.(*ast.BasicLit)))
 		case *ast.IndexExpr:
-			l = append(l, f.IndexExpr(value.(*ast.IndexExpr)))
+			l = append(l, f.IndexExpr(v.(*ast.IndexExpr)))
 		case *ast.CompositeLit:
-			l = append(l, f.CompositeLit(value.(*ast.CompositeLit)))
-		case *ast.SelectorExpr: //TODO struts
-			selectorExpr := value.(*ast.SelectorExpr)
-			l = append(l, f.SelectorExpr(selectorExpr))
+			l = append(l, f.CompositeLit(v.(*ast.CompositeLit)))
+		case *ast.SelectorExpr:
+			l = append(l, f.SelectorExpr(v.(*ast.SelectorExpr)))
 		case *ast.StarExpr:
-			l = append(l, f.StartExpr(value.(*ast.StarExpr), "value"))
+			l = append(l, f.StartExpr(v.(*ast.StarExpr), "value"))
 		default:
 			fmt.Println("no impl assignStmt.Lhs")
 		}
@@ -106,11 +87,11 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				switch GetBaseType(r[lindex].Type()).(type) {
 				case *types.IntType:
 					newAlloc := f.NewType(r[lindex].Type())
-					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
+					f.NewStore(r[lindex], newAlloc)
 					f.PutVariable(vName, newAlloc)
 				default:
 					newAlloc := f.NewType(GetRealType(r[lindex].Type()))
-					f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
+					f.NewStore(r[lindex], newAlloc)
 					f.PutVariable(vName, newAlloc)
 				}
 				rep = append(rep, f.GetVariable(vName))
@@ -120,7 +101,7 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 				rep = append(rep, i)
 			} else {
 				newAlloc := f.NewType(r[lindex].Type())
-				f.GetCurrentBlock().NewStore(r[lindex], newAlloc)
+				f.NewStore(r[lindex], newAlloc)
 				f.PutVariable(vName, newAlloc)
 				rep = append(rep, f.GetVariable(vName))
 			}
@@ -139,7 +120,7 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			if p, ok := lvalue.(*ir.Param); ok {
 				lv = FixAlloc(f.GetCurrentBlock(), f.GetVariable(p.Name()))
 			}
-			f.GetCurrentBlock().NewStore(r[index], f.GetSrcPtr(lv))
+			f.NewStore(FixAlloc(f.GetCurrentBlock(), r[index]), f.GetSrcPtr(lv))
 			rep = append(rep, lvalue)
 		}
 		return rep
@@ -149,7 +130,7 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			vName := lvalue.(*ir.Param).Name()
 			variable := f.GetVariable(vName)
 			newAdd := f.GetCurrentBlock().NewAdd(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
-			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
 			rep = append(rep, lvalue)
 		}
 		return rep
@@ -159,7 +140,7 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			vName := lvalue.(*ir.Param).Name()
 			variable := f.GetVariable(vName)
 			newAdd := f.GetCurrentBlock().NewAShr(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
-			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
 			rep = append(rep, lvalue)
 		}
 		return rep
@@ -169,7 +150,7 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			vName := lvalue.(*ir.Param).Name()
 			variable := f.GetVariable(vName)
 			newAdd := f.GetCurrentBlock().NewXor(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
-			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
 			rep = append(rep, lvalue)
 		}
 		return rep
@@ -179,7 +160,7 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			vName := lvalue.(*ir.Param).Name()
 			variable := f.GetVariable(vName)
 			newAdd := f.GetCurrentBlock().NewOr(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
-			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
 			rep = append(rep, lvalue)
 		}
 		return rep
@@ -189,12 +170,52 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			vName := lvalue.(*ir.Param).Name()
 			variable := f.GetVariable(vName)
 			newAdd := f.GetCurrentBlock().NewAnd(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
-			f.GetCurrentBlock().NewStore(newAdd, f.GetSrcPtr(variable))
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
+	case token.SUB_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewSub(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
+	case token.MUL_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewMul(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
+	case token.QUO_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewUDiv(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
+			rep = append(rep, lvalue)
+		}
+		return rep
+	case token.REM_ASSIGN:
+		var rep []value.Value
+		for lIndex, lvalue := range l {
+			vName := lvalue.(*ir.Param).Name()
+			variable := f.GetVariable(vName)
+			newAdd := f.GetCurrentBlock().NewSRem(utils.LoadValue(f.GetCurrentBlock(), variable), r[lIndex])
+			f.NewStore(newAdd, f.GetSrcPtr(variable))
 			rep = append(rep, lvalue)
 		}
 		return rep
 	default:
-		fmt.Println("AssignStmt no impl")
+		logrus.Error("AssignStmt no impl")
 	}
 	return nil
 }

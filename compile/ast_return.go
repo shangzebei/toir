@@ -31,7 +31,7 @@ func (f *FuncDecl) ReturnStmt(returnStmt *ast.ReturnStmt) {
 		alloca := f.GetCurrentBlock().NewAlloca(f.GetCurrent().Sig.RetType)
 		for index, value := range values {
 			getElementPtr := f.GetCurrentBlock().NewGetElementPtr(alloca, constant.NewInt(types.I32, 0), constant.NewInt(types.I32, int64(index)))
-			f.GetCurrentBlock().NewStore(value, getElementPtr)
+			f.NewStore(value, getElementPtr)
 		}
 		f.GetCurrentBlock().NewRet(f.GetCurrentBlock().NewLoad(alloca))
 	}

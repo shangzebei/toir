@@ -1,7 +1,6 @@
 package compile
 
 import (
-	"fmt"
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
@@ -27,7 +26,8 @@ func (f *FuncDecl) IntType(value2 value.Value, typ types.Type) value.Value {
 			return f.GetCurrentBlock().NewTrunc(value2, typ)
 		}
 	default:
-		fmt.Println("not impl ")
+		logrus.Warnf("not impl src %s ept %s", value2.Type().String(), typ.String())
+		return value2
 	}
 	return nil
 }
@@ -100,7 +100,7 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 		return f.NewAllocSlice(arrayType.ElemType, constant.NewInt(types.I32, int64(arrayType.Len)))
 	case *types.StructType:
 		structType := tp.(*types.StructType)
-		if f.openAlloc {
+		if true {
 			logrus.Warnf("default Malloc new %s", tp.String())
 			call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
 			return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
@@ -113,7 +113,7 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 		//	call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
 		//	return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
 		//}
-		logrus.Warnf("default NewAlloca %s", tp.String())
+		logrus.Warnf("default NewAlloca %s", tp.Name())
 		return f.GetCurrentBlock().NewAlloca(tp)
 	}
 	return nil
@@ -145,7 +145,7 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 		indexStruct := utils.IndexStructValue(f.GetCurrentBlock(), call, 0) //ptr
 		indexCap := utils.IndexStructValue(f.GetCurrentBlock(), call, 1)    //cap
 
-		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(indexStruct, types.NewPointer(GetBaseType(slicePtr.Type()))), slicePtr)
+		f.NewStore(f.GetCurrentBlock().NewBitCast(indexStruct, types.NewPointer(GetBaseType(slicePtr.Type()))), slicePtr)
 
 		//append
 		utils.NewComment(f.GetCurrentBlock(), "store value")
@@ -153,12 +153,12 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 		for index, value := range elems {
 			bitCast := f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(slicePtr), types.NewPointer(value.Type()))
 			ptr := f.GetCurrentBlock().NewGetElementPtr(bitCast, f.GetCurrentBlock().NewAdd(length, constant.NewInt(types.I32, int64(index))))
-			f.GetCurrentBlock().NewStore(value, ptr)
+			f.NewStore(value, ptr)
 		}
 
 		utils.NewComment(f.GetCurrentBlock(), "add len")
 		newAdd := f.GetCurrentBlock().NewAdd(length, constant.NewInt(types.I32, int64(len(elems))))
-		f.GetCurrentBlock().NewStore(newAdd, newLenPtr)
+		f.NewStore(newAdd, newLenPtr)
 
 		//set cap
 		f.SetCap(newSlice, indexCap)

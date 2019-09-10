@@ -362,7 +362,7 @@ func (f *FuncDecl) initFuncParam() {
 		}
 		//TODO WARN
 		newAlloca := f.NewType(value.Typ)
-		f.GetCurrentBlock().NewStore(value, newAlloca)
+		f.NewStore(value, newAlloca)
 		if f.IsSlice(newAlloca) { //slice *
 			f.PutVariable(value.Name(), newAlloca)
 		} else if types.IsFunc(GetBaseType(newAlloca.Type())) {
@@ -384,11 +384,11 @@ func (f *FuncDecl) IncDecStmt(decl *ast.IncDecStmt) value.Value {
 	switch decl.Tok {
 	case token.INC: //++
 		add := f.GetCurrentBlock().NewAdd(x, constant.NewInt(types.I32, 1))
-		f.GetCurrentBlock().NewStore(add, f.GetSrcPtr(x))
+		f.NewStore(add, f.GetSrcPtr(x))
 		return add
 	case token.DEC: //--
 		sub := f.GetCurrentBlock().NewSub(x, constant.NewInt(types.I32, 1))
-		f.GetCurrentBlock().NewStore(sub, f.GetSrcPtr(x))
+		f.NewStore(sub, f.GetSrcPtr(x))
 		return sub
 	default:
 		fmt.Println("decl.Tok not impl")
@@ -461,7 +461,11 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 					def := structDefs[identName]
 					switch keyValueExpr.Value.(type) {
 					case *ast.BasicLit:
-						s[def.Order] = f.BasicLit(keyValueExpr.Value.(*ast.BasicLit))
+						if t, ok := def.Typ.(*types.IntType); ok {
+							s[def.Order] = f.BasicLitType(keyValueExpr.Value.(*ast.BasicLit), t)
+						} else {
+							s[def.Order] = f.BasicLit(keyValueExpr.Value.(*ast.BasicLit))
+						}
 					default:
 						logrus.Error("bbbbbb")
 					}
@@ -590,7 +594,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			ef := f.NewType(typeDef)
 			for index, value := range vs {
 				indexStruct := utils.IndexStruct(f.GetCurrentBlock(), ef, index)
-				f.GetCurrentBlock().NewStore(value, indexStruct)
+				f.NewStore(value, indexStruct)
 			}
 			v = append(v, ef)
 		} else {
@@ -624,37 +628,37 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, structDef.Order)
 			switch keyValueExpr.Value.(type) {
 			case *ast.BasicLit:
-				f.GetCurrentBlock().NewStore(f.BasicLit(keyValueExpr.Value.(*ast.BasicLit)), indexStruct)
+				f.NewStore(f.BasicLit(keyValueExpr.Value.(*ast.BasicLit)), indexStruct)
 			case *ast.UnaryExpr:
 				expr := f.UnaryExpr(keyValueExpr.Value.(*ast.UnaryExpr))
-				f.GetCurrentBlock().NewStore(expr, indexStruct)
+				f.NewStore(expr, indexStruct)
 			case *ast.CompositeLit:
 				compositeLit := f.CompositeLit(keyValueExpr.Value.(*ast.CompositeLit))
-				f.GetCurrentBlock().NewStore(compositeLit, indexStruct)
+				f.NewStore(compositeLit, indexStruct)
 			case *ast.Ident:
 				name := GetIdentName(keyValueExpr.Value.(*ast.Ident))
 				if name == "nil" {
 					null := constant.NewNull(types.NewPointer(GetBaseType(indexStruct.Type())))
-					f.GetCurrentBlock().NewStore(null, indexStruct)
+					f.NewStore(null, indexStruct)
 				} else {
 					variable := f.GetVariable(name)
-					f.GetCurrentBlock().NewStore(variable, indexStruct)
+					f.NewStore(variable, indexStruct)
 				}
 			default:
 				logrus.Error("bbbbbb StructInit")
 			}
 		case *ast.BasicLit:
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
-			f.GetCurrentBlock().NewStore(f.BasicLit(val.(*ast.BasicLit)), indexStruct)
+			f.NewStore(f.BasicLit(val.(*ast.BasicLit)), indexStruct)
 		case *ast.Ident:
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
 			name := GetIdentName(val.(*ast.Ident))
 			if name == "nil" {
 				null := constant.NewNull(types.NewPointer(GetBaseType(indexStruct.Type())))
-				f.GetCurrentBlock().NewStore(null, indexStruct)
+				f.NewStore(null, indexStruct)
 			} else {
 				variable := f.GetVariable(name)
-				f.GetCurrentBlock().NewStore(variable, indexStruct)
+				f.NewStore(variable, indexStruct)
 			}
 
 		default:
@@ -705,7 +709,7 @@ func (f *FuncDecl) SliceExpr(expr *ast.SliceExpr) value.Value {
 		sub := f.GetCurrentBlock().NewSub(higt, low)
 		f.SetLen(newSlice, sub)
 		f.SetCap(newSlice, sub)
-		f.GetCurrentBlock().NewStore(f.GetCurrentBlock().NewBitCast(stdCall, types.NewPointer(GetBaseType(getSlice.Type()))), getSlice)
+		f.NewStore(f.GetCurrentBlock().NewBitCast(stdCall, types.NewPointer(GetBaseType(getSlice.Type()))), getSlice)
 		utils.NewComment(f.GetCurrentBlock(), "end slice[]")
 		return utils.LoadValue(f.GetCurrentBlock(), newSlice)
 	}
@@ -746,7 +750,7 @@ func (f *FuncDecl) Ident(ident *ast.Ident) value.Value {
 			if variable != nil {
 				return variable
 			} else {
-				logrus.Error("not find in variable")
+				return ir.NewParam(ident.Name, nil)
 			}
 		case ast.Typ:
 			typ, ok := f.GlobDef[ident.Name]

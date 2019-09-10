@@ -82,12 +82,11 @@ func (f *FuncDecl) GetTypeFromName(name string) types.Type {
 	fmt.Println("GetTypeFromName error", name)
 	return nil
 }
-
-func (f *FuncDecl) BasicLit(base *ast.BasicLit) constant.Constant {
+func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) constant.Constant {
 	switch base.Kind {
 	case token.INT:
 		atoi, _ := strconv.Atoi(base.Value)
-		return constant.NewInt(types.I32, int64(atoi))
+		return constant.NewInt(intType, int64(atoi))
 	case token.STRING:
 		itoa := strconv.Itoa(len(f.Constants))
 		str, _ := strconv.Unquote(base.Value)
@@ -105,6 +104,10 @@ func (f *FuncDecl) BasicLit(base *ast.BasicLit) constant.Constant {
 		fmt.Println("BasicLit not impl")
 	}
 	return nil
+}
+
+func (f *FuncDecl) BasicLit(base *ast.BasicLit) constant.Constant {
+	return f.BasicLitType(base, types.I32)
 }
 
 func (f *FuncDecl) ValeSpec(spec *ast.ValueSpec) value.Value {
@@ -149,6 +152,10 @@ func (f *FuncDecl) GetSrcPtr(src value.Value) value.Value {
 		logrus.Debugf("GetSrcPtr end %s", src)
 		return src
 	}
+	if _, ok := src.(*ir.InstBitCast); ok {
+		return src
+	}
+
 	if l, ok := src.(*ir.InstLoad); ok {
 		logrus.Debugf("GetSrcPtr end InstLoad.Src %s", l.Src)
 		return l.Src
@@ -229,9 +236,9 @@ func GetStructBytes(v types.Type) int {
 }
 
 func FixAlloc(b *ir.Block, value2 value.Value) value.Value {
-	//if _, ok := ll[value2]; ok {
-	//	return value2
-	//}
+	if _, ok := value2.(*ir.InstBitCast); ok {
+		return b.NewLoad(value2)
+	}
 	if a, ok := value2.(*ir.InstAlloca); ok {
 		return b.NewLoad(a)
 	}
@@ -255,4 +262,12 @@ func IsIgnore(i *ast.Ident) bool {
 	} else {
 		return false
 	}
+}
+
+func (f *FuncDecl) NewStore(src, dst value.Value) {
+	if types.IsInt(src.Type()) && types.IsInt(GetBaseType(dst.Type())) {
+		src = f.IntType(src, GetBaseType(dst.Type()))
+	}
+	f.GetCurrentBlock().NewStore(src, dst)
+
 }
