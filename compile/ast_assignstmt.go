@@ -16,9 +16,6 @@ import (
 )
 
 func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
-	//ast.Print(f.fSet, assignStmt)
-	//c:=a+b
-	//a+b
 	var r []value.Value
 	var l []value.Value
 	//0
@@ -341,44 +338,16 @@ func (f *FuncDecl) IndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		//emType := f.FindSliceEmType(ident.Obj)
 		return f.GetSliceIndex(variable, kv)
-	//case *ast.CallExpr:
-	//	expr := f.CallExpr(index.X.(*ast.CallExpr))
-	//	return f.GetSliceIndex(expr, kv)
+	case *ast.CallExpr:
+		expr := f.CallExpr(index.X.(*ast.CallExpr))
+		return f.GetSliceIndex(expr, kv)
 	case *ast.SliceExpr: //return slice
 		sliceExpr := index.X.(*ast.SliceExpr)
-		//emType := f.FindSliceEmType(sliceExpr.X.(*ast.Ident).Obj)
 		expr := f.SliceExpr(sliceExpr)
 		return f.GetSliceIndex(expr, kv)
 	default:
 		logrus.Error("no impl index.X")
-	}
-	return nil
-}
-
-func (f *FuncDecl) FindSliceEmType(id *ast.Object) types.Type {
-	switch id.Decl.(type) {
-	case *ast.AssignStmt:
-		exprs := id.Decl.(*ast.AssignStmt).Rhs
-		switch exprs[0].(type) {
-		case *ast.SliceExpr:
-			expr := exprs[0].(*ast.SliceExpr)
-			return f.FindSliceEmType(expr.X.(*ast.Ident).Obj)
-		case *ast.CompositeLit:
-			expr := (exprs[0].(*ast.CompositeLit).Type).(*ast.ArrayType).Elt
-			return f.GetTypeFromName(GetIdentName(expr.(*ast.Ident)))
-		case *ast.CallExpr:
-			expr := (exprs[0].(*ast.CallExpr).Args[0]).(*ast.Ident)
-			return f.FindSliceEmType(expr.Obj)
-		default:
-			fmt.Println("asdfasdfasdfasdfsd")
-		}
-	case *ast.ValueSpec:
-		expr := id.Decl.(*ast.ValueSpec).Type.(*ast.ArrayType).Elt
-		return f.GetTypeFromName(GetIdentName(expr.(*ast.Ident)))
-	default:
-		logrus.Error("not find Slice em type")
 	}
 	return nil
 }
