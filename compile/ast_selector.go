@@ -24,22 +24,28 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 			if variable != nil {
 				if t, ok := GetBaseType(variable.Type()).(*types.StructType); ok {
 					v, def, ok := f.GetStructDef(variable, t, fexpr.Sel)
-					if ok {
-						if def.Fun == nil {
-							index := utils.IndexStruct(f.GetCurrentBlock(), v, def.Order)
-							return utils.LoadValue(f.GetCurrentBlock(), index)
+					if ok && def.Fun == nil {
+						index := utils.IndexStruct(f.GetCurrentBlock(), v, def.Order)
+						return utils.LoadValue(f.GetCurrentBlock(), index)
+					} else {
+						var fun *ir.Func
+						var kk []value.Value
+						if !ok {
+							decl, _ := f.PreStrutsFunc[t.Name()][fexpr.Sel.Name]
+							fun = f.DoFunDecl(f.mPackage, decl)
 						} else {
-							var kk []value.Value
-							if types.IsPointer(def.Fun.Params[0].Type()) {
-								kk = append(kk, f.GetSrcPtr(variable))
-							} else {
-								kk = append(kk, utils.LoadValue(f.GetCurrentBlock(), variable))
-							}
-							if len(params) > 0 {
-								kk = append(kk, params...)
-							}
-							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
+							fun = def.Fun
 						}
+						if types.IsPointer(fun.Params[0].Type()) {
+							kk = append(kk, f.GetSrcPtr(variable))
+						} else {
+							kk = append(kk, utils.LoadValue(f.GetCurrentBlock(), variable))
+						}
+						if len(params) > 0 {
+							kk = append(kk, params...)
+						}
+						return f.GetCurrentBlock().NewCall(fun, kk...)
+
 					}
 				}
 			}
@@ -84,7 +90,7 @@ func (f *FuncDecl) callSelector(params []value.Value, fexpr *ast.SelectorExpr) v
 		decl := f.DoFunDecl("runtime", f.r.GetFunc("checkGrow"))
 		return f.StdCall(decl)
 	default:
-		logrus.Debugf("not impl doSelector %s", name)
+		logrus.Errorf("not impl doSelector %s", name)
 	}
 	return nil
 }

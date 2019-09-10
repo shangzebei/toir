@@ -23,13 +23,14 @@ type StructDef struct {
 }
 
 type FuncDecl struct {
-	mPackage  string
-	m         *ir.Module
-	fSet      *token.FileSet
-	Funs      map[string]*ir.Func
-	FuncHeap  *[]*ir.Func
-	FuncDecls map[*ast.FuncDecl]*ir.Func
-	blockHeap map[*ir.Func][]*ir.Block
+	mPackage      string
+	m             *ir.Module
+	fSet          *token.FileSet
+	Funs          map[string]*ir.Func
+	FuncHeap      *[]*ir.Func
+	FuncDecls     map[*ast.FuncDecl]*ir.Func
+	PreStrutsFunc map[string]map[string]*ast.FuncDecl
+	blockHeap     map[*ir.Func][]*ir.Block
 	//variables
 	Variables     map[*ir.Block]map[string]value.Value
 	tempVariables []map[string]value.Value
@@ -72,6 +73,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *Fun
 		typeSpecs:     make(map[*ast.TypeSpec]types.Type),
 		openAlloc:     false,
 		compositeLits: make(map[*ast.CompositeLit]*Composete),
+		PreStrutsFunc: make(map[string]map[string]*ast.FuncDecl),
 	}
 	decl.Init()
 	return decl
@@ -79,6 +81,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *Fun
 
 func (f *FuncDecl) Init() {
 	f.tempVariables[0] = make(map[string]value.Value)
+
 }
 
 //types.NewFunc()
@@ -245,6 +248,33 @@ func (f *FuncDecl) CreatFunc(name string, params []*ir.Param, sig *types.FuncTyp
 	return p
 }
 
+func (f *FuncDecl) GetRecvType(funDecl *ast.FuncDecl) types.Type {
+	var structTyp types.Type
+	if nil != funDecl.Recv {
+		switch funDecl.Recv.List[0].Type.(type) {
+		case *ast.Ident:
+			structTyp = f.GetTypeFromName(GetIdentName(funDecl.Recv.List[0].Type.(*ast.Ident)))
+		case *ast.StarExpr:
+			starExpr := funDecl.Recv.List[0].Type.(*ast.StarExpr)
+			structTyp = types.NewPointer(f.GetTypeFromName(GetIdentName(starExpr.X.(*ast.Ident))))
+		}
+	}
+	return structTyp
+}
+
+func (f *FuncDecl) InitFunc(funDecl []*ast.FuncDecl) {
+	for _, value := range funDecl {
+		if value.Recv != nil {
+			recvType := GetBaseType(f.GetRecvType(value))
+			name := recvType.Name()
+			if f.PreStrutsFunc[name] == nil {
+				f.PreStrutsFunc[name] = make(map[string]*ast.FuncDecl)
+			}
+			f.PreStrutsFunc[name][value.Name.Name] = value
+		}
+	}
+}
+
 func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	i, ok := f.FuncDecls[funDecl]
 	if ok {
@@ -252,30 +282,24 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	}
 	////////////////////////////method begin//////////////////////////////
 	//func name
-	var StructTyp string
+	var structTyp = f.GetRecvType(funDecl)
 	funName := funDecl.Name.Name
 	//deal struct
-	if funDecl.Recv != nil {
-		switch funDecl.Recv.List[0].Type.(type) {
-		case *ast.Ident:
-			StructTyp = GetIdentName(funDecl.Recv.List[0].Type.(*ast.Ident))
-		case *ast.StarExpr:
-			starExpr := funDecl.Recv.List[0].Type.(*ast.StarExpr)
-			StructTyp = GetIdentName(starExpr.X.(*ast.Ident))
-		}
-		funName = f.mPackage + "." + StructTyp + "." + funDecl.Name.Name
+	if structTyp != nil {
+		funName = f.mPackage + "." + GetBaseType(structTyp).Name() + "." + funDecl.Name.Name
 	}
-
 	//func type
 	params, funTyp := f.FunType(funDecl.Type)
 	tempFunc := f.CreatFunc(funName, params, funTyp)
+	f.FuncDecls[funDecl] = tempFunc
 	f.pushFunc(tempFunc)
 
 	//deal struct func
 	if funDecl.Recv != nil {
+		s := GetBaseType(structTyp).Name()
 		varName := GetIdentName(funDecl.Recv.List[0].Names[0])
-		tempFunc.Params = append(tempFunc.Params, ir.NewParam(varName, types.NewPointer(f.GlobDef[StructTyp])))
-		f.StructDefs[StructTyp][funDecl.Name.Name] = StructDef{Name: funDecl.Name.Name, Fun: tempFunc, Order: -1}
+		tempFunc.Params = append(tempFunc.Params, ir.NewParam(varName, structTyp))
+		f.StructDefs[s][funDecl.Name.Name] = StructDef{Name: funDecl.Name.Name, Fun: tempFunc, Order: -1}
 	}
 
 	//func body
@@ -288,7 +312,6 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 		f.GetCurrent().Sig.RetType = types.Void
 	}
 	pop := f.popFunc()
-	f.FuncDecls[funDecl] = pop
 
 	return pop
 
