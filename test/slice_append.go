@@ -3,7 +3,11 @@ package test
 import "fmt"
 
 func main() {
+	sli1()
+	sli2()
 	sli3()
+	othSli()
+	stringSli()
 }
 
 func sli1() {
@@ -44,7 +48,6 @@ func othSli() {
 	fmt.Printf("%.2g\n", f[3])
 }
 
-//TODO ERROR
 //func stringSli() {
 //	var s = []string{"aaaaa", "bbbbb", "ccccc"}
 //	s = append(s, "eeeeee")
