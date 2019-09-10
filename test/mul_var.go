@@ -5,6 +5,7 @@ import "fmt"
 func main() {
 	i, i2 := mulFunc(1)
 	fmt.Printf("%d--%d\n", i, i2)
+	mulVar()
 }
 
 func mulVar() {

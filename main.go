@@ -20,7 +20,7 @@ func init() {
 	logrus.SetLevel(logrus.DebugLevel)
 }
 
-func Build(file string, outputBinaryPath string) {
+func Build(file string, outputPath string) {
 	fset := token.NewFileSet()
 	bytes, _ := ioutil.ReadFile(file)
 	f, err := parser.ParseFile(fset, "hello.go", bytes, parser.ParseComments)
@@ -66,24 +66,8 @@ func Build(file string, outputBinaryPath string) {
 	//main
 	doFunc.DoFunDecl(f.Name.Name, mainF.(*ast.FuncDecl))
 
-	ioutil.WriteFile("bc.ll", []byte(m.String()), 0644)
+	ioutil.WriteFile(outputPath+".ll", []byte(m.String()), 0644)
 
-	clangArgs := []string{
-		"-Wno-override-module", // Disable override target triple warnings
-		"bc.ll",                // Path to LLVM IR
-		"-o", outputBinaryPath, // Output path
-	}
-	//fmt.Println(clangArgs)
-	// Invoke clang compiler to compile LLVM IR to a binary executable
-	cmd := exec.Command("clang", clangArgs...)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println(string(output))
-	}
-
-	if len(output) > 0 {
-		fmt.Println(string(output))
-	}
 }
 
 func main() {
@@ -94,7 +78,7 @@ func main() {
 		return
 	}
 	Build(*i, "binary")
-	cmd := exec.Command("lli", "bc.ll")
+	cmd := exec.Command("lli", "binary.ll")
 	output, _ := cmd.CombinedOutput()
 	fmt.Println(string(output))
 }

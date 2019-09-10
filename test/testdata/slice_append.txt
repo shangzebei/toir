@@ -1,0 +1,63 @@
+len-4 cap-8
+len-5 cap-8
+len-6 cap-8
+len-7 cap-8
+len-8 cap-8
+len-9 cap-13
+len-10 cap-13
+len-11 cap-13
+len-12 cap-13
+len-13 cap-13
+len-14 cap-18
+len-15 cap-18
+len-16 cap-18
+len-17 cap-18
+len-18 cap-18
+len-19 cap-23
+len-20 cap-23
+len-21 cap-23
+len-22 cap-23
+len-23 cap-23
+len-24 cap-28
+len-25 cap-28
+len-26 cap-28
+len-27 cap-28
+len-28 cap-28
+len-29 cap-33
+len-30 cap-33
+len-31 cap-33
+len-32 cap-33
+len-33 cap-33
+1
+2
+3
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29

@@ -5,6 +5,7 @@ import "fmt"
 func main() {
 	fmt.Printf("%d\n", forr())
 	ifrr()
+	forr()
 }
 
 func forr() int {

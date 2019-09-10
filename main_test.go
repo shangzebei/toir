@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os/exec"
 	"strings"
 	"testing"
 )
@@ -13,7 +14,12 @@ func TestAll(t *testing.T) {
 		if !value.IsDir() {
 			fmt.Println("test:::: ", "test/"+value.Name())
 			index := strings.LastIndex(value.Name(), ".")
-			Build("test/"+value.Name(), "test/bin/"+value.Name()[:index])
+			i := value.Name()[:index]
+			s := "test/temp/" + value.Name()[:index]
+			Build("test/"+value.Name(), s)
+			cmd := exec.Command("lli", s+".ll")
+			output, _ := cmd.CombinedOutput()
+			ioutil.WriteFile("test/testdata/"+i+".txt", output, 0644)
 		}
 	}
 }

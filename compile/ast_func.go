@@ -177,14 +177,7 @@ func (f *FuncDecl) UnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 	}
 	switch unaryExpr.Op {
 	case token.AND:
-		if a, ok := variable.(*ir.InstAlloca); ok {
-			return a
-		}
-		if l, ok := variable.(*ir.InstLoad); ok {
-			return l.Src
-		}
-		logrus.Error("UnaryExpr not find the type")
-		return variable
+		return f.GetSrcPtr(variable)
 	case token.RANGE:
 		return f.Ident(unaryExpr.X.(*ast.Ident))
 	default:
@@ -384,7 +377,7 @@ func (f *FuncDecl) DeclStmt(decl *ast.DeclStmt) {
 	utils.CCall(f, decl.Decl)
 }
 
-//only for array and struts return value
+//only for array and struts init return value
 func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 	switch lit.Type.(type) {
 	case *ast.ArrayType: //array
@@ -748,7 +741,16 @@ func (f *FuncDecl) Ident(ident *ast.Ident) value.Value {
 			return constant.NewNull(types.I8Ptr)
 		}
 		if IsKeyWord(identName) {
-			return ir.NewParam("", f.GetTypeFromName(identName))
+			if identName == "true" || identName == "false" {
+				parseBool, _ := strconv.ParseBool(identName)
+				if parseBool {
+					return constant.NewInt(types.I1, 1)
+				} else {
+					return constant.NewInt(types.I1, 0)
+				}
+			} else {
+				return ir.NewParam("", f.GetTypeFromName(identName))
+			}
 		} else {
 			return ir.NewParam(identName, f.GetTypeFromName(identName))
 		}

@@ -25,14 +25,19 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 				if t, ok := GetBaseType(variable.Type()).(*types.StructType); ok {
 					v, def, ok := f.GetStructDef(variable, t, fexpr.Sel)
 					if ok {
-						var kk = []value.Value{v}
-						if len(params) > 0 {
-							kk = append(kk, params...)
-						}
 						if def.Fun == nil {
 							index := utils.IndexStruct(f.GetCurrentBlock(), v, def.Order)
 							return utils.LoadValue(f.GetCurrentBlock(), index)
 						} else {
+							var kk []value.Value
+							if types.IsPointer(def.Fun.Params[0].Type()) {
+								kk = append(kk, f.GetSrcPtr(variable))
+							} else {
+								kk = append(kk, utils.LoadValue(f.GetCurrentBlock(), variable))
+							}
+							if len(params) > 0 {
+								kk = append(kk, params...)
+							}
 							return f.GetCurrentBlock().NewCall(def.Fun, kk...)
 						}
 					}

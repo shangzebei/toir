@@ -153,6 +153,9 @@ func (f *FuncDecl) GetSrcPtr(src value.Value) value.Value {
 		logrus.Debugf("GetSrcPtr end InstLoad.Src %s", l.Src)
 		return l.Src
 	}
+	if l, ok := src.(*Scope); ok {
+		return f.GetSrcPtr(l.V)
+	}
 	return src
 }
 

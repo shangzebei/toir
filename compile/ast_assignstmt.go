@@ -2,6 +2,7 @@ package compile
 
 import (
 	"fmt"
+	"github.com/jinzhu/copier"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
@@ -87,13 +88,6 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 			}
 		} else {
 			logrus.Error("not common return")
-		}
-	}
-
-	//check
-	for index := range l {
-		if len(l) > index && len(r) > index {
-			r[index] = f.doBoolean(r[index], l[index].Type())
 		}
 	}
 
@@ -245,24 +239,27 @@ func (f *FuncDecl) SelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 		logrus.Error("SelectorExpr not impl")
 	}
 	return nil
+
 }
 
 type Inherit struct {
-	Current StructDef
+	Current *StructDef
 	Next    *Inherit
 }
 
 func (f *FuncDecl) find(m map[string]StructDef, name string) *Inherit {
 	inherit := Inherit{}
 	if t, ok := m[name]; ok {
-		inherit.Current = t
+		inherit.Current = &t
 		return &inherit
 	}
 	for key, value := range m {
 		if value.IsInherit {
 			defs, ok := f.StructDefs[key]
 			if ok {
-				inherit.Current = value
+				in := StructDef{}
+				copier.Copy(&in, &value)
+				inherit.Current = &in
 				inherit.Next = f.find(defs, name)
 			}
 		}
@@ -279,7 +276,10 @@ func (f *FuncDecl) GetStructDef(orig value.Value, typ types.Type, sel *ast.Ident
 		return orig, &def, true
 	} else {
 		find := f.find(structDefs, identName)
-		var v value.Value = orig
+		if find.Current == nil {
+			return nil, nil, false
+		}
+		var v = orig
 		for nil != find.Next {
 			if types.IsPointer(find.Current.Typ) {
 				indexStruct := utils.IndexStruct(f.GetCurrentBlock(), v, find.Current.Order)
@@ -289,8 +289,9 @@ func (f *FuncDecl) GetStructDef(orig value.Value, typ types.Type, sel *ast.Ident
 			}
 			find = find.Next
 		}
-		return v, &find.Current, true
+		return v, find.Current, true
 	}
+
 }
 
 //do Boolean

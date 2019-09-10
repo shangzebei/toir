@@ -11,10 +11,10 @@ func main() {
 func ifr2() int {
 	a := 90
 	if a > 50 {
-		fmt.Printf("aaaaaaaaaaaaaa")
+		fmt.Printf("aaaaaaaaaaaaaa\n")
 		return 0
 	} else {
-		fmt.Printf("bbbbbbbbbbbbbbb")
+		fmt.Printf("bbbbbbbbbbbbbbb\n")
 		return 1
 	}
 }
@@ -22,9 +22,9 @@ func ifr2() int {
 func ifr1() int {
 	a := 90
 	if a > 50 {
-		fmt.Printf("aaaaaaaaaaaaaa")
+		fmt.Printf("aaaaaaaaaaaaaa\n")
 	} else {
-		fmt.Printf("bbbbbbbbbbbbbbb")
+		fmt.Printf("bbbbbbbbbbbbbbb\n")
 		return 1
 	}
 	return 0
@@ -35,5 +35,5 @@ func ifr3() {
 	if a > 50 {
 		return
 	}
-	fmt.Printf("asdfasfdsaf")
+	fmt.Printf("asdfasfdsaf\n")
 }
