@@ -43,12 +43,17 @@ func Build(file string, outputPath string) {
 
 	//
 	var funs []*ast.FuncDecl
+	var funs1 []*ast.FuncDecl
 	for _, value := range f.Decls {
 		switch value.(type) {
 		case *ast.GenDecl:
 			globs = append(globs, value.(*ast.GenDecl))
 		case *ast.FuncDecl:
-			if value.(*ast.FuncDecl).Name.Name != "main" {
+			decl := value.(*ast.FuncDecl)
+			if decl.Recv != nil {
+				funs1 = append(funs1, value.(*ast.FuncDecl))
+			}
+			if decl.Name.Name != "main" {
 				funs = append(funs, value.(*ast.FuncDecl))
 			} else {
 				mainF = value
@@ -58,6 +63,10 @@ func Build(file string, outputPath string) {
 	//Glob
 	for _, value := range globs {
 		doFunc.GenDecl(value)
+	}
+	//define func
+	for _, value := range funs1 {
+		doFunc.DoFunDecl(f.Name.Name, value)
 	}
 	//define func
 	for _, value := range funs {

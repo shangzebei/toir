@@ -30,13 +30,7 @@ func initS() {
 //asdfasdfasdfsdfsd
 func sFunc() {
 	var ad = Person{Sex: "man", Age: 12}
-	//ad := Person{}
-	//ad.Name = "asdf"
-	//ad.Age = 45
 	fmt.Printf("%s\n", ad.Name)
-
-	//pp = ad
-
 	show(ad.Age)
 	ad.Show()
 }
@@ -46,5 +40,5 @@ func show(a int) {
 }
 
 func (p *Person) Show() {
-	fmt.Printf("asdfasdfasdfsdfsd\n")
+	fmt.Printf("tttttttttttttttt\n")
 }
