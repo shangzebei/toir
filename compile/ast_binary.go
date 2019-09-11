@@ -37,13 +37,6 @@ func (f *FuncDecl) BinaryExpr(expr *ast.BinaryExpr) value.Value {
 	x = FixNil(x, y.Type())
 	y = FixNil(y, x.Type())
 
-	//if types.IsPointer(x.Type()) {
-	//	x = f.GetCurrentBlock().NewLoad(x)
-	//}
-	//if types.IsPointer(y.Type()) {
-	//	y = f.GetCurrentBlock().NewLoad(y)
-	//}
-
 	//get ops
 	switch expr.Op {
 	case token.ADD: // +
