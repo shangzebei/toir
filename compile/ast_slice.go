@@ -6,7 +6,6 @@ import (
 	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
-	"strconv"
 	"strings"
 	"toir/llvm"
 	"toir/stdlib"
@@ -30,31 +29,52 @@ func (i *SliceValue) Ident() string {
 	return i.p.Ident()
 }
 
-var sliceTypes []types.Type
-
-func (f *FuncDecl) NewAllocSlice(em types.Type, arrayLen value.Value) value.Value {
+func (f *FuncDecl) NewSlice(em types.Type) *ir.Func {
 	if em == nil {
 		panic("error type in NewAllocSlice")
 	}
-	utils.NewComment(f.GetCurrentBlock(), "init slice...............")
 	newStruct := types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
-	sliceTypes = append(sliceTypes, newStruct)
-	alloc := f.GetCurrentBlock().NewAlloca(newStruct)
+	arrayLen := ir.NewParam("len", types.I32)
+	newFunc := ir.NewFunc("init_slice_"+em.String(), types.NewPointer(newStruct), ir.NewParam("len", types.I32))
+
+	f.pushFunc(newFunc)
+	f.newBlock()
+	utils.NewComment(f.GetCurrentBlock(), "init slice...............")
+	alloc := f.NewType(newStruct)
 	i := int64(GetBytes(em))
 	f.SetBytes(alloc, constant.NewInt(types.I32, i))
-	alloc.SetName("array." + strconv.Itoa(len(f.GetCurrentBlock().Insts)))
 	call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(arrayLen, constant.NewInt(types.I32, i)))
 	slice := f.GetPSlice(alloc)
 	f.NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(em)), slice)
 	f.SetCap(alloc, arrayLen)
 	f.SetLen(alloc, arrayLen)
+	f.GetCurrentBlock().NewRet(alloc)
 	utils.NewComment(f.GetCurrentBlock(), "end init slice.................")
-	return &SliceValue{p: alloc, emt: em}
+	f.popBlock()
+	f.popFunc()
+	return newFunc
 }
 
-func (f *FuncDecl) GetSliceType(em types.Type) types.Type {
+func (f *FuncDecl) NewAllocSlice(em types.Type, arrayLen value.Value) value.Value {
+	if em == nil {
+		panic("error type in NewAllocSlice")
+	}
+	var ff *ir.Func
+	if s, ok := f.sliceInits[em]; ok {
+		ff = s
+	} else {
+		ff = f.NewSlice(em)
+		f.sliceInits[em] = ff
+	}
+	call := f.StdCall(ff, arrayLen)
+	baseType := GetBaseType(call.Type())
+	f.sliceTypes = append(f.sliceTypes, baseType)
+	return &SliceValue{p: call, emt: em}
+}
+
+func (f *FuncDecl) GetNewSliceType(em types.Type) types.Type {
 	newStruct := types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
-	sliceTypes = append(sliceTypes, newStruct)
+	f.sliceTypes = append(f.sliceTypes, newStruct)
 	return newStruct
 }
 
@@ -66,7 +86,7 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 		return true
 	}
 	baseType := GetBaseType(v.Type())
-	for _, value := range sliceTypes {
+	for _, value := range f.sliceTypes {
 		if baseType == value {
 			return true
 		}
@@ -76,7 +96,7 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 
 func (f *FuncDecl) IsSliceType(v types.Type) bool {
 	baseType := GetBaseType(v)
-	for _, value := range sliceTypes {
+	for _, value := range f.sliceTypes {
 		if baseType == value {
 			return true
 		}

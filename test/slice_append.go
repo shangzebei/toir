@@ -7,7 +7,7 @@ func main() {
 	sli2()
 	sli3()
 	othSli()
-	stringSli()
+	//stringSli()
 }
 
 func sli1() {

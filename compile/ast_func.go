@@ -54,6 +54,9 @@ type FuncDecl struct {
 	openAlloc bool
 	//*ast.CompositeLit
 	compositeLits map[*ast.CompositeLit]*Composete
+	//slice
+	sliceInits map[types.Type]*ir.Func
+	sliceTypes []types.Type
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
@@ -74,6 +77,7 @@ func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *Fun
 		openAlloc:     false,
 		compositeLits: make(map[*ast.CompositeLit]*Composete),
 		PreStrutsFunc: make(map[string]map[string]*ast.FuncDecl),
+		sliceInits:    make(map[types.Type]*ir.Func),
 	}
 	decl.Init()
 	return decl
@@ -722,9 +726,9 @@ func (f *FuncDecl) ArrayType(arrayType *ast.ArrayType) types.Type {
 	switch arrayType.Elt.(type) {
 	case *ast.Ident:
 		ki := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
-		kind = f.GetSliceType(ki)
+		kind = f.GetNewSliceType(ki)
 	case *ast.ArrayType:
-		kind = f.GetSliceType(f.ArrayType(arrayType.Elt.(*ast.ArrayType)))
+		kind = f.GetNewSliceType(f.ArrayType(arrayType.Elt.(*ast.ArrayType)))
 	default:
 		logrus.Error("not find ArrayType")
 	}

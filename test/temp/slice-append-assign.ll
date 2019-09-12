@@ -1,4 +1,4 @@
-%return.3.0 = type { i8*, i32 }
+%return.4.0 = type { i8*, i32 }
 
 @main.0 = constant [3 x i32] [i32 1, i32 2, i32 8]
 @str.0 = constant [30 x i8] c"a = len(%d) cap(%d) %d %d %d\0A\00"
@@ -10,11 +10,31 @@
 
 declare i8* @malloc(i32)
 
+define { i32, i32, i32, i32* }* @init_slice_i32(i32 %len) {
+; <label>:0
+	; init slice...............
+	%1 = call i8* @malloc(i32 20)
+	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
+	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 2
+	store i32 4, i32* %3
+	%4 = mul i32 %len, 4
+	%5 = call i8* @malloc(i32 %4)
+	%6 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
+	%7 = bitcast i8* %5 to i32*
+	store i32* %7, i32** %6
+	%8 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 1
+	store i32 %len, i32* %8
+	%9 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
+	store i32 %len, i32* %9
+	; end init slice.................
+	ret { i32, i32, i32, i32* }* %2
+}
+
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i1)
 
 declare i32 @printf(i8*, ...)
 
-define %return.3.0 @checkGrow(i8* %ptr, i32 %len, i32 %cap, i32 %bytes, i32 %insert) {
+define %return.4.0 @checkGrow(i8* %ptr, i32 %len, i32 %cap, i32 %bytes, i32 %insert) {
 ; <label>:0
 	%1 = alloca i32
 	store i32 %len, i32* %1
@@ -51,502 +71,424 @@ define %return.3.0 @checkGrow(i8* %ptr, i32 %len, i32 %cap, i32 %bytes, i32 %ins
 	store i32 %23, i32* %2
 	%24 = load i8*, i8** %18
 	%25 = load i32, i32* %13
-	%26 = alloca %return.3.0
-	%27 = getelementptr %return.3.0, %return.3.0* %26, i32 0, i32 0
+	%26 = alloca %return.4.0
+	%27 = getelementptr %return.4.0, %return.4.0* %26, i32 0, i32 0
 	store i8* %24, i8** %27
-	%28 = getelementptr %return.3.0, %return.3.0* %26, i32 0, i32 1
+	%28 = getelementptr %return.4.0, %return.4.0* %26, i32 0, i32 1
 	store i32 %25, i32* %28
-	%29 = load %return.3.0, %return.3.0* %26
-	ret %return.3.0 %29
+	%29 = load %return.4.0, %return.4.0* %26
+	ret %return.4.0 %29
 
 ; <label>:30
 	%31 = load i32, i32* %2
-	%32 = alloca %return.3.0
-	%33 = getelementptr %return.3.0, %return.3.0* %32, i32 0, i32 0
+	%32 = alloca %return.4.0
+	%33 = getelementptr %return.4.0, %return.4.0* %32, i32 0, i32 0
 	store i8* %ptr, i8** %33
-	%34 = getelementptr %return.3.0, %return.3.0* %32, i32 0, i32 1
+	%34 = getelementptr %return.4.0, %return.4.0* %32, i32 0, i32 1
 	store i32 %31, i32* %34
-	%35 = load %return.3.0, %return.3.0* %32
-	ret %return.3.0 %35
+	%35 = load %return.4.0, %return.4.0* %32
+	ret %return.4.0 %35
 }
 
 define void @main() {
 ; <label>:0
-	; init slice...............
-	%array.4 = alloca { i32, i32, i32, i32* }
-	%1 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 2
-	store i32 4, i32* %1
-	%2 = mul i32 3, 4
-	%3 = call i8* @malloc(i32 %2)
-	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%5 = bitcast i8* %3 to i32*
-	store i32* %5, i32** %4
-	%6 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
-	store i32 3, i32* %6
-	%7 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	store i32 3, i32* %7
-	; end init slice.................
-	%8 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	store i32 3, i32* %8
-	%9 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%10 = load i32*, i32** %9
-	%11 = bitcast i32* %10 to i8*
-	%12 = bitcast [3 x i32]* @main.0 to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %11, i8* %12, i32 12, i1 false)
-	%13 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4
-	%14 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
+	%1 = call { i32, i32, i32, i32* }* @init_slice_i32(i32 3)
+	%2 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	store i32 3, i32* %2
+	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%4 = load i32*, i32** %3
+	%5 = bitcast i32* %4 to i8*
+	%6 = bitcast [3 x i32]* @main.0 to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %5, i8* %6, i32 12, i1 false)
+	%7 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1
+	%8 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%9 = load i32, i32* %8
+	%10 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
+	%11 = load i32, i32* %10
+	; get slice index
+	%12 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%13 = load i32*, i32** %12
+	%14 = getelementptr i32, i32* %13, i32 0
 	%15 = load i32, i32* %14
-	%16 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
-	%17 = load i32, i32* %16
 	; get slice index
-	%18 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%19 = load i32*, i32** %18
-	%20 = getelementptr i32, i32* %19, i32 0
-	%21 = load i32, i32* %20
+	%16 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%17 = load i32*, i32** %16
+	%18 = getelementptr i32, i32* %17, i32 1
+	%19 = load i32, i32* %18
 	; get slice index
-	%22 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%23 = load i32*, i32** %22
-	%24 = getelementptr i32, i32* %23, i32 1
-	%25 = load i32, i32* %24
-	; get slice index
-	%26 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%27 = load i32*, i32** %26
-	%28 = getelementptr i32, i32* %27, i32 2
-	%29 = load i32, i32* %28
-	%30 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([30 x i8], [30 x i8]* @str.0, i64 0, i64 0), i32 %15, i32 %17, i32 %21, i32 %25, i32 %29)
+	%20 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%21 = load i32*, i32** %20
+	%22 = getelementptr i32, i32* %21, i32 2
+	%23 = load i32, i32* %22
+	%24 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([30 x i8], [30 x i8]* @str.0, i64 0, i64 0), i32 %9, i32 %11, i32 %15, i32 %19, i32 %23)
 	; append start---------------------
-	%31 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%32 = load i32*, i32** %31
-	%33 = bitcast i32* %32 to i8*
-	%34 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%35 = load i32, i32* %34
-	%36 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
-	%37 = load i32, i32* %36
-	%38 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 2
-	%39 = load i32, i32* %38
-	%40 = call %return.3.0 @checkGrow(i8* %33, i32 %35, i32 %37, i32 %39, i32 1)
-	%41 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%42 = load i32, i32* %41
+	%25 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%26 = load i32*, i32** %25
+	%27 = bitcast i32* %26 to i8*
+	%28 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%29 = load i32, i32* %28
+	%30 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
+	%31 = load i32, i32* %30
+	%32 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 2
+	%33 = load i32, i32* %32
+	%34 = call %return.4.0 @checkGrow(i8* %27, i32 %29, i32 %31, i32 %33, i32 1)
+	%35 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%36 = load i32, i32* %35
 	; copy and new slice
-	%43 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%44 = load i32, i32* %43
-	; init slice...............
-	%array.62 = alloca { i32, i32, i32, i32* }
-	%45 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62, i32 0, i32 2
-	store i32 4, i32* %45
-	%46 = mul i32 %44, 4
-	%47 = call i8* @malloc(i32 %46)
-	%48 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62, i32 0, i32 3
-	%49 = bitcast i8* %47 to i32*
-	store i32* %49, i32** %48
-	%50 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62, i32 0, i32 1
-	store i32 %44, i32* %50
-	%51 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62, i32 0, i32 0
-	store i32 %44, i32* %51
-	; end init slice.................
-	%52 = bitcast { i32, i32, i32, i32* }* %array.62 to i8*
-	%53 = bitcast { i32, i32, i32, i32* }* %array.4 to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %52, i8* %53, i32 20, i1 false)
+	%37 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%38 = load i32, i32* %37
+	%39 = call { i32, i32, i32, i32* }* @init_slice_i32(i32 %38)
+	%40 = bitcast { i32, i32, i32, i32* }* %39 to i8*
+	%41 = bitcast { i32, i32, i32, i32* }* %1 to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %40, i8* %41, i32 20, i1 false)
 	; copy and end slice
-	%54 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62, i32 0, i32 3
-	%55 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62, i32 0, i32 0
-	%56 = extractvalue %return.3.0 %40, 0
-	%57 = extractvalue %return.3.0 %40, 1
-	%58 = bitcast i8* %56 to i32*
-	store i32* %58, i32** %54
+	%42 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %39, i32 0, i32 3
+	%43 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %39, i32 0, i32 0
+	%44 = extractvalue %return.4.0 %34, 0
+	%45 = extractvalue %return.4.0 %34, 1
+	%46 = bitcast i8* %44 to i32*
+	store i32* %46, i32** %42
 	; store value
-	%59 = load i32*, i32** %54
-	%60 = bitcast i32* %59 to i32*
-	%61 = add i32 %42, 0
-	%62 = getelementptr i32, i32* %60, i32 %61
-	store i32 4, i32* %62
+	%47 = load i32*, i32** %42
+	%48 = bitcast i32* %47 to i32*
+	%49 = add i32 %36, 0
+	%50 = getelementptr i32, i32* %48, i32 %49
+	store i32 4, i32* %50
 	; add len
-	%63 = add i32 %42, 1
-	store i32 %63, i32* %55
-	%64 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62, i32 0, i32 1
-	store i32 %57, i32* %64
+	%51 = add i32 %36, 1
+	store i32 %51, i32* %43
+	%52 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %39, i32 0, i32 1
+	store i32 %45, i32* %52
 	; append end-------------------------
-	%65 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.62
-	store { i32, i32, i32, i32* } %65, { i32, i32, i32, i32* }* %array.4
-	%66 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%67 = load i32, i32* %66
-	%68 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
+	%53 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %39
+	store { i32, i32, i32, i32* } %53, { i32, i32, i32, i32* }* %1
+	%54 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%55 = load i32, i32* %54
+	%56 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
+	%57 = load i32, i32* %56
+	; get slice index
+	%58 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%59 = load i32*, i32** %58
+	%60 = getelementptr i32, i32* %59, i32 0
+	%61 = load i32, i32* %60
+	; get slice index
+	%62 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%63 = load i32*, i32** %62
+	%64 = getelementptr i32, i32* %63, i32 1
+	%65 = load i32, i32* %64
+	; get slice index
+	%66 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%67 = load i32*, i32** %66
+	%68 = getelementptr i32, i32* %67, i32 2
 	%69 = load i32, i32* %68
 	; get slice index
-	%70 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
+	%70 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
 	%71 = load i32*, i32** %70
-	%72 = getelementptr i32, i32* %71, i32 0
+	%72 = getelementptr i32, i32* %71, i32 3
 	%73 = load i32, i32* %72
-	; get slice index
-	%74 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%75 = load i32*, i32** %74
-	%76 = getelementptr i32, i32* %75, i32 1
-	%77 = load i32, i32* %76
-	; get slice index
-	%78 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%79 = load i32*, i32** %78
-	%80 = getelementptr i32, i32* %79, i32 2
+	%74 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([33 x i8], [33 x i8]* @str.1, i64 0, i64 0), i32 %55, i32 %57, i32 %61, i32 %65, i32 %69, i32 %73)
+	; append start---------------------
+	%75 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%76 = load i32*, i32** %75
+	%77 = bitcast i32* %76 to i8*
+	%78 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%79 = load i32, i32* %78
+	%80 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
 	%81 = load i32, i32* %80
-	; get slice index
-	%82 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%83 = load i32*, i32** %82
-	%84 = getelementptr i32, i32* %83, i32 3
-	%85 = load i32, i32* %84
-	%86 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([33 x i8], [33 x i8]* @str.1, i64 0, i64 0), i32 %67, i32 %69, i32 %73, i32 %77, i32 %81, i32 %85)
-	; append start---------------------
-	%87 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%88 = load i32*, i32** %87
-	%89 = bitcast i32* %88 to i8*
-	%90 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%91 = load i32, i32* %90
-	%92 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
-	%93 = load i32, i32* %92
-	%94 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 2
-	%95 = load i32, i32* %94
-	%96 = call %return.3.0 @checkGrow(i8* %89, i32 %91, i32 %93, i32 %95, i32 1)
-	%97 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%98 = load i32, i32* %97
+	%82 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 2
+	%83 = load i32, i32* %82
+	%84 = call %return.4.0 @checkGrow(i8* %77, i32 %79, i32 %81, i32 %83, i32 1)
+	%85 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%86 = load i32, i32* %85
 	; copy and new slice
-	%99 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%100 = load i32, i32* %99
-	; init slice...............
-	%array.141 = alloca { i32, i32, i32, i32* }
-	%101 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141, i32 0, i32 2
-	store i32 4, i32* %101
-	%102 = mul i32 %100, 4
-	%103 = call i8* @malloc(i32 %102)
-	%104 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141, i32 0, i32 3
-	%105 = bitcast i8* %103 to i32*
-	store i32* %105, i32** %104
-	%106 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141, i32 0, i32 1
-	store i32 %100, i32* %106
-	%107 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141, i32 0, i32 0
-	store i32 %100, i32* %107
-	; end init slice.................
-	%108 = bitcast { i32, i32, i32, i32* }* %array.141 to i8*
-	%109 = bitcast { i32, i32, i32, i32* }* %array.4 to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %108, i8* %109, i32 20, i1 false)
+	%87 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%88 = load i32, i32* %87
+	%89 = call { i32, i32, i32, i32* }* @init_slice_i32(i32 %88)
+	%90 = bitcast { i32, i32, i32, i32* }* %89 to i8*
+	%91 = bitcast { i32, i32, i32, i32* }* %1 to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %90, i8* %91, i32 20, i1 false)
 	; copy and end slice
-	%110 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141, i32 0, i32 3
-	%111 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141, i32 0, i32 0
-	%112 = extractvalue %return.3.0 %96, 0
-	%113 = extractvalue %return.3.0 %96, 1
-	%114 = bitcast i8* %112 to i32*
-	store i32* %114, i32** %110
+	%92 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %89, i32 0, i32 3
+	%93 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %89, i32 0, i32 0
+	%94 = extractvalue %return.4.0 %84, 0
+	%95 = extractvalue %return.4.0 %84, 1
+	%96 = bitcast i8* %94 to i32*
+	store i32* %96, i32** %92
 	; store value
-	%115 = load i32*, i32** %110
-	%116 = bitcast i32* %115 to i32*
-	%117 = add i32 %98, 0
-	%118 = getelementptr i32, i32* %116, i32 %117
-	store i32 5000, i32* %118
+	%97 = load i32*, i32** %92
+	%98 = bitcast i32* %97 to i32*
+	%99 = add i32 %86, 0
+	%100 = getelementptr i32, i32* %98, i32 %99
+	store i32 5000, i32* %100
 	; add len
-	%119 = add i32 %98, 1
-	store i32 %119, i32* %111
-	%120 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141, i32 0, i32 1
-	store i32 %113, i32* %120
+	%101 = add i32 %86, 1
+	store i32 %101, i32* %93
+	%102 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %89, i32 0, i32 1
+	store i32 %95, i32* %102
 	; append end-------------------------
-	%121 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.141
-	store { i32, i32, i32, i32* } %121, { i32, i32, i32, i32* }* %array.4
-	%122 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
+	%103 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %89
+	store { i32, i32, i32, i32* } %103, { i32, i32, i32, i32* }* %1
+	%104 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%105 = load i32, i32* %104
+	%106 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
+	%107 = load i32, i32* %106
+	; get slice index
+	%108 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%109 = load i32*, i32** %108
+	%110 = getelementptr i32, i32* %109, i32 0
+	%111 = load i32, i32* %110
+	; get slice index
+	%112 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%113 = load i32*, i32** %112
+	%114 = getelementptr i32, i32* %113, i32 1
+	%115 = load i32, i32* %114
+	; get slice index
+	%116 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%117 = load i32*, i32** %116
+	%118 = getelementptr i32, i32* %117, i32 2
+	%119 = load i32, i32* %118
+	; get slice index
+	%120 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%121 = load i32*, i32** %120
+	%122 = getelementptr i32, i32* %121, i32 3
 	%123 = load i32, i32* %122
-	%124 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
-	%125 = load i32, i32* %124
 	; get slice index
-	%126 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%127 = load i32*, i32** %126
-	%128 = getelementptr i32, i32* %127, i32 0
-	%129 = load i32, i32* %128
-	; get slice index
-	%130 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%131 = load i32*, i32** %130
-	%132 = getelementptr i32, i32* %131, i32 1
+	%124 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%125 = load i32*, i32** %124
+	%126 = getelementptr i32, i32* %125, i32 4
+	%127 = load i32, i32* %126
+	%128 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([36 x i8], [36 x i8]* @str.2, i64 0, i64 0), i32 %105, i32 %107, i32 %111, i32 %115, i32 %119, i32 %123, i32 %127)
+	; append start---------------------
+	%129 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%130 = load i32*, i32** %129
+	%131 = bitcast i32* %130 to i8*
+	%132 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
 	%133 = load i32, i32* %132
-	; get slice index
-	%134 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%135 = load i32*, i32** %134
-	%136 = getelementptr i32, i32* %135, i32 2
+	%134 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
+	%135 = load i32, i32* %134
+	%136 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 2
 	%137 = load i32, i32* %136
-	; get slice index
-	%138 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%139 = load i32*, i32** %138
-	%140 = getelementptr i32, i32* %139, i32 3
-	%141 = load i32, i32* %140
-	; get slice index
-	%142 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%143 = load i32*, i32** %142
-	%144 = getelementptr i32, i32* %143, i32 4
-	%145 = load i32, i32* %144
-	%146 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([36 x i8], [36 x i8]* @str.2, i64 0, i64 0), i32 %123, i32 %125, i32 %129, i32 %133, i32 %137, i32 %141, i32 %145)
-	; append start---------------------
-	%147 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%148 = load i32*, i32** %147
-	%149 = bitcast i32* %148 to i8*
-	%150 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%151 = load i32, i32* %150
-	%152 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
-	%153 = load i32, i32* %152
-	%154 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 2
-	%155 = load i32, i32* %154
-	%156 = call %return.3.0 @checkGrow(i8* %149, i32 %151, i32 %153, i32 %155, i32 1)
-	%157 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%158 = load i32, i32* %157
+	%138 = call %return.4.0 @checkGrow(i8* %131, i32 %133, i32 %135, i32 %137, i32 1)
+	%139 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%140 = load i32, i32* %139
 	; copy and new slice
-	%159 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%160 = load i32, i32* %159
-	; init slice...............
-	%array.225 = alloca { i32, i32, i32, i32* }
-	%161 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 2
-	store i32 4, i32* %161
-	%162 = mul i32 %160, 4
-	%163 = call i8* @malloc(i32 %162)
-	%164 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%165 = bitcast i8* %163 to i32*
-	store i32* %165, i32** %164
-	%166 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 1
-	store i32 %160, i32* %166
-	%167 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 0
-	store i32 %160, i32* %167
-	; end init slice.................
-	%168 = bitcast { i32, i32, i32, i32* }* %array.225 to i8*
-	%169 = bitcast { i32, i32, i32, i32* }* %array.4 to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %168, i8* %169, i32 20, i1 false)
+	%141 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%142 = load i32, i32* %141
+	%143 = call { i32, i32, i32, i32* }* @init_slice_i32(i32 %142)
+	%144 = bitcast { i32, i32, i32, i32* }* %143 to i8*
+	%145 = bitcast { i32, i32, i32, i32* }* %1 to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %144, i8* %145, i32 20, i1 false)
 	; copy and end slice
-	%170 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%171 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 0
-	%172 = extractvalue %return.3.0 %156, 0
-	%173 = extractvalue %return.3.0 %156, 1
-	%174 = bitcast i8* %172 to i32*
-	store i32* %174, i32** %170
+	%146 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%147 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 0
+	%148 = extractvalue %return.4.0 %138, 0
+	%149 = extractvalue %return.4.0 %138, 1
+	%150 = bitcast i8* %148 to i32*
+	store i32* %150, i32** %146
 	; store value
-	%175 = load i32*, i32** %170
-	%176 = bitcast i32* %175 to i32*
-	%177 = add i32 %158, 0
-	%178 = getelementptr i32, i32* %176, i32 %177
-	store i32 6000, i32* %178
+	%151 = load i32*, i32** %146
+	%152 = bitcast i32* %151 to i32*
+	%153 = add i32 %140, 0
+	%154 = getelementptr i32, i32* %152, i32 %153
+	store i32 6000, i32* %154
 	; add len
-	%179 = add i32 %158, 1
-	store i32 %179, i32* %171
-	%180 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 1
-	store i32 %173, i32* %180
+	%155 = add i32 %140, 1
+	store i32 %155, i32* %147
+	%156 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 1
+	store i32 %149, i32* %156
 	; append end-------------------------
-	%181 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225
-	%182 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 0
-	%183 = load i32, i32* %182
-	%184 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 1
+	%157 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143
+	%158 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 0
+	%159 = load i32, i32* %158
+	%160 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 1
+	%161 = load i32, i32* %160
+	; get slice index
+	%162 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%163 = load i32*, i32** %162
+	%164 = getelementptr i32, i32* %163, i32 0
+	%165 = load i32, i32* %164
+	; get slice index
+	%166 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%167 = load i32*, i32** %166
+	%168 = getelementptr i32, i32* %167, i32 1
+	%169 = load i32, i32* %168
+	; get slice index
+	%170 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%171 = load i32*, i32** %170
+	%172 = getelementptr i32, i32* %171, i32 2
+	%173 = load i32, i32* %172
+	; get slice index
+	%174 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%175 = load i32*, i32** %174
+	%176 = getelementptr i32, i32* %175, i32 3
+	%177 = load i32, i32* %176
+	; get slice index
+	%178 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%179 = load i32*, i32** %178
+	%180 = getelementptr i32, i32* %179, i32 4
+	%181 = load i32, i32* %180
+	; get slice index
+	%182 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%183 = load i32*, i32** %182
+	%184 = getelementptr i32, i32* %183, i32 5
 	%185 = load i32, i32* %184
-	; get slice index
-	%186 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%187 = load i32*, i32** %186
-	%188 = getelementptr i32, i32* %187, i32 0
-	%189 = load i32, i32* %188
-	; get slice index
-	%190 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%191 = load i32*, i32** %190
-	%192 = getelementptr i32, i32* %191, i32 1
+	%186 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([39 x i8], [39 x i8]* @str.3, i64 0, i64 0), i32 %159, i32 %161, i32 %165, i32 %169, i32 %173, i32 %177, i32 %181, i32 %185)
+	; append start---------------------
+	%187 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%188 = load i32*, i32** %187
+	%189 = bitcast i32* %188 to i8*
+	%190 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%191 = load i32, i32* %190
+	%192 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
 	%193 = load i32, i32* %192
-	; get slice index
-	%194 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%195 = load i32*, i32** %194
-	%196 = getelementptr i32, i32* %195, i32 2
-	%197 = load i32, i32* %196
-	; get slice index
-	%198 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%199 = load i32*, i32** %198
-	%200 = getelementptr i32, i32* %199, i32 3
-	%201 = load i32, i32* %200
-	; get slice index
-	%202 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%203 = load i32*, i32** %202
-	%204 = getelementptr i32, i32* %203, i32 4
-	%205 = load i32, i32* %204
-	; get slice index
-	%206 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%207 = load i32*, i32** %206
-	%208 = getelementptr i32, i32* %207, i32 5
-	%209 = load i32, i32* %208
-	%210 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([39 x i8], [39 x i8]* @str.3, i64 0, i64 0), i32 %183, i32 %185, i32 %189, i32 %193, i32 %197, i32 %201, i32 %205, i32 %209)
-	; append start---------------------
-	%211 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%212 = load i32*, i32** %211
-	%213 = bitcast i32* %212 to i8*
-	%214 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%215 = load i32, i32* %214
-	%216 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
+	%194 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 2
+	%195 = load i32, i32* %194
+	%196 = call %return.4.0 @checkGrow(i8* %189, i32 %191, i32 %193, i32 %195, i32 1)
+	%197 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%198 = load i32, i32* %197
+	; copy and new slice
+	%199 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
+	%200 = load i32, i32* %199
+	%201 = call { i32, i32, i32, i32* }* @init_slice_i32(i32 %200)
+	%202 = bitcast { i32, i32, i32, i32* }* %201 to i8*
+	%203 = bitcast { i32, i32, i32, i32* }* %1 to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %202, i8* %203, i32 20, i1 false)
+	; copy and end slice
+	%204 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %201, i32 0, i32 3
+	%205 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %201, i32 0, i32 0
+	%206 = extractvalue %return.4.0 %196, 0
+	%207 = extractvalue %return.4.0 %196, 1
+	%208 = bitcast i8* %206 to i32*
+	store i32* %208, i32** %204
+	; store value
+	%209 = load i32*, i32** %204
+	%210 = bitcast i32* %209 to i32*
+	%211 = add i32 %198, 0
+	%212 = getelementptr i32, i32* %210, i32 %211
+	store i32 7000, i32* %212
+	; add len
+	%213 = add i32 %198, 1
+	store i32 %213, i32* %205
+	%214 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %201, i32 0, i32 1
+	store i32 %207, i32* %214
+	; append end-------------------------
+	%215 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %201
+	store { i32, i32, i32, i32* } %215, { i32, i32, i32, i32* }* %1
+	%216 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 0
 	%217 = load i32, i32* %216
-	%218 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 2
+	%218 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 1
 	%219 = load i32, i32* %218
-	%220 = call %return.3.0 @checkGrow(i8* %213, i32 %215, i32 %217, i32 %219, i32 1)
-	%221 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%222 = load i32, i32* %221
-	; copy and new slice
-	%223 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%224 = load i32, i32* %223
-	; init slice...............
-	%array.313 = alloca { i32, i32, i32, i32* }
-	%225 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313, i32 0, i32 2
-	store i32 4, i32* %225
-	%226 = mul i32 %224, 4
-	%227 = call i8* @malloc(i32 %226)
-	%228 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313, i32 0, i32 3
-	%229 = bitcast i8* %227 to i32*
-	store i32* %229, i32** %228
-	%230 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313, i32 0, i32 1
-	store i32 %224, i32* %230
-	%231 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313, i32 0, i32 0
-	store i32 %224, i32* %231
-	; end init slice.................
-	%232 = bitcast { i32, i32, i32, i32* }* %array.313 to i8*
-	%233 = bitcast { i32, i32, i32, i32* }* %array.4 to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %232, i8* %233, i32 20, i1 false)
-	; copy and end slice
-	%234 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313, i32 0, i32 3
-	%235 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313, i32 0, i32 0
-	%236 = extractvalue %return.3.0 %220, 0
-	%237 = extractvalue %return.3.0 %220, 1
-	%238 = bitcast i8* %236 to i32*
-	store i32* %238, i32** %234
-	; store value
-	%239 = load i32*, i32** %234
-	%240 = bitcast i32* %239 to i32*
-	%241 = add i32 %222, 0
-	%242 = getelementptr i32, i32* %240, i32 %241
-	store i32 7000, i32* %242
-	; add len
-	%243 = add i32 %222, 1
-	store i32 %243, i32* %235
-	%244 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313, i32 0, i32 1
-	store i32 %237, i32* %244
-	; append end-------------------------
-	%245 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.313
-	store { i32, i32, i32, i32* } %245, { i32, i32, i32, i32* }* %array.4
-	%246 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 0
-	%247 = load i32, i32* %246
-	%248 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 1
-	%249 = load i32, i32* %248
 	; get slice index
-	%250 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%251 = load i32*, i32** %250
-	%252 = getelementptr i32, i32* %251, i32 0
-	%253 = load i32, i32* %252
+	%220 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%221 = load i32*, i32** %220
+	%222 = getelementptr i32, i32* %221, i32 0
+	%223 = load i32, i32* %222
 	; get slice index
-	%254 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%255 = load i32*, i32** %254
-	%256 = getelementptr i32, i32* %255, i32 1
-	%257 = load i32, i32* %256
+	%224 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%225 = load i32*, i32** %224
+	%226 = getelementptr i32, i32* %225, i32 1
+	%227 = load i32, i32* %226
 	; get slice index
-	%258 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%259 = load i32*, i32** %258
-	%260 = getelementptr i32, i32* %259, i32 2
-	%261 = load i32, i32* %260
+	%228 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%229 = load i32*, i32** %228
+	%230 = getelementptr i32, i32* %229, i32 2
+	%231 = load i32, i32* %230
 	; get slice index
-	%262 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%263 = load i32*, i32** %262
-	%264 = getelementptr i32, i32* %263, i32 3
-	%265 = load i32, i32* %264
+	%232 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%233 = load i32*, i32** %232
+	%234 = getelementptr i32, i32* %233, i32 3
+	%235 = load i32, i32* %234
 	; get slice index
-	%266 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%267 = load i32*, i32** %266
-	%268 = getelementptr i32, i32* %267, i32 4
-	%269 = load i32, i32* %268
+	%236 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%237 = load i32*, i32** %236
+	%238 = getelementptr i32, i32* %237, i32 4
+	%239 = load i32, i32* %238
 	; get slice index
-	%270 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.4, i32 0, i32 3
-	%271 = load i32*, i32** %270
-	%272 = getelementptr i32, i32* %271, i32 5
-	%273 = load i32, i32* %272
-	%274 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([39 x i8], [39 x i8]* @str.4, i64 0, i64 0), i32 %247, i32 %249, i32 %253, i32 %257, i32 %261, i32 %265, i32 %269, i32 %273)
+	%240 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %1, i32 0, i32 3
+	%241 = load i32*, i32** %240
+	%242 = getelementptr i32, i32* %241, i32 5
+	%243 = load i32, i32* %242
+	%244 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([39 x i8], [39 x i8]* @str.4, i64 0, i64 0), i32 %217, i32 %219, i32 %223, i32 %227, i32 %231, i32 %235, i32 %239, i32 %243)
 	; append start---------------------
-	%275 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%276 = load i32*, i32** %275
-	%277 = bitcast i32* %276 to i8*
-	%278 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 0
-	%279 = load i32, i32* %278
-	%280 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 1
-	%281 = load i32, i32* %280
-	%282 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 2
-	%283 = load i32, i32* %282
-	%284 = call %return.3.0 @checkGrow(i8* %277, i32 %279, i32 %281, i32 %283, i32 1)
-	%285 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 0
-	%286 = load i32, i32* %285
+	%245 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%246 = load i32*, i32** %245
+	%247 = bitcast i32* %246 to i8*
+	%248 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 0
+	%249 = load i32, i32* %248
+	%250 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 1
+	%251 = load i32, i32* %250
+	%252 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 2
+	%253 = load i32, i32* %252
+	%254 = call %return.4.0 @checkGrow(i8* %247, i32 %249, i32 %251, i32 %253, i32 1)
+	%255 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 0
+	%256 = load i32, i32* %255
 	; copy and new slice
-	%287 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 0
-	%288 = load i32, i32* %287
-	; init slice...............
-	%array.402 = alloca { i32, i32, i32, i32* }
-	%289 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402, i32 0, i32 2
-	store i32 4, i32* %289
-	%290 = mul i32 %288, 4
-	%291 = call i8* @malloc(i32 %290)
-	%292 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402, i32 0, i32 3
-	%293 = bitcast i8* %291 to i32*
-	store i32* %293, i32** %292
-	%294 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402, i32 0, i32 1
-	store i32 %288, i32* %294
-	%295 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402, i32 0, i32 0
-	store i32 %288, i32* %295
-	; end init slice.................
-	%296 = bitcast { i32, i32, i32, i32* }* %array.402 to i8*
-	%297 = bitcast { i32, i32, i32, i32* }* %array.225 to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %296, i8* %297, i32 20, i1 false)
+	%257 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 0
+	%258 = load i32, i32* %257
+	%259 = call { i32, i32, i32, i32* }* @init_slice_i32(i32 %258)
+	%260 = bitcast { i32, i32, i32, i32* }* %259 to i8*
+	%261 = bitcast { i32, i32, i32, i32* }* %143 to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %260, i8* %261, i32 20, i1 false)
 	; copy and end slice
-	%298 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402, i32 0, i32 3
-	%299 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402, i32 0, i32 0
-	%300 = extractvalue %return.3.0 %284, 0
-	%301 = extractvalue %return.3.0 %284, 1
-	%302 = bitcast i8* %300 to i32*
-	store i32* %302, i32** %298
+	%262 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %259, i32 0, i32 3
+	%263 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %259, i32 0, i32 0
+	%264 = extractvalue %return.4.0 %254, 0
+	%265 = extractvalue %return.4.0 %254, 1
+	%266 = bitcast i8* %264 to i32*
+	store i32* %266, i32** %262
 	; store value
-	%303 = load i32*, i32** %298
-	%304 = bitcast i32* %303 to i32*
-	%305 = add i32 %286, 0
-	%306 = getelementptr i32, i32* %304, i32 %305
-	store i32 8000, i32* %306
+	%267 = load i32*, i32** %262
+	%268 = bitcast i32* %267 to i32*
+	%269 = add i32 %256, 0
+	%270 = getelementptr i32, i32* %268, i32 %269
+	store i32 8000, i32* %270
 	; add len
-	%307 = add i32 %286, 1
-	store i32 %307, i32* %299
-	%308 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402, i32 0, i32 1
-	store i32 %301, i32* %308
+	%271 = add i32 %256, 1
+	store i32 %271, i32* %263
+	%272 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %259, i32 0, i32 1
+	store i32 %265, i32* %272
 	; append end-------------------------
-	%309 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.402
-	store { i32, i32, i32, i32* } %309, { i32, i32, i32, i32* }* %array.225
-	%310 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 0
-	%311 = load i32, i32* %310
-	%312 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 1
-	%313 = load i32, i32* %312
+	%273 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %259
+	store { i32, i32, i32, i32* } %273, { i32, i32, i32, i32* }* %143
+	%274 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 0
+	%275 = load i32, i32* %274
+	%276 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 1
+	%277 = load i32, i32* %276
 	; get slice index
-	%314 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%315 = load i32*, i32** %314
-	%316 = getelementptr i32, i32* %315, i32 0
-	%317 = load i32, i32* %316
+	%278 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%279 = load i32*, i32** %278
+	%280 = getelementptr i32, i32* %279, i32 0
+	%281 = load i32, i32* %280
 	; get slice index
-	%318 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%319 = load i32*, i32** %318
-	%320 = getelementptr i32, i32* %319, i32 1
-	%321 = load i32, i32* %320
+	%282 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%283 = load i32*, i32** %282
+	%284 = getelementptr i32, i32* %283, i32 1
+	%285 = load i32, i32* %284
 	; get slice index
-	%322 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%323 = load i32*, i32** %322
-	%324 = getelementptr i32, i32* %323, i32 2
-	%325 = load i32, i32* %324
+	%286 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%287 = load i32*, i32** %286
+	%288 = getelementptr i32, i32* %287, i32 2
+	%289 = load i32, i32* %288
 	; get slice index
-	%326 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%327 = load i32*, i32** %326
-	%328 = getelementptr i32, i32* %327, i32 3
-	%329 = load i32, i32* %328
+	%290 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%291 = load i32*, i32** %290
+	%292 = getelementptr i32, i32* %291, i32 3
+	%293 = load i32, i32* %292
 	; get slice index
-	%330 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%331 = load i32*, i32** %330
-	%332 = getelementptr i32, i32* %331, i32 4
-	%333 = load i32, i32* %332
+	%294 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%295 = load i32*, i32** %294
+	%296 = getelementptr i32, i32* %295, i32 4
+	%297 = load i32, i32* %296
 	; get slice index
-	%334 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%335 = load i32*, i32** %334
-	%336 = getelementptr i32, i32* %335, i32 5
-	%337 = load i32, i32* %336
+	%298 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%299 = load i32*, i32** %298
+	%300 = getelementptr i32, i32* %299, i32 5
+	%301 = load i32, i32* %300
 	; get slice index
-	%338 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %array.225, i32 0, i32 3
-	%339 = load i32*, i32** %338
-	%340 = getelementptr i32, i32* %339, i32 6
-	%341 = load i32, i32* %340
-	%342 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([42 x i8], [42 x i8]* @str.5, i64 0, i64 0), i32 %311, i32 %313, i32 %317, i32 %321, i32 %325, i32 %329, i32 %333, i32 %337, i32 %341)
+	%302 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %143, i32 0, i32 3
+	%303 = load i32*, i32** %302
+	%304 = getelementptr i32, i32* %303, i32 6
+	%305 = load i32, i32* %304
+	%306 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([42 x i8], [42 x i8]* @str.5, i64 0, i64 0), i32 %275, i32 %277, i32 %281, i32 %285, i32 %289, i32 %293, i32 %297, i32 %301, i32 %305)
 	ret void
 }

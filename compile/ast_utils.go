@@ -34,6 +34,7 @@ var MapNamesTypes = map[string]types.Type{
 	"string":  types.I8Ptr,
 	"float32": types.Float,
 	"float64": types.Float,
+	"byte":    types.I8,
 	//runtime types
 	"i8":    types.I8,
 	"i8*":   types.I8Ptr,
