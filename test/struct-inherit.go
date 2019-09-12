@@ -15,6 +15,6 @@ type CircularListNode struct {
 func main() {
 	node := CircularListNode{}
 	node.Val = 89
-	fmt.Printf("%d\n", node.ListNode.Val)
-	fmt.Printf("%d\n", node.Val)
+	print("%d\n", node.ListNode.Val)
+	print("%d\n", node.Val)
 }

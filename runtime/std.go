@@ -28,10 +28,6 @@ func rangeSlice(ptr def.I8p, low int, high int, bytes int) def.I8p {
 	return malloc
 }
 
-func newSlice() {
-
-}
-
 //use for range
 func rangeTemp() {
 	var key int
@@ -41,5 +37,14 @@ func rangeTemp() {
 	for zrangzwr := 0; zrangzwr < zrangzwrLen; zrangzwr++ {
 		key = zrangzwr
 		value = f[zrangzwr]
+	}
+}
+
+type string []byte
+
+func checkNil(a interface{}) {
+	if nil == a {
+		print("nil pointer \n")
+		def.Unreachable()
 	}
 }

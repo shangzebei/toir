@@ -1,22 +1,33 @@
 package test
 
-import (
-	"fmt"
-)
-
 func main() {
-	//a := "asdfasdfsdfsd"
-	//fmt.Printf("%s\n", len(a))
+	stringRange()
 }
+
 //
 //
 //
 //func sadd() {
 //	a := "asdfasdfsdfsd"
 //	b := a + "hello"
-//	fmt.Printf(b)
+//	print(b)
 //}
 //
 //func kk()  {
 //	strings.HasPrefix()
 //}
+
+//func string2bytes() {
+//	var kk = []byte("shangzebei")
+//	for _, value := range kk {
+//		print("%d", value)
+//	}
+//}
+
+func stringRange() {
+	var ssss string
+	ssss = "shangzebei"
+	for _, value := range ssss {
+		print("%d ", value)
+	}
+}

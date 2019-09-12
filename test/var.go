@@ -11,7 +11,7 @@ func add(a int, b int) int {
 func main() {
 	b := 4
 	var d = 3
-	fmt.Printf("%d-%d=%d\n", b, d, tt)
+	print("%d-%d=%d\n", b, d, tt)
 }
 
 //func varBool() bool {

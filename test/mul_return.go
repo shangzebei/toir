@@ -12,5 +12,5 @@ func k() int {
 
 func main() {
 	i, i2 := mul2(1)
-	fmt.Printf("%d--%d\n", i, i2)
+	print("%d--%d\n", i, i2)
 }

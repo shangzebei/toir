@@ -8,5 +8,5 @@ func main() {
 	a := []int{1, 2, 3}
 	a = append(a, 8)
 	b := len(a)
-	fmt.Printf("%d\n", b)
+	print("%d\n", b)
 }

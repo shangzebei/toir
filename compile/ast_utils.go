@@ -26,12 +26,12 @@ func GetIdentName(i *ast.Ident) string {
 var MapDefTypes map[string]types.Type
 
 var MapNamesTypes = map[string]types.Type{
-	"bool":    types.I1,
-	"int":     types.I32,
-	"int8":    types.I8,
-	"int32":   types.I32,
-	"int64":   types.I64,
-	"string":  types.I8Ptr,
+	"bool":  types.I1,
+	"int":   types.I32,
+	"int8":  types.I8,
+	"int32": types.I32,
+	"int64": types.I64,
+	//"string":  types.I8Ptr,
 	"float32": types.Float,
 	"float64": types.Float,
 	"byte":    types.I8,
@@ -83,7 +83,13 @@ func (f *FuncDecl) GetTypeFromName(name string) types.Type {
 	fmt.Println("GetTypeFromName error", name)
 	return nil
 }
-func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) constant.Constant {
+
+func (f *FuncDecl) StringType() *types.StructType {
+	str := f.GetTypeFromName("string")
+	return str.(*types.StructType)
+}
+
+func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) value.Value {
 	switch base.Kind {
 	case token.INT:
 		atoi, _ := strconv.Atoi(base.Value)
@@ -91,13 +97,18 @@ func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) cons
 	case token.STRING:
 		itoa := strconv.Itoa(len(f.Constants))
 		str, _ := strconv.Unquote(base.Value)
-		globalDef := f.m.NewGlobalDef("str."+itoa, constant.NewCharArrayFromString(str+"\x00"))
+		fromString := constant.NewCharArrayFromString(str + "\x00")
+		globalDef := f.m.NewGlobalDef("str."+itoa, fromString)
 		globalDef.Immutable = true
 		f.Constants = append(f.Constants, globalDef)
 		ptr := constant.NewGetElementPtr(globalDef, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
 		ptr.Typ = types.I8Ptr
 		ptr.InBounds = true
-		return ptr
+		/////
+		i := len(fromString.X)
+		newString := f.NewString(constant.NewInt(types.I32, int64(i)))
+		f.InitArrayValue(newString, types.NewArray(uint64(i), types.I8), ptr)
+		return f.GetCurrentBlock().NewLoad(newString)
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)
@@ -107,7 +118,7 @@ func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) cons
 	return nil
 }
 
-func (f *FuncDecl) BasicLit(base *ast.BasicLit) constant.Constant {
+func (f *FuncDecl) BasicLit(base *ast.BasicLit) value.Value {
 	return f.BasicLitType(base, types.I32)
 }
 

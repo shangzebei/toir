@@ -3,8 +3,6 @@ package compile
 import (
 	"fmt"
 	"github.com/llir/llvm/ir"
-	"github.com/llir/llvm/ir/constant"
-	"github.com/llir/llvm/ir/types"
 	"github.com/llir/llvm/ir/value"
 	"github.com/sirupsen/logrus"
 	"go/ast"
@@ -53,11 +51,17 @@ func (f *FuncDecl) CallExpr(call *ast.CallExpr) value.Value {
 		return f.doSelector(params, fexpr, "call")
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
-	case *ast.ArrayType:
-		arrayType := call.Fun.(*ast.ArrayType)
-		ki := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
-		slice := f.NewAllocSlice(ki, constant.NewInt(types.I32, 4))
-		return slice
+	//case *ast.ArrayType:
+	//arrayType := call.Fun.(*ast.ArrayType)
+	//ki := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
+	//if s, ok := params[0].(*constant.ExprGetElementPtr); ok {
+	//	i := s.ElemType.(*types.ArrayType)
+	//	types.NewArray(i.Len,ki)
+	//	slice := f.NewSlice(ki, constant.NewInt(types.I32, 4))
+	//	f.InitArrayValue(si)
+	//}
+	//
+	//return slice
 	default:
 		fmt.Println("CallExpr call.Fun")
 	}

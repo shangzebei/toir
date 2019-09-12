@@ -1,7 +1,5 @@
 package test
 
-import "fmt"
-
 type A struct {
 	Name string
 }
@@ -10,7 +8,7 @@ func main() {
 	a := 90
 	b := 80
 	swap(&a, &b)
-	fmt.Printf("%d-%d\n", a, b)
+	print("%d-%d\n", a, b)
 	i := A{Name: "ttttt"}
 	do(i)
 }
@@ -25,5 +23,5 @@ func swapFloat(a *int64, b *int64) {
 }
 
 func do(a A) {
-	fmt.Printf("%s\n", a.Name)
+	print("%s\n", a.Name)
 }

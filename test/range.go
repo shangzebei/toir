@@ -13,7 +13,7 @@ func main() {
 func range1asdfasdfs() {
 	a := []int{1, 2, 3, 4, 5}
 	for index := range a {
-		fmt.Printf("asdfasdfasdfsdfsdf%d\n", index)
+		print("asdfasdfasdfsdfsdf%d\n", index)
 	}
 }
 
@@ -21,21 +21,21 @@ func range1asdfasdfs() {
 func range2() {
 	a := []int{1, 2, 3, 4, 5}
 	for index, value := range a {
-		fmt.Printf("%d-%d\n", index, value)
+		print("%d-%d\n", index, value)
 	}
 }
 
 func range3() {
 	a := []int{1, 2, 3, 4, 5}
 	for _, value := range a {
-		fmt.Printf("%d\n", value)
+		print("%d\n", value)
 	}
 }
 
 func range4() {
 	a := []int{1, 2, 3, 4, 5}
 	for key, _ := range a {
-		fmt.Printf("%d\n", key)
+		print("%d\n", key)
 	}
 }
 
@@ -43,10 +43,10 @@ func range5() {
 	a := []int{1, 2, 3, 4, 5}
 	b := []int{11, 22, 33, 44, 55}
 	for key1, _ := range a {
-		fmt.Printf("=====[row %d]==== \n", key1)
+		print("=====[row %d]==== \n", key1)
 		for _, value := range b {
-			fmt.Printf("%d ", value)
+			print("%d ", value)
 		}
-		fmt.Printf("end\n")
+		print("end\n")
 	}
 }

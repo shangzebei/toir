@@ -1,19 +1,17 @@
 package test
 
-import "fmt"
-
 func main() {
-	fmt.Printf("%d\n", forr())
+	print("%d\n", forr())
 	ifrr()
 	forr()
 }
 
 func forr() int {
-	fmt.Printf("begin\n")
+	print("begin\n")
 	for i := 0; i <= 11; i++ {
-		fmt.Printf("asdfasdfsdf--%d\n", i)
+		print("asdfasdfsdf--%d\n", i)
 		if i > 5 {
-			fmt.Printf(">5 \n")
+			print(">5 \n")
 		}
 	}
 	return 0
@@ -22,7 +20,7 @@ func forr() int {
 func ifrr() int {
 	i := 9
 	if i > 5 {
-		fmt.Printf("aaaaaaaaaaa\n")
+		print("aaaaaaaaaaa\n")
 		return 1
 	}
 	return 0

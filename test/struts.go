@@ -1,16 +1,9 @@
 package test
 
-import "fmt"
-
 type Person struct {
 	Name string
 	Sex  string
 	Age  int
-}
-
-type ListN struct {
-	Val  int
-	Next *ListN
 }
 
 func main() {
@@ -22,7 +15,7 @@ func main() {
 func initS() {
 	var ad = Person{Sex: "man", Age: 12}
 	ad.Age = 45
-	fmt.Printf("%s-%s-%d\n", ad.Name, ad.Sex, ad.Age)
+	print("%s-%s-%d\n", ad.Name, ad.Sex, ad.Age)
 }
 
 //null
@@ -30,15 +23,15 @@ func initS() {
 //asdfasdfasdfsdfsd
 func sFunc() {
 	var ad = Person{Sex: "man", Age: 12}
-	fmt.Printf("%s\n", ad.Name)
+	print("%s\n", ad.Name)
 	show(ad.Age)
 	ad.Show()
 }
 
 func show(a int) {
-	fmt.Printf("%d\n", a)
+	print("%d\n", a)
 }
 
 func (p *Person) Show() {
-	fmt.Printf("tttttttttttttttt\n")
+	print("tttttttttttttttt\n")
 }

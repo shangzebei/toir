@@ -108,6 +108,8 @@ func (f *FuncDecl) FunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncType)
 				paramKind = f.ArrayType(arrayType)
 			case *ast.SelectorExpr:
 				paramKind = f.doSelector(nil, value.Type.(*ast.SelectorExpr), "type").Type()
+			case *ast.InterfaceType:
+				paramKind = types.I8Ptr
 			default:
 				logrus.Error("func type not impl")
 			}
@@ -428,7 +430,7 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 			switch value.(type) {
 			case *ast.KeyValueExpr:
 				keyValueExpr := value.(*ast.KeyValueExpr)
-				if _, ok := keyValueExpr.Value.(*ast.BasicLit); !ok {
+				if b, ok := keyValueExpr.Value.(*ast.BasicLit); !ok || b.Kind == token.STRING {
 					base = false
 					break
 				}
@@ -466,15 +468,15 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 					switch keyValueExpr.Value.(type) {
 					case *ast.BasicLit:
 						if t, ok := def.Typ.(*types.IntType); ok {
-							s[def.Order] = f.BasicLitType(keyValueExpr.Value.(*ast.BasicLit), t)
+							s[def.Order] = f.BasicLitType(keyValueExpr.Value.(*ast.BasicLit), t).(constant.Constant)
 						} else {
-							s[def.Order] = f.BasicLit(keyValueExpr.Value.(*ast.BasicLit))
+							s[def.Order] = f.BasicLit(keyValueExpr.Value.(*ast.BasicLit)).(constant.Constant)
 						}
 					default:
 						logrus.Error("bbbbbb")
 					}
 				case *ast.BasicLit:
-					s[index] = f.BasicLit(value.(*ast.BasicLit))
+					s[index] = f.BasicLit(value.(*ast.BasicLit)).(constant.Constant)
 				default:
 					logrus.Error("aaaaaa")
 				}

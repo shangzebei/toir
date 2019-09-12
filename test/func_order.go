@@ -1,14 +1,12 @@
 package test
 
-import "fmt"
-
 type One struct {
 }
 
 //
 func a1() {
 	a2()
-	fmt.Printf("aaaaaaaa\n")
+	print("aaaaaaaa\n")
 }
 func a2() {
 	a1()

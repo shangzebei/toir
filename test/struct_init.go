@@ -21,9 +21,9 @@ func init1() {
 		b,
 		c,
 	}}
-	fmt.Printf("22-%d\n", node.Next.C)
-	fmt.Printf("11-%d\n", node.Next.B)
-	fmt.Printf("19-%d\n", node.Next.T)
+	print("22-%d\n", node.Next.C)
+	print("11-%d\n", node.Next.B)
+	print("19-%d\n", node.Next.T)
 }
 
 func main() {
@@ -40,9 +40,9 @@ func init2() {
 		C: 99,
 	}}
 
-	fmt.Printf("99-%d\n", node.Next.C)
-	fmt.Printf("22-%d\n", node.Next.B)
-	fmt.Printf("11-%d\n", node.Next.T)
+	print("99-%d\n", node.Next.C)
+	print("22-%d\n", node.Next.B)
+	print("11-%d\n", node.Next.T)
 }
 
 type AA struct {
@@ -64,7 +64,7 @@ func init3() {
 		AA:  &aa,
 		Pre: nil,
 	}
-	fmt.Printf("11-%d\n", i.AA.Val)
+	print("11-%d\n", i.AA.Val)
 }
 
 type Bar struct {
@@ -90,14 +90,14 @@ func inin4()  {
 		bar: &Bar{num: 200},
 	}
 
-	fmt.Printf("foo.bar.num: %d\n", foo.bar.num) // foo.bar.num: 200
-	fmt.Printf("foo.num: %d\n", foo.num)         // foo.num: 100
-	fmt.Printf("foo.bar.num: %d\n", foo.bar.num) // foo.bar.num: 200
-	fmt.Printf("foo.num: %d\n", foo.num)         // foo.num: 100
+	print("foo.bar.num: %d\n", foo.bar.num) // foo.bar.num: 200
+	print("foo.num: %d\n", foo.num)         // foo.num: 100
+	print("foo.bar.num: %d\n", foo.bar.num) // foo.bar.num: 200
+	print("foo.num: %d\n", foo.num)         // foo.num: 100
 
 	foo2 := GetFooPtr()
-	fmt.Printf("foo2.bar.num: %d\n", foo2.bar.num) // foo2.bar.num: 400
-	fmt.Printf("foo2.num: %d\n", foo2.num)         // foo2.num: 300
-	fmt.Printf("foo2.bar.num: %d\n", foo2.bar.num) // foo2.bar.num: 400
-	fmt.Printf("foo2.num: %d\n", foo2.num)         // foo2.num: 300
+	print("foo2.bar.num: %d\n", foo2.bar.num) // foo2.bar.num: 400
+	print("foo2.num: %d\n", foo2.num)         // foo2.num: 300
+	print("foo2.bar.num: %d\n", foo2.bar.num) // foo2.bar.num: 400
+	print("foo2.num: %d\n", foo2.num)         // foo2.num: 300
 }

@@ -227,10 +227,14 @@ func (f *FuncDecl) SelectorExpr(selectorExpr *ast.SelectorExpr) value.Value {
 			load := f.GetCurrentBlock().NewLoad(a)
 			v, order, _ := f.GetStructDef(load, variable.Type(), selectorExpr.Sel)
 			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), v, order.Order)
+			//decl := f.DoFunDecl("", f.r.GetFunc("checkNil"))
+			//f.StdCall(decl,indexStruct)
 			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 		} else {
 			v, order, _ := f.GetStructDef(variable, variable.Type(), selectorExpr.Sel)
 			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), f.GetSrcPtr(v), order.Order)
+			//decl := f.DoFunDecl("", f.r.GetFunc("checkNil"))
+			//f.StdCall(decl,f.GetCurrentBlock().NewBitCast(indexStruct,types.I8Ptr))
 			return utils.LoadValue(f.GetCurrentBlock(), indexStruct)
 		}
 	case *ast.CallExpr:

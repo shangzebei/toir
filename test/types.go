@@ -20,15 +20,15 @@ func main() {
 }
 
 func t(a int32) {
-	fmt.Printf("%d\n", a)
+	print("%d\n", a)
 }
 
 func tt(a int64) {
-	fmt.Printf("%d\n", a)
+	print("%d\n", a)
 }
 
 func ff(float322 float32) {
-	fmt.Printf("%f\n", float322)
+	print("%f\n", float322)
 }
 
 func b() {

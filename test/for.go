@@ -1,7 +1,5 @@
 package test
 
-import "fmt"
-
 //import "fmt"
 
 func main() {
@@ -17,25 +15,25 @@ func max() int {
 
 func for1() {
 	for i := 0; i <= max(); i++ {
-		fmt.Printf("aaaaaaaaaaa\n")
+		print("aaaaaaaaaaa\n")
 	}
-	fmt.Printf("bbbbbbbbbbbb\n")
+	print("bbbbbbbbbbbb\n")
 	for j := 0; j <= 2; j++ {
-		fmt.Printf("%d\n", j)
+		print("%d\n", j)
 	}
-	fmt.Printf("ggggggggggggggg")
+	print("ggggggggggggggg")
 }
 
 func for2() {
 	for i := 0; i < 10; i++ {
-		fmt.Printf("%d\n", i)
+		print("%d\n", i)
 	}
 }
 
 func for23() int {
 	for i := 0; i < 3; i++ {
 		for j := 0; j < 3; j++ {
-			fmt.Printf("asdfasdfasd%d-%d\n", i, j)
+			print("asdfasdfasd%d-%d\n", i, j)
 		}
 	}
 	return 0
@@ -56,12 +54,12 @@ func for23() int {
 func for4() {
 	i := 90
 	for i := 0; i < 3; i++ {
-		fmt.Printf("bbbbbbbbbbbb\n")
+		print("bbbbbbbbbbbb\n")
 		for i := 0; i < 2; i++ {
-			fmt.Printf("aaaaaaaaaaa\n")
+			print("aaaaaaaaaaa\n")
 		}
 	}
-	fmt.Printf("cccccccccccc %d\n", i)
+	print("cccccccccccc %d\n", i)
 }
 
 func for5() {

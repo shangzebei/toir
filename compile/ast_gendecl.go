@@ -19,7 +19,7 @@ func (f *FuncDecl) GenDecl(decl *ast.GenDecl) {
 	case token.VAR:
 		for _, v := range decl.Specs {
 			spec := v.(*ast.ValueSpec)
-			f.valueSpec(spec, decl.Tok)
+			f.varSpec(spec, decl.Tok)
 		}
 	case token.TYPE:
 		for _, v := range decl.Specs {
@@ -33,7 +33,7 @@ func (f *FuncDecl) GenDecl(decl *ast.GenDecl) {
 	}
 }
 
-func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
+func (f *FuncDecl) varSpec(spec *ast.ValueSpec, t token.Token) {
 	var kind types.Type
 	if spec.Type != nil {
 		switch spec.Type.(type) {
@@ -93,6 +93,18 @@ func (f *FuncDecl) valueSpec(spec *ast.ValueSpec, t token.Token) {
 	}
 }
 
+func (f *FuncDecl) InitArrayValue(slice value.Value, array *types.ArrayType, constv value.Value) {
+	f.SetLen(slice, constant.NewInt(types.I32, int64(array.Len)))
+	bytes := GetSliceBytes(array)
+	f.StdCall(
+		llvm.Mencpy,
+		f.GetCurrentBlock().NewBitCast(f.GetVSlice(slice), types.I8Ptr),
+		f.GetCurrentBlock().NewBitCast(constv, types.I8Ptr),
+		constant.NewInt(types.I32, bytes),
+		constant.NewBool(false),
+	)
+}
+
 //init value which def and return value
 func (f *FuncDecl) InitConstantValue(kind types.Type, def value.Value) value.Value {
 	//alloca := f.GetCurrentBlock().NewAlloca(GetRealType(kind))
@@ -104,17 +116,8 @@ func (f *FuncDecl) InitConstantValue(kind types.Type, def value.Value) value.Val
 	case *types.ArrayType:
 		arrayType := kind.(*types.ArrayType)
 		sliceValue := f.NewType(arrayType)
-		f.SetLen(sliceValue, constant.NewInt(types.I32, int64(arrayType.Len)))
 		alloca = sliceValue
-		bytes := GetSliceBytes(arrayType)
-		f.StdCall(
-			llvm.Mencpy,
-			f.GetCurrentBlock().NewBitCast(f.GetVSlice(alloca), types.I8Ptr),
-			f.GetCurrentBlock().NewBitCast(def, types.I8Ptr),
-			constant.NewInt(types.I32, bytes),
-			constant.NewBool(false),
-		)
-
+		f.InitArrayValue(sliceValue, arrayType, def)
 	case *types.StructType:
 		var l int64
 		alloca = f.NewType(GetBaseType(kind))
@@ -137,10 +140,6 @@ func (f *FuncDecl) InitConstantValue(kind types.Type, def value.Value) value.Val
 		fmt.Println("not find types")
 	}
 	return f.GetCurrentBlock().NewLoad(alloca)
-}
-
-func (f *FuncDecl) doStructType(typ *types.StructType) {
-
 }
 
 //for struts info reg
@@ -211,7 +210,12 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) types.Type {
 		_, funcType := f.FunType(spec.Type.(*ast.FuncType))
 		MapDefTypes[name] = types.NewPointer(funcType)
 		f.typeSpecs[spec] = MapDefTypes[name]
+	case *ast.ArrayType:
+		arrayType := f.ArrayType(spec.Type.(*ast.ArrayType))
+		MapDefTypes[name] = arrayType
+		f.typeSpecs[spec] = MapDefTypes[name]
 	default:
+
 		logrus.Error("not find typeSpec")
 	}
 	return f.typeSpecs[spec]

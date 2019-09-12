@@ -1,7 +1,5 @@
 package test
 
-import "fmt"
-
 func main() {
 	for1con()
 }
@@ -11,7 +9,7 @@ func for1con() {
 		if i > 5 {
 			continue
 		}
-		fmt.Printf("okkkkkkkkkkkk\n")
+		print("okkkkkkkkkkkk\n")
 	}
-	fmt.Printf("bbbbbbbbbbbbbbbbb\n")
+	print("bbbbbbbbbbbbbbbbb\n")
 }

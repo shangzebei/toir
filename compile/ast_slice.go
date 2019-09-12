@@ -29,47 +29,64 @@ func (i *SliceValue) Ident() string {
 	return i.p.Ident()
 }
 
-func (f *FuncDecl) NewSlice(em types.Type) *ir.Func {
+func (f *FuncDecl) FuncSlice(em types.Type, st *types.StructType) *ir.Func {
 	if em == nil {
-		panic("error type in NewAllocSlice")
+		panic("error type in NewSlice")
 	}
-	newStruct := types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
 	arrayLen := ir.NewParam("len", types.I32)
-	newFunc := ir.NewFunc("init_slice_"+em.String(), types.NewPointer(newStruct), ir.NewParam("len", types.I32))
-
+	ptr := ir.NewParam("ptr", types.NewPointer(st))
+	newFunc := ir.NewFunc("init_slice_"+em.String(), types.Void, ptr, arrayLen)
 	f.pushFunc(newFunc)
 	f.newBlock()
 	utils.NewComment(f.GetCurrentBlock(), "init slice...............")
-	alloc := f.NewType(newStruct)
 	i := int64(GetBytes(em))
-	f.SetBytes(alloc, constant.NewInt(types.I32, i))
+	f.SetBytes(ptr, constant.NewInt(types.I32, i))
 	call := f.StdCall(stdlib.Malloc, f.GetCurrentBlock().NewMul(arrayLen, constant.NewInt(types.I32, i)))
-	slice := f.GetPSlice(alloc)
+	slice := f.GetPSlice(ptr)
 	f.NewStore(f.GetCurrentBlock().NewBitCast(call, types.NewPointer(em)), slice)
-	f.SetCap(alloc, arrayLen)
-	f.SetLen(alloc, arrayLen)
-	f.GetCurrentBlock().NewRet(alloc)
+	f.SetCap(ptr, arrayLen)
+	f.SetLen(ptr, arrayLen)
 	utils.NewComment(f.GetCurrentBlock(), "end init slice.................")
 	f.popBlock()
 	f.popFunc()
 	return newFunc
 }
 
-func (f *FuncDecl) NewAllocSlice(em types.Type, arrayLen value.Value) value.Value {
-	if em == nil {
-		panic("error type in NewAllocSlice")
+func (f *FuncDecl) NewString(arrayLen value.Value) value.Value {
+	stringType := f.StringType()
+	return f.typeSlice(types.I8, stringType, arrayLen)
+}
+
+func (f *FuncDecl) IsString(p types.Type) bool {
+	if t, ok := p.(*types.StructType); ok && t == f.StringType() {
+		return true
+	} else {
+		return false
 	}
+}
+
+func (f *FuncDecl) typeSlice(em types.Type, st *types.StructType, arrayLen value.Value) value.Value {
+	call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(st))))
+	newType := f.GetCurrentBlock().NewBitCast(call, types.NewPointer(st))
+	//newType := f.GetCurrentBlock().NewAlloca(st)
 	var ff *ir.Func
 	if s, ok := f.sliceInits[em]; ok {
 		ff = s
 	} else {
-		ff = f.NewSlice(em)
+		ff = f.FuncSlice(em, st)
 		f.sliceInits[em] = ff
 	}
-	call := f.StdCall(ff, arrayLen)
-	baseType := GetBaseType(call.Type())
-	f.sliceTypes = append(f.sliceTypes, baseType)
-	return &SliceValue{p: call, emt: em}
+	f.StdCall(ff, newType, arrayLen)
+	f.sliceTypes = append(f.sliceTypes, st)
+	return &SliceValue{p: newType, emt: em}
+}
+
+func (f *FuncDecl) NewSlice(em types.Type, arrayLen value.Value) value.Value {
+	if em == nil {
+		panic("error type in NewSlice")
+	}
+	newStruct := types.NewStruct(types.I32, types.I32, types.I32, types.NewPointer(em))
+	return f.typeSlice(em, newStruct, arrayLen)
 }
 
 func (f *FuncDecl) GetNewSliceType(em types.Type) types.Type {
@@ -179,7 +196,7 @@ func (f *FuncDecl) CopyNewSlice(src value.Value) value.Value {
 		i := GetSliceEmType(baseType)
 		ptr := f.GetSrcPtr(src)
 		getLen := f.GetLen(ptr)
-		dstSlice := f.NewAllocSlice(GetBaseType(i), getLen)
+		dstSlice := f.NewSlice(GetBaseType(i), getLen)
 		f.CopyStruct(dstSlice, ptr)
 		utils.NewComment(f.GetCurrentBlock(), "copy and end slice")
 		return dstSlice

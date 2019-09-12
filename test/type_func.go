@@ -9,7 +9,7 @@ func main() {
 	//var a PP
 	//a = PP(1)
 	typeFun(func() {
-		fmt.Printf("asdfsadfsdfsd\n")
+		print("asdfsadfsdfsd\n")
 	})
 }
 

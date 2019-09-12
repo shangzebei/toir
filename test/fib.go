@@ -11,5 +11,5 @@ func fib(num int) int {
 
 func main() {
 	// fib = 5702887
-	fmt.Printf("fib = %d\n", fib(34))
+	print("fib = %d\n", fib(34))
 }

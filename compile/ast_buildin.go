@@ -97,15 +97,15 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 	switch tp.(type) {
 	case *types.ArrayType:
 		arrayType := tp.(*types.ArrayType)
-		return f.NewAllocSlice(arrayType.ElemType, constant.NewInt(types.I32, int64(arrayType.Len)))
+		return f.NewSlice(arrayType.ElemType, constant.NewInt(types.I32, int64(arrayType.Len)))
 	case *types.StructType:
 		structType := tp.(*types.StructType)
-		if true {
+		if f.StringType() == tp {
+			return f.NewString(constant.NewInt(types.I32, 0))
+		} else {
 			logrus.Warnf("default Malloc new %s", tp.String())
 			call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
 			return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
-		} else {
-			return f.GetCurrentBlock().NewAlloca(tp)
 		}
 	default:
 		//if types.IsStruct(GetBaseType(tp)) {
@@ -172,10 +172,19 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 }
 
 func (f *FuncDecl) Make(v value.Value, size ...value.Value) value.Value {
-	return f.GetCurrentBlock().NewLoad(f.NewAllocSlice(v.Type(), size[0]))
+	return f.GetCurrentBlock().NewLoad(f.NewSlice(v.Type(), size[0]))
 }
 
 func (f *FuncDecl) New(v value.Value) value.Value {
 	alloca := f.NewType(v.Type())
 	return alloca
+}
+
+func (f *FuncDecl) Print(v ...value.Value) value.Value {
+	for i := 0; i < len(v); i++ {
+		if f.IsSlice(v[i]) {
+			v[i] = f.GetVSlice(f.GetSrcPtr(v[i]))
+		}
+	}
+	return f.StdCall(stdlib.Printf, v...)
 }
