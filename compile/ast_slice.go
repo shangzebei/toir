@@ -54,7 +54,8 @@ func (f *FuncDecl) FuncSlice(em types.Type, st *types.StructType) *ir.Func {
 
 func (f *FuncDecl) NewString(arrayLen value.Value) value.Value {
 	stringType := f.StringType()
-	return f.typeSlice(types.I8, stringType, arrayLen)
+	slice := f.typeSlice(types.I8, stringType, arrayLen)
+	return slice
 }
 
 func (f *FuncDecl) IsString(p types.Type) bool {

@@ -1,10 +1,14 @@
 package stdlib
 
 import (
-	"fmt"
 	"testing"
 )
 
+type AAAA struct {
+	B string
+	C string
+}
+
 func TestName(t *testing.T) {
-	fmt.Println([]byte("shangzebei"))
+
 }

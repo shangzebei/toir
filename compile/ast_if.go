@@ -57,6 +57,8 @@ func (f *FuncDecl) mulCond(iv *IFValue, ifBodyBlock *ir.Block, elseBlock *ir.Blo
 
 func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 	temp := f.GetCurrentBlock()
+	block := f.newBlock()
+	temp.NewBr(block)
 	//init
 	if expr.Init != nil {
 		utils.GCCall(f, expr.Init)
@@ -66,11 +68,12 @@ func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 	case *ast.BinaryExpr:
 		var elseBlock *ir.Block
 		//var endElseBlock *ir.Block
+		//cond
+		doCond := f.BinaryExpr(expr.Cond.(*ast.BinaryExpr))
 		//if body
 		ifBodyBlock, _ := f.BlockStmt(expr.Body)
 		//else block
 		if expr.Else != nil {
-			//elseBlock, _ = f.BlockStmt(expr.Else.(*ast.BlockStmt))
 			call := utils.GCCall(f, expr.Else)
 			elseBlock = call[0].(*ir.Block)
 		}
@@ -79,14 +82,13 @@ func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 			elseBlock = f.newBlock()
 			f.popBlock()
 		}
-		//cond
-		doCond := f.BinaryExpr(expr.Cond.(*ast.BinaryExpr))
 		if c, ok := doCond.(*IFValue); ok {
 			c.Br.NewCondBr(doCond, ifBodyBlock, elseBlock) //end
 			f.mulCond(c, ifBodyBlock, elseBlock)
 		} else {
-			temp.NewCondBr(doCond, ifBodyBlock, elseBlock)
+			block.NewCondBr(doCond, ifBodyBlock, elseBlock)
 		}
+		f.popBlock()
 		if ifBodyBlock.Term == nil || elseBlock.Term == nil {
 			f.popBlock() //Close main
 			newBlock := f.newBlock()
@@ -97,7 +99,6 @@ func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 				elseBlock.NewBr(newBlock)
 			}
 		}
-
 	case *ast.Ident:
 		identName := GetIdentName(expr.Cond.(*ast.Ident))
 		parseBool, _ := strconv.ParseBool(identName)
@@ -111,5 +112,5 @@ func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 	default:
 		fmt.Println("not impl IfStmt")
 	}
-	return temp, f.GetCurrentBlock()
+	return block, f.GetCurrentBlock()
 }

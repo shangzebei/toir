@@ -342,21 +342,19 @@ func (f *FuncDecl) pushFunc(fun *ir.Func) {
 func (f *FuncDecl) BlockStmt(block *ast.BlockStmt) (start *ir.Block, end *ir.Block) {
 	//ast.Print(f.fSet, block)
 	newBlock := f.newBlock()
+	utils.NewComment(f.GetCurrentBlock(), "block start")
 	startBlock := newBlock
-	endBlock := newBlock
+	//var endBlock *ir.Block
 	//copy func param
 	if len(f.GetCurrent().Blocks) == 1 {
 		f.initFuncParam()
 	}
 	defer f.popBlock()
 	for _, v := range block.List {
-		call := utils.GCCall(f, v)
-		if len(call) == 2 {
-			startBlock = call[0].(*ir.Block)
-			endBlock = call[1].(*ir.Block)
-		}
+		utils.GCCall(f, v)
 	}
-	return startBlock, endBlock
+	utils.NewComment(f.GetCurrentBlock(), "end block")
+	return startBlock, f.GetCurrentBlock()
 }
 
 func (f *FuncDecl) initFuncParam() {

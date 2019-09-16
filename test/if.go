@@ -8,6 +8,7 @@ func main() {
 	if3()       //this is true
 	//if4And()    //
 	//if5()
+	ifelseif()
 }
 
 func f2() {
@@ -18,17 +19,30 @@ func f2() {
 	}
 }
 
+//f2 yes
 func if1(a int) {
 	if a > 100 {
 		print("f2 yes\n")
 	}
 }
 
+//no
 func if1else(a int) {
 	if a > 100 {
 		print("yes\n")
 	} else {
 		print("no\n")
+	}
+}
+
+func ifelseif() {
+	a := 12
+	if a < 11 {
+		print("bbbbbb\n")
+	} else if a > 22 {
+		print("aaaaaa\n")
+	} else if a == 12 {
+		print("12 has\n")
 	}
 }
 
@@ -57,6 +71,9 @@ func if5() {
 	}
 }
 
+//aaaaaaaaaaaaaaaa
+//yes
+//bbbbbbbbbbbbbbbb
 func if1234() {
 	a := 190
 	print("aaaaaaaaaaaaaaaa\n")
