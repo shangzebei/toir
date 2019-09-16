@@ -32,7 +32,7 @@ func Build(file string, outputPath string) {
 	m := ir.NewModule()
 
 	//init runtime
-	runtime := core.Init("runtime/std.go")
+	runtime := core.Init("runtime")
 	doFunc := compile.DoFunc(m, fset, "main", runtime)
 
 	var mainF ast.Decl

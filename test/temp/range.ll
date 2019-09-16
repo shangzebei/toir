@@ -1,3 +1,6 @@
+%mapStruct = type {}
+%string = type { i32, i8* }
+
 @range1asdfasdfs.0 = constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5]
 @str.0 = constant [22 x i8] c"asdfasdfasdfsdfsdf%d\0A\00"
 @range2.2 = constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5]
@@ -34,22 +37,47 @@ define void @init_slice_i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i1)
 
-define void @init_slice_i8({ i32, i32, i32, i8* }* %ptr, i32 %len) {
+define %string* @newString(i32 %size) {
 ; <label>:0
-	; init slice...............
-	%1 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 2
-	store i32 1, i32* %1
-	%2 = mul i32 %len, 1
-	%3 = call i8* @malloc(i32 %2)
-	%4 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 3
-	%5 = bitcast i8* %3 to i8*
-	store i8* %5, i8** %4
-	%6 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 1
-	store i32 %len, i32* %6
-	%7 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 0
-	store i32 %len, i32* %7
-	; end init slice.................
-	ret void
+	; block start
+	%1 = alloca i32
+	store i32 %size, i32* %1
+	%2 = call i8* @malloc(i32 12)
+	%3 = bitcast i8* %2 to %string*
+	%4 = alloca %string*
+	store %string* %3, %string** %4
+	br label %5
+
+; <label>:5
+	%6 = load i32, i32* %1
+	%7 = icmp eq i32 %6, 0
+	br i1 %7, label %8, label %10
+
+; <label>:8
+	; block start
+	%9 = load %string*, %string** %4
+	; end block
+	ret %string* %9
+
+; <label>:10
+	br label %11
+
+; <label>:11
+	%12 = load i32, i32* %1
+	%13 = sub i32 %12, 1
+	%14 = load %string*, %string** %4
+	%15 = getelementptr %string, %string* %14, i32 0, i32 0
+	%16 = load i32, i32* %15
+	store i32 %13, i32* %15
+	%17 = load i32, i32* %1
+	%18 = call i8* @malloc(i32 %17)
+	%19 = load %string*, %string** %4
+	%20 = getelementptr %string, %string* %19, i32 0, i32 1
+	%21 = load i8*, i8** %20
+	store i8* %18, i8** %20
+	%22 = load %string*, %string** %4
+	; end block
+	ret %string* %22
 }
 
 declare i32 @printf(i8*, ...)
@@ -90,31 +118,27 @@ define void @range1asdfasdfs() {
 	%17 = load i32, i32* %12
 	%18 = icmp slt i32 %17, %10
 	; cond Block end
-	br i1 %18, label %19, label %33
+	br i1 %18, label %19, label %31
 
 ; <label>:19
 	; block start
 	%20 = load i32, i32* %12
 	store i32 %20, i32* %11
-	%21 = call i8* @malloc(i32 20)
-	%22 = bitcast i8* %21 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %22, i32 22)
-	%23 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22, i32 0, i32 0
-	store i32 22, i32* %23
-	%24 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22, i32 0, i32 3
-	%25 = load i8*, i8** %24
-	%26 = bitcast i8* %25 to i8*
-	%27 = bitcast i8* getelementptr inbounds ([22 x i8], [22 x i8]* @str.0, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %26, i8* %27, i32 22, i1 false)
-	%28 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22
-	%29 = load i32, i32* %11
-	%30 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22, i32 0, i32 3
-	%31 = load i8*, i8** %30
-	%32 = call i32 (i8*, ...) @printf(i8* %31, i32 %29)
+	%21 = call %string* @newString(i32 22)
+	%22 = getelementptr %string, %string* %21, i32 0, i32 1
+	%23 = load i8*, i8** %22
+	%24 = bitcast i8* %23 to i8*
+	%25 = bitcast i8* getelementptr inbounds ([22 x i8], [22 x i8]* @str.0, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %24, i8* %25, i32 22, i1 false)
+	%26 = load %string, %string* %21
+	%27 = load i32, i32* %11
+	%28 = getelementptr %string, %string* %21, i32 0, i32 1
+	%29 = load i8*, i8** %28
+	%30 = call i32 (i8*, ...) @printf(i8* %29, i32 %27)
 	; end block
 	br label %13
 
-; <label>:33
+; <label>:31
 	; empty block
 	; end block
 	ret void
@@ -157,7 +181,7 @@ define void @range2() {
 	%18 = load i32, i32* %13
 	%19 = icmp slt i32 %18, %10
 	; cond Block end
-	br i1 %19, label %20, label %40
+	br i1 %19, label %20, label %38
 
 ; <label>:20
 	; block start
@@ -170,26 +194,22 @@ define void @range2() {
 	%25 = getelementptr i32, i32* %24, i32 %22
 	%26 = load i32, i32* %25
 	store i32 %26, i32* %12
-	%27 = call i8* @malloc(i32 20)
-	%28 = bitcast i8* %27 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %28, i32 7)
-	%29 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %28, i32 0, i32 0
-	store i32 7, i32* %29
-	%30 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %28, i32 0, i32 3
-	%31 = load i8*, i8** %30
-	%32 = bitcast i8* %31 to i8*
-	%33 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.1, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %32, i8* %33, i32 7, i1 false)
-	%34 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %28
-	%35 = load i32, i32* %11
-	%36 = load i32, i32* %12
-	%37 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %28, i32 0, i32 3
-	%38 = load i8*, i8** %37
-	%39 = call i32 (i8*, ...) @printf(i8* %38, i32 %35, i32 %36)
+	%27 = call %string* @newString(i32 7)
+	%28 = getelementptr %string, %string* %27, i32 0, i32 1
+	%29 = load i8*, i8** %28
+	%30 = bitcast i8* %29 to i8*
+	%31 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.1, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %30, i8* %31, i32 7, i1 false)
+	%32 = load %string, %string* %27
+	%33 = load i32, i32* %11
+	%34 = load i32, i32* %12
+	%35 = getelementptr %string, %string* %27, i32 0, i32 1
+	%36 = load i8*, i8** %35
+	%37 = call i32 (i8*, ...) @printf(i8* %36, i32 %33, i32 %34)
 	; end block
 	br label %14
 
-; <label>:40
+; <label>:38
 	; empty block
 	; end block
 	ret void
@@ -231,7 +251,7 @@ define void @range3() {
 	%17 = load i32, i32* %12
 	%18 = icmp slt i32 %17, %10
 	; cond Block end
-	br i1 %18, label %19, label %37
+	br i1 %18, label %19, label %35
 
 ; <label>:19
 	; block start
@@ -242,25 +262,21 @@ define void @range3() {
 	%23 = getelementptr i32, i32* %22, i32 %20
 	%24 = load i32, i32* %23
 	store i32 %24, i32* %11
-	%25 = call i8* @malloc(i32 20)
-	%26 = bitcast i8* %25 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %26, i32 4)
-	%27 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %26, i32 0, i32 0
-	store i32 4, i32* %27
-	%28 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %26, i32 0, i32 3
-	%29 = load i8*, i8** %28
-	%30 = bitcast i8* %29 to i8*
-	%31 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %30, i8* %31, i32 4, i1 false)
-	%32 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %26
-	%33 = load i32, i32* %11
-	%34 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %26, i32 0, i32 3
-	%35 = load i8*, i8** %34
-	%36 = call i32 (i8*, ...) @printf(i8* %35, i32 %33)
+	%25 = call %string* @newString(i32 4)
+	%26 = getelementptr %string, %string* %25, i32 0, i32 1
+	%27 = load i8*, i8** %26
+	%28 = bitcast i8* %27 to i8*
+	%29 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %28, i8* %29, i32 4, i1 false)
+	%30 = load %string, %string* %25
+	%31 = load i32, i32* %11
+	%32 = getelementptr %string, %string* %25, i32 0, i32 1
+	%33 = load i8*, i8** %32
+	%34 = call i32 (i8*, ...) @printf(i8* %33, i32 %31)
 	; end block
 	br label %13
 
-; <label>:37
+; <label>:35
 	; empty block
 	; end block
 	ret void
@@ -302,31 +318,27 @@ define void @range4() {
 	%17 = load i32, i32* %12
 	%18 = icmp slt i32 %17, %10
 	; cond Block end
-	br i1 %18, label %19, label %33
+	br i1 %18, label %19, label %31
 
 ; <label>:19
 	; block start
 	%20 = load i32, i32* %12
 	store i32 %20, i32* %11
-	%21 = call i8* @malloc(i32 20)
-	%22 = bitcast i8* %21 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %22, i32 4)
-	%23 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22, i32 0, i32 0
-	store i32 4, i32* %23
-	%24 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22, i32 0, i32 3
-	%25 = load i8*, i8** %24
-	%26 = bitcast i8* %25 to i8*
-	%27 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.3, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %26, i8* %27, i32 4, i1 false)
-	%28 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22
-	%29 = load i32, i32* %11
-	%30 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %22, i32 0, i32 3
-	%31 = load i8*, i8** %30
-	%32 = call i32 (i8*, ...) @printf(i8* %31, i32 %29)
+	%21 = call %string* @newString(i32 4)
+	%22 = getelementptr %string, %string* %21, i32 0, i32 1
+	%23 = load i8*, i8** %22
+	%24 = bitcast i8* %23 to i8*
+	%25 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.3, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %24, i8* %25, i32 4, i1 false)
+	%26 = load %string, %string* %21
+	%27 = load i32, i32* %11
+	%28 = getelementptr %string, %string* %21, i32 0, i32 1
+	%29 = load i8*, i8** %28
+	%30 = call i32 (i8*, ...) @printf(i8* %29, i32 %27)
 	; end block
 	br label %13
 
-; <label>:33
+; <label>:31
 	; empty block
 	; end block
 	ret void
@@ -379,98 +391,86 @@ define void @range5() {
 	%25 = load i32, i32* %20
 	%26 = icmp slt i32 %25, %18
 	; cond Block end
-	br i1 %26, label %27, label %81
+	br i1 %26, label %27, label %75
 
 ; <label>:27
 	; block start
 	%28 = load i32, i32* %20
 	store i32 %28, i32* %19
-	%29 = call i8* @malloc(i32 20)
-	%30 = bitcast i8* %29 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %30, i32 20)
-	%31 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %30, i32 0, i32 0
-	store i32 20, i32* %31
-	%32 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %30, i32 0, i32 3
-	%33 = load i8*, i8** %32
-	%34 = bitcast i8* %33 to i8*
-	%35 = bitcast i8* getelementptr inbounds ([20 x i8], [20 x i8]* @str.4, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %34, i8* %35, i32 20, i1 false)
-	%36 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %30
-	%37 = load i32, i32* %19
-	%38 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %30, i32 0, i32 3
-	%39 = load i8*, i8** %38
-	%40 = call i32 (i8*, ...) @printf(i8* %39, i32 %37)
+	%29 = call %string* @newString(i32 20)
+	%30 = getelementptr %string, %string* %29, i32 0, i32 1
+	%31 = load i8*, i8** %30
+	%32 = bitcast i8* %31 to i8*
+	%33 = bitcast i8* getelementptr inbounds ([20 x i8], [20 x i8]* @str.4, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %32, i8* %33, i32 20, i1 false)
+	%34 = load %string, %string* %29
+	%35 = load i32, i32* %19
+	%36 = getelementptr %string, %string* %29, i32 0, i32 1
+	%37 = load i8*, i8** %36
+	%38 = call i32 (i8*, ...) @printf(i8* %37, i32 %35)
 	; [range start]
-	%41 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0
-	%42 = load i32, i32* %41
-	%43 = alloca i32
+	%39 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0
+	%40 = load i32, i32* %39
+	%41 = alloca i32
 	; [range end]
 	; init block
-	%44 = alloca i32
-	store i32 0, i32* %44
-	br label %48
+	%42 = alloca i32
+	store i32 0, i32* %42
+	br label %46
 
-; <label>:45
+; <label>:43
 	; add block
-	%46 = load i32, i32* %44
-	%47 = add i32 %46, 1
-	store i32 %47, i32* %44
-	br label %48
+	%44 = load i32, i32* %42
+	%45 = add i32 %44, 1
+	store i32 %45, i32* %42
+	br label %46
 
-; <label>:48
+; <label>:46
 	; cond Block begin
-	%49 = load i32, i32* %44
-	%50 = icmp slt i32 %49, %42
+	%47 = load i32, i32* %42
+	%48 = icmp slt i32 %47, %40
 	; cond Block end
-	br i1 %50, label %51, label %69
+	br i1 %48, label %49, label %65
 
-; <label>:51
+; <label>:49
 	; block start
-	%52 = load i32, i32* %44
+	%50 = load i32, i32* %42
 	; get slice index
-	%53 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 3
-	%54 = load i32*, i32** %53
-	%55 = getelementptr i32, i32* %54, i32 %52
-	%56 = load i32, i32* %55
-	store i32 %56, i32* %43
-	%57 = call i8* @malloc(i32 20)
-	%58 = bitcast i8* %57 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %58, i32 4)
-	%59 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %58, i32 0, i32 0
-	store i32 4, i32* %59
-	%60 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %58, i32 0, i32 3
-	%61 = load i8*, i8** %60
-	%62 = bitcast i8* %61 to i8*
-	%63 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.5, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %62, i8* %63, i32 4, i1 false)
-	%64 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %58
-	%65 = load i32, i32* %43
-	%66 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %58, i32 0, i32 3
-	%67 = load i8*, i8** %66
-	%68 = call i32 (i8*, ...) @printf(i8* %67, i32 %65)
+	%51 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 3
+	%52 = load i32*, i32** %51
+	%53 = getelementptr i32, i32* %52, i32 %50
+	%54 = load i32, i32* %53
+	store i32 %54, i32* %41
+	%55 = call %string* @newString(i32 4)
+	%56 = getelementptr %string, %string* %55, i32 0, i32 1
+	%57 = load i8*, i8** %56
+	%58 = bitcast i8* %57 to i8*
+	%59 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.5, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %58, i8* %59, i32 4, i1 false)
+	%60 = load %string, %string* %55
+	%61 = load i32, i32* %41
+	%62 = getelementptr %string, %string* %55, i32 0, i32 1
+	%63 = load i8*, i8** %62
+	%64 = call i32 (i8*, ...) @printf(i8* %63, i32 %61)
 	; end block
-	br label %45
+	br label %43
 
-; <label>:69
+; <label>:65
 	; empty block
-	%70 = call i8* @malloc(i32 20)
-	%71 = bitcast i8* %70 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %71, i32 5)
-	%72 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %71, i32 0, i32 0
-	store i32 5, i32* %72
-	%73 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %71, i32 0, i32 3
-	%74 = load i8*, i8** %73
-	%75 = bitcast i8* %74 to i8*
-	%76 = bitcast i8* getelementptr inbounds ([5 x i8], [5 x i8]* @str.6, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %75, i8* %76, i32 5, i1 false)
-	%77 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %71
-	%78 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %71, i32 0, i32 3
-	%79 = load i8*, i8** %78
-	%80 = call i32 (i8*, ...) @printf(i8* %79)
+	%66 = call %string* @newString(i32 5)
+	%67 = getelementptr %string, %string* %66, i32 0, i32 1
+	%68 = load i8*, i8** %67
+	%69 = bitcast i8* %68 to i8*
+	%70 = bitcast i8* getelementptr inbounds ([5 x i8], [5 x i8]* @str.6, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %69, i8* %70, i32 5, i1 false)
+	%71 = load %string, %string* %66
+	%72 = getelementptr %string, %string* %66, i32 0, i32 1
+	%73 = load i8*, i8** %72
+	%74 = call i32 (i8*, ...) @printf(i8* %73)
 	; end block
 	br label %21
 
-; <label>:81
+; <label>:75
 	; empty block
 	; end block
 	ret void

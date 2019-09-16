@@ -93,12 +93,24 @@ func (f *FuncDecl) varSpec(spec *ast.ValueSpec, t token.Token) {
 	}
 }
 
-func (f *FuncDecl) InitArrayValue(slice value.Value, array *types.ArrayType, constv value.Value) {
+func (f *FuncDecl) InitSliceValue(slice value.Value, array *types.ArrayType, constv value.Value) {
 	f.SetLen(slice, constant.NewInt(types.I32, int64(array.Len)))
 	bytes := GetSliceBytes(array)
 	f.StdCall(
 		llvm.Mencpy,
 		f.GetCurrentBlock().NewBitCast(f.GetVSlice(slice), types.I8Ptr),
+		f.GetCurrentBlock().NewBitCast(constv, types.I8Ptr),
+		constant.NewInt(types.I32, bytes),
+		constant.NewBool(false),
+	)
+}
+
+func (f *FuncDecl) InitStringValue(string value.Value, array *types.ArrayType, constv value.Value) {
+	bytes := GetSliceBytes(array)
+	pString := f.GetPString(string)
+	f.StdCall(
+		llvm.Mencpy,
+		f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(pString), types.I8Ptr),
 		f.GetCurrentBlock().NewBitCast(constv, types.I8Ptr),
 		constant.NewInt(types.I32, bytes),
 		constant.NewBool(false),
@@ -117,10 +129,10 @@ func (f *FuncDecl) InitConstantValue(kind types.Type, def value.Value) value.Val
 		arrayType := kind.(*types.ArrayType)
 		sliceValue := f.NewType(arrayType)
 		alloca = sliceValue
-		f.InitArrayValue(sliceValue, arrayType, def)
+		f.InitSliceValue(sliceValue, arrayType, def)
 	case *types.StructType:
 		var l int64
-		alloca = f.NewType(GetBaseType(kind))
+		alloca = f.NewType(utils.GetBaseType(kind))
 		structType := kind.(*types.StructType)
 		for _, value := range structType.Fields {
 			l += int64(GetBytes(value))
@@ -133,10 +145,10 @@ func (f *FuncDecl) InitConstantValue(kind types.Type, def value.Value) value.Val
 			constant.NewBool(false),
 		)
 	case *types.IntType:
-		alloca = f.NewType(GetBaseType(kind))
+		alloca = f.NewType(utils.GetBaseType(kind))
 		f.NewStore(def, alloca)
 	default:
-		alloca = f.NewType(GetBaseType(kind))
+		alloca = f.NewType(utils.GetBaseType(kind))
 		fmt.Println("not find types")
 	}
 	return f.GetCurrentBlock().NewLoad(alloca)
@@ -173,7 +185,7 @@ func (f *FuncDecl) typeSpec(spec *ast.TypeSpec) types.Type {
 			default:
 				logrus.Error("struct type don`t know")
 			}
-			fName := GetBaseType(ftyp).Name()
+			fName := utils.GetBaseType(ftyp).Name()
 			if value.Names != nil {
 				fName = value.Names[0].Name
 				f.StructDefs[name][fName] = StructDef{

@@ -65,9 +65,17 @@ func (f *FuncDecl) Float64(value2 value.Value) value.Value {
 	return f.Float32(value2)
 }
 
-//////////////////slice////////////////////
+//////////////////slice or string////////////////////
 func (f *FuncDecl) Len(value2 value.Value) value.Value {
-	return f.GetLen(f.GetSrcPtr(value2))
+	switch {
+	case f.IsSlice(value2):
+		return f.GetLen(f.GetSrcPtr(value2))
+	case f.IsString(value2.Type()):
+		decl := f.DoFunDecl(f.mPackage, f.r.GetFunc("getStringLen"))
+		return f.GetCurrentBlock().NewCall(decl, value2)
+	default:
+		return nil
+	}
 }
 
 func (f *FuncDecl) Cap(value2 value.Value) value.Value {
@@ -100,6 +108,11 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 		return f.NewSlice(arrayType.ElemType, constant.NewInt(types.I32, int64(arrayType.Len)))
 	case *types.StructType:
 		structType := tp.(*types.StructType)
+		if f.rf == true {
+			logrus.Warnf("default Malloc with runtime %s", tp.String())
+			call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
+			return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
+		}
 		if f.StringType() == tp {
 			return f.NewString(constant.NewInt(types.I32, 0))
 		} else {
@@ -108,12 +121,7 @@ func (f *FuncDecl) NewType(tp types.Type) value.Value {
 			return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
 		}
 	default:
-		//if types.IsStruct(GetBaseType(tp)) {
-		//	structType := tp.(*types.StructType)
-		//	call := f.StdCall(stdlib.Malloc, constant.NewInt(types.I32, int64(GetStructBytes(structType))))
-		//	return f.GetCurrentBlock().NewBitCast(call, types.NewPointer(tp))
-		//}
-		logrus.Warnf("default NewAlloca %s", tp.Name())
+		logrus.Warnf("default NewAlloca %s", tp.String())
 		return f.GetCurrentBlock().NewAlloca(tp)
 	}
 	return nil
@@ -145,7 +153,7 @@ func (f *FuncDecl) Append(value2 value.Value, elems ...value.Value) value.Value 
 		indexStruct := utils.IndexStructValue(f.GetCurrentBlock(), call, 0) //ptr
 		indexCap := utils.IndexStructValue(f.GetCurrentBlock(), call, 1)    //cap
 
-		f.NewStore(f.GetCurrentBlock().NewBitCast(indexStruct, types.NewPointer(GetBaseType(slicePtr.Type()))), slicePtr)
+		f.NewStore(f.GetCurrentBlock().NewBitCast(indexStruct, types.NewPointer(utils.GetBaseType(slicePtr.Type()))), slicePtr)
 
 		//append
 		utils.NewComment(f.GetCurrentBlock(), "store value")
@@ -184,6 +192,9 @@ func (f *FuncDecl) Print(v ...value.Value) value.Value {
 	for i := 0; i < len(v); i++ {
 		if f.IsSlice(v[i]) {
 			v[i] = f.GetVSlice(f.GetSrcPtr(v[i]))
+		}
+		if f.IsString(v[i].Type()) {
+			v[i] = f.GetCurrentBlock().NewLoad(f.GetPString(f.GetSrcPtr(v[i])))
 		}
 	}
 	return f.StdCall(stdlib.Printf, v...)

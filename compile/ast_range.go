@@ -9,24 +9,33 @@ import (
 	"toir/utils"
 )
 
-/**
- *  for(int i=0;i<10,i++)
- *  {
- *     k=i,
- *     v=d[i]
- *  }
- */
+var rge = `
+func rangeTemp() {
+	var key int
+	var value int
+	var zrangzwrLen int
+	var f []int
+	for zrangzwr := 0; zrangzwr < zrangzwrLen; zrangzwr++ {
+		key = zrangzwr
+		value = f[zrangzwr]
+	}
+}
+`
+
 func (f *FuncDecl) RangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Block) {
 	utils.NewComment(f.GetCurrentBlock(), "[range start]")
 	var va = utils.GCCall(f, stmt.X)[0].(value.Value)
 	var name = "rangeV"
 	f.tempVariables[0][name] = va
-
-	emType := GetSliceEmType(GetBaseType(va.Type())) //I32*
+	var emType types.Type
+	if f.IsString(va.Type()) {
+		emType = types.I8
+	} else {
+		emType = GetSliceEmType(utils.GetBaseType(va.Type())) //I32*
+	}
 	//init len
 	getLen := f.GetLen(f.GetSrcPtr(va))
 	f.tempVariables[0]["zrangzwrLen"] = getLen
-
 	getFunc := f.r.GetFunc("rangeTemp")
 	//ast.Print(f.fSet, getFunc)
 	blockStmt := getFunc.Body

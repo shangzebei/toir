@@ -40,8 +40,6 @@ func rangeTemp() {
 	}
 }
 
-type string []byte
-
 func checkNil(a interface{}) {
 	if nil == a {
 		print("nil pointer \n")

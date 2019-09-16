@@ -45,7 +45,8 @@ type FuncDecl struct {
 	forContinue *ir.Block
 	forVarBlock *ir.Block
 	//runtime
-	r *core.Runtime
+	r  *core.Runtime
+	rf bool
 	//slice cast map
 	sliceCastPool map[*ir.InstAlloca]value.Value
 	//types
@@ -271,7 +272,7 @@ func (f *FuncDecl) GetRecvType(funDecl *ast.FuncDecl) types.Type {
 func (f *FuncDecl) InitFunc(funDecl []*ast.FuncDecl) {
 	for _, value := range funDecl {
 		if value.Recv != nil {
-			recvType := GetBaseType(f.GetRecvType(value))
+			recvType := utils.GetBaseType(f.GetRecvType(value))
 			name := recvType.Name()
 			if f.PreStrutsFunc[name] == nil {
 				f.PreStrutsFunc[name] = make(map[string]*ast.FuncDecl)
@@ -292,7 +293,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	funName := funDecl.Name.Name
 	//deal struct
 	if structTyp != nil {
-		funName = f.mPackage + "." + GetBaseType(structTyp).Name() + "." + funDecl.Name.Name
+		funName = f.mPackage + "." + utils.GetBaseType(structTyp).Name() + "." + funDecl.Name.Name
 	}
 	//func type
 	params, funTyp := f.FunType(funDecl.Type)
@@ -302,7 +303,7 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 
 	//deal struct func
 	if funDecl.Recv != nil {
-		s := GetBaseType(structTyp).Name()
+		s := utils.GetBaseType(structTyp).Name()
 		varName := GetIdentName(funDecl.Recv.List[0].Names[0])
 		tempFunc.Params = append(tempFunc.Params, ir.NewParam(varName, structTyp))
 		f.StructDefs[s][funDecl.Name.Name] = StructDef{Name: funDecl.Name.Name, Fun: tempFunc, Order: -1}
@@ -369,7 +370,7 @@ func (f *FuncDecl) initFuncParam() {
 		f.NewStore(value, newAlloca)
 		if f.IsSlice(newAlloca) { //slice *
 			f.PutVariable(value.Name(), newAlloca)
-		} else if types.IsFunc(GetBaseType(newAlloca.Type())) {
+		} else if types.IsFunc(utils.GetBaseType(newAlloca.Type())) {
 			f.PutVariable(value.Name(), f.GetCurrentBlock().NewLoad(newAlloca))
 		} else {
 			f.PutVariable(value.Name(), newAlloca)
@@ -642,7 +643,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			case *ast.Ident:
 				name := GetIdentName(keyValueExpr.Value.(*ast.Ident))
 				if name == "nil" {
-					null := constant.NewNull(types.NewPointer(GetBaseType(indexStruct.Type())))
+					null := constant.NewNull(types.NewPointer(utils.GetBaseType(indexStruct.Type())))
 					f.NewStore(null, indexStruct)
 				} else {
 					variable := f.GetVariable(name)
@@ -658,7 +659,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
 			name := GetIdentName(val.(*ast.Ident))
 			if name == "nil" {
-				null := constant.NewNull(types.NewPointer(GetBaseType(indexStruct.Type())))
+				null := constant.NewNull(types.NewPointer(utils.GetBaseType(indexStruct.Type())))
 				f.NewStore(null, indexStruct)
 			} else {
 				variable := f.GetVariable(name)
@@ -694,12 +695,40 @@ func (f *FuncDecl) BranchStmt(stmt *ast.BranchStmt) {
 
 func (f *FuncDecl) SliceExpr(expr *ast.SliceExpr) value.Value {
 	variable := utils.GCCall(f, expr.X)[0].(value.Value)
-	low := f.BasicLit(expr.Low.(*ast.BasicLit))
-	higt := f.BasicLit(expr.High.(*ast.BasicLit))
-	if f.IsSlice(variable) { //
+	var low value.Value = constant.NewInt(types.I32, 0)
+	var higt value.Value
+	if expr.Low != nil {
+		low = f.BasicLit(expr.Low.(*ast.BasicLit))
+	}
+	if expr.High != nil {
+		higt = f.BasicLit(expr.High.(*ast.BasicLit))
+	} else {
+		higt = f.GetLen(variable)
+	}
+	if expr.Low == nil && expr.High == nil {
+		return variable
+	}
+	decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
+	switch {
+	case f.IsString(variable.Type()):
+		utils.NewComment(f.GetCurrentBlock(), "start string range[]")
+		pString := f.GetPString(f.GetSrcPtr(variable))
+		stringV := f.GetCurrentBlock().NewLoad(pString)
+		stdCall := f.StdCall(decl,
+			f.GetCurrentBlock().NewBitCast(stringV, types.I8Ptr),
+			low,
+			higt,
+			constant.NewInt(types.I32, 1),
+		)
+		sub := f.GetCurrentBlock().NewSub(higt, low)
+		newString := f.NewString(sub)
+		getSlice := f.GetPString(newString)
+		f.NewStore(f.GetCurrentBlock().NewBitCast(stdCall, types.NewPointer(utils.GetBaseType(getSlice.Type()))), getSlice)
+		utils.NewComment(f.GetCurrentBlock(), "end string range[]")
+		return utils.LoadValue(f.GetCurrentBlock(), newString)
+	case f.IsSlice(variable):
 		//i8* rangeSlice(i8* ptr,int low ,int high,int bytes)
-		decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
-		utils.NewComment(f.GetCurrentBlock(), "end slice[]")
+		utils.NewComment(f.GetCurrentBlock(), "start slice[]")
 		pSlice := f.GetPSlice(f.GetSrcPtr(variable))
 		slice := f.GetCurrentBlock().NewLoad(pSlice)
 		stdCall := f.StdCall(decl,
@@ -713,11 +742,12 @@ func (f *FuncDecl) SliceExpr(expr *ast.SliceExpr) value.Value {
 		sub := f.GetCurrentBlock().NewSub(higt, low)
 		f.SetLen(newSlice, sub)
 		f.SetCap(newSlice, sub)
-		f.NewStore(f.GetCurrentBlock().NewBitCast(stdCall, types.NewPointer(GetBaseType(getSlice.Type()))), getSlice)
+		f.NewStore(f.GetCurrentBlock().NewBitCast(stdCall, types.NewPointer(utils.GetBaseType(getSlice.Type()))), getSlice)
 		utils.NewComment(f.GetCurrentBlock(), "end slice[]")
 		return utils.LoadValue(f.GetCurrentBlock(), newSlice)
+	default:
+		logrus.Error("SliceExpr not sliceArray")
 	}
-	logrus.Error("SliceExpr not sliceArray")
 	return nil
 }
 

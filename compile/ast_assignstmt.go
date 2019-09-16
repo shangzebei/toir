@@ -81,7 +81,7 @@ func (f *FuncDecl) AssignStmt(assignStmt *ast.AssignStmt) []value.Value {
 		for lindex, lvalue := range l {
 			vName := lvalue.(*ir.Param).Name()
 			if _, ok := r[lindex].(constant.Constant); ok {
-				switch GetBaseType(r[lindex].Type()).(type) {
+				switch utils.GetBaseType(r[lindex].Type()).(type) {
 				case *types.IntType:
 					newAlloc := f.NewType(r[lindex].Type())
 					f.NewStore(r[lindex], newAlloc)
@@ -290,7 +290,7 @@ func (f *FuncDecl) find(m map[string]StructDef, name string) *Inherit {
 }
 
 func (f *FuncDecl) GetStructDef(orig value.Value, typ types.Type, sel *ast.Ident) (value.Value, *StructDef, bool) {
-	baseType := GetBaseType(typ)
+	baseType := utils.GetBaseType(typ)
 	structDefs := f.StructDefs[baseType.Name()]
 	identName := GetIdentName(sel)
 	def, ok := structDefs[identName]
@@ -342,14 +342,14 @@ func (f *FuncDecl) IndexExpr(index *ast.IndexExpr) value.Value {
 	case *ast.Ident:
 		ident := index.X.(*ast.Ident)
 		variable := f.GetVariable(ident.Name)
-		return f.GetSliceIndex(variable, kv)
+		return f.GetIndex(variable, kv)
 	case *ast.CallExpr:
 		expr := f.CallExpr(index.X.(*ast.CallExpr))
-		return f.GetSliceIndex(expr, kv)
+		return f.GetIndex(expr, kv)
 	case *ast.SliceExpr: //return slice
 		sliceExpr := index.X.(*ast.SliceExpr)
 		expr := f.SliceExpr(sliceExpr)
-		return f.GetSliceIndex(expr, kv)
+		return f.GetIndex(expr, kv)
 	default:
 		logrus.Error("no impl index.X")
 	}

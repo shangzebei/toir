@@ -53,13 +53,12 @@ func (f *FuncDecl) FuncSlice(em types.Type, st *types.StructType) *ir.Func {
 }
 
 func (f *FuncDecl) NewString(arrayLen value.Value) value.Value {
-	stringType := f.StringType()
-	slice := f.typeSlice(types.I8, stringType, arrayLen)
-	return slice
+	return f.CallRuntime("newString", arrayLen)
 }
 
 func (f *FuncDecl) IsString(p types.Type) bool {
-	if t, ok := p.(*types.StructType); ok && t == f.StringType() {
+	baseType := utils.GetBaseType(p)
+	if t, ok := baseType.(*types.StructType); ok && t == f.StringType() {
 		return true
 	} else {
 		return false
@@ -103,7 +102,7 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 	if _, ok := v.(*SliceValue); ok {
 		return true
 	}
-	baseType := GetBaseType(v.Type())
+	baseType := utils.GetBaseType(v.Type())
 	for _, value := range f.sliceTypes {
 		if baseType == value {
 			return true
@@ -113,7 +112,7 @@ func (f *FuncDecl) IsSlice(v value.Value) bool {
 }
 
 func (f *FuncDecl) IsSliceType(v types.Type) bool {
-	baseType := GetBaseType(v)
+	baseType := utils.GetBaseType(v)
 	for _, value := range f.sliceTypes {
 		if baseType == value {
 			return true
@@ -122,14 +121,19 @@ func (f *FuncDecl) IsSliceType(v types.Type) bool {
 	return false
 }
 
-func (f *FuncDecl) GetSliceIndex(v value.Value, index value.Value) value.Value {
+func (f *FuncDecl) GetIndex(v value.Value, index value.Value) value.Value {
 
+	var ss value.Value
 	utils.NewComment(f.GetCurrentBlock(), "get slice index")
 	//decl := f.DoFunDecl("runtime", f.r.GetFunc("indexSlice"))
 	//return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewBitCast(f.StdCall(decl, v, index), p))
-	slice := f.GetPSlice(f.GetSrcPtr(v))
-
-	return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewGetElementPtr(f.GetCurrentBlock().NewLoad(slice), index))
+	if f.IsString(v.Type()) {
+		ss = f.GetPString(f.GetSrcPtr(v))
+	}
+	if f.IsSlice(v) {
+		ss = f.GetPSlice(f.GetSrcPtr(v))
+	}
+	return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewGetElementPtr(f.GetCurrentBlock().NewLoad(ss), index))
 }
 
 //addr char *
@@ -140,6 +144,10 @@ func (f *FuncDecl) GetVSlice(v value.Value) value.Value {
 //slice*** [char **]
 func (f *FuncDecl) GetPSlice(v value.Value) value.Value {
 	return utils.IndexStruct(f.GetCurrentBlock(), v, 3)
+}
+
+func (f *FuncDecl) GetPString(v value.Value) value.Value {
+	return utils.IndexStruct(f.GetCurrentBlock(), v, 1)
 }
 
 func (f *FuncDecl) GetPLen(v value.Value) value.Value {
@@ -193,11 +201,11 @@ func GetSliceEmType(p types.Type) types.Type {
 func (f *FuncDecl) CopyNewSlice(src value.Value) value.Value {
 	if f.IsSlice(src) {
 		utils.NewComment(f.GetCurrentBlock(), "copy and new slice")
-		baseType := GetBaseType(src.Type())
+		baseType := utils.GetBaseType(src.Type())
 		i := GetSliceEmType(baseType)
 		ptr := f.GetSrcPtr(src)
 		getLen := f.GetLen(ptr)
-		dstSlice := f.NewSlice(GetBaseType(i), getLen)
+		dstSlice := f.NewSlice(utils.GetBaseType(i), getLen)
 		f.CopyStruct(dstSlice, ptr)
 		utils.NewComment(f.GetCurrentBlock(), "copy and end slice")
 		return dstSlice

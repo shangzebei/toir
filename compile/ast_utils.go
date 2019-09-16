@@ -107,7 +107,7 @@ func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) valu
 		/////
 		i := len(fromString.X)
 		newString := f.NewString(constant.NewInt(types.I32, int64(i)))
-		f.InitArrayValue(newString, types.NewArray(uint64(i), types.I8), ptr)
+		f.InitStringValue(newString, types.NewArray(uint64(i), types.I8), ptr)
 		return f.GetCurrentBlock().NewLoad(newString)
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
@@ -229,17 +229,9 @@ func InitZeroConstant(typ types.Type) constant.Constant {
 	return nil
 }
 
-func GetBaseType(v types.Type) types.Type {
-	if p, ok := v.(*types.PointerType); ok {
-		return GetBaseType(p.ElemType)
-	} else {
-		return v
-	}
-}
-
 func GetStructBytes(v types.Type) int {
 	a := 0
-	if t, ok := GetBaseType(v).(*types.StructType); ok {
+	if t, ok := utils.GetBaseType(v).(*types.StructType); ok {
 		for _, value := range t.Fields {
 			a += GetBytes(value)
 		}
@@ -259,11 +251,11 @@ func FixAlloc(b *ir.Block, value2 value.Value) value.Value {
 
 func FixNil(value2 value.Value, p types.Type) value.Value {
 	if t, ok := value2.(*constant.Null); ok {
-		t.Typ = types.NewPointer(GetBaseType(p))
+		t.Typ = types.NewPointer(utils.GetBaseType(p))
 		return t
 	}
 	if t, ok := value2.(*ir.Param); ok && t.Name() == "nil" {
-		return constant.NewNull(types.NewPointer(GetBaseType(p)))
+		return constant.NewNull(types.NewPointer(utils.GetBaseType(p)))
 	}
 	return value2
 }
@@ -277,9 +269,18 @@ func IsIgnore(i *ast.Ident) bool {
 }
 
 func (f *FuncDecl) NewStore(src, dst value.Value) {
-	if types.IsInt(src.Type()) && types.IsInt(GetBaseType(dst.Type())) {
-		src = f.IntType(src, GetBaseType(dst.Type()))
+	if types.IsInt(src.Type()) && types.IsInt(utils.GetBaseType(dst.Type())) {
+		src = f.IntType(src, utils.GetBaseType(dst.Type()))
 	}
 	f.GetCurrentBlock().NewStore(src, dst)
+
+}
+
+func (f *FuncDecl) CallRuntime(funName string, args ...value.Value) value.Value {
+	f.rf = true
+	getFunc := f.r.GetFunc(funName)
+	decl := f.DoFunDecl("runtime", getFunc)
+	f.rf = false
+	return f.GetCurrentBlock().NewCall(decl, args...)
 
 }

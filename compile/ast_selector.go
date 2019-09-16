@@ -22,7 +22,7 @@ func (f *FuncDecl) doSelector(params []value.Value, fexpr *ast.SelectorExpr, fla
 			//struct func call
 			variable := f.GetVariable(varName)
 			if variable != nil {
-				if t, ok := GetBaseType(variable.Type()).(*types.StructType); ok {
+				if t, ok := utils.GetBaseType(variable.Type()).(*types.StructType); ok {
 					v, def, ok := f.GetStructDef(variable, t, fexpr.Sel)
 					if ok && def.Fun == nil {
 						index := utils.IndexStruct(f.GetCurrentBlock(), v, def.Order)
@@ -87,7 +87,7 @@ func (f *FuncDecl) callSelector(params []value.Value, fexpr *ast.SelectorExpr) v
 	case "fmt.Printf", "external.Printf":
 		return f.StdCall(stdlib.Printf, params...)
 	case "test.test":
-		decl := f.DoFunDecl("runtime", f.r.GetFunc("checkGrow"))
+		decl := f.DoFunDecl("runtime", f.r.GetFunc("newString"))
 		return f.StdCall(decl)
 	default:
 		logrus.Errorf("not impl doSelector %s", name)

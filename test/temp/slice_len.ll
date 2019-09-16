@@ -1,3 +1,5 @@
+%mapStruct = type {}
+%string = type { i32, i8* }
 %return.3.0 = type { i8*, i32 }
 
 @main.0 = constant [3 x i32] [i32 1, i32 2, i32 3]
@@ -90,22 +92,47 @@ define %return.3.0 @checkGrow(i8* %ptr, i32 %len, i32 %cap, i32 %bytes, i32 %ins
 	ret %return.3.0 %36
 }
 
-define void @init_slice_i8({ i32, i32, i32, i8* }* %ptr, i32 %len) {
+define %string* @newString(i32 %size) {
 ; <label>:0
-	; init slice...............
-	%1 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 2
-	store i32 1, i32* %1
-	%2 = mul i32 %len, 1
-	%3 = call i8* @malloc(i32 %2)
-	%4 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 3
-	%5 = bitcast i8* %3 to i8*
-	store i8* %5, i8** %4
-	%6 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 1
-	store i32 %len, i32* %6
-	%7 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 0
-	store i32 %len, i32* %7
-	; end init slice.................
-	ret void
+	; block start
+	%1 = alloca i32
+	store i32 %size, i32* %1
+	%2 = call i8* @malloc(i32 12)
+	%3 = bitcast i8* %2 to %string*
+	%4 = alloca %string*
+	store %string* %3, %string** %4
+	br label %5
+
+; <label>:5
+	%6 = load i32, i32* %1
+	%7 = icmp eq i32 %6, 0
+	br i1 %7, label %8, label %10
+
+; <label>:8
+	; block start
+	%9 = load %string*, %string** %4
+	; end block
+	ret %string* %9
+
+; <label>:10
+	br label %11
+
+; <label>:11
+	%12 = load i32, i32* %1
+	%13 = sub i32 %12, 1
+	%14 = load %string*, %string** %4
+	%15 = getelementptr %string, %string* %14, i32 0, i32 0
+	%16 = load i32, i32* %15
+	store i32 %13, i32* %15
+	%17 = load i32, i32* %1
+	%18 = call i8* @malloc(i32 %17)
+	%19 = load %string*, %string** %4
+	%20 = getelementptr %string, %string* %19, i32 0, i32 1
+	%21 = load i8*, i8** %20
+	store i8* %18, i8** %20
+	%22 = load %string*, %string** %4
+	; end block
+	ret %string* %22
 }
 
 declare i32 @printf(i8*, ...)
@@ -171,21 +198,17 @@ define void @main() {
 	%40 = load i32, i32* %39
 	%41 = alloca i32
 	store i32 %40, i32* %41
-	%42 = call i8* @malloc(i32 20)
-	%43 = bitcast i8* %42 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %43, i32 4)
-	%44 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %43, i32 0, i32 0
-	store i32 4, i32* %44
-	%45 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %43, i32 0, i32 3
-	%46 = load i8*, i8** %45
-	%47 = bitcast i8* %46 to i8*
-	%48 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %47, i8* %48, i32 4, i1 false)
-	%49 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %43
-	%50 = load i32, i32* %41
-	%51 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %43, i32 0, i32 3
-	%52 = load i8*, i8** %51
-	%53 = call i32 (i8*, ...) @printf(i8* %52, i32 %50)
+	%42 = call %string* @newString(i32 4)
+	%43 = getelementptr %string, %string* %42, i32 0, i32 1
+	%44 = load i8*, i8** %43
+	%45 = bitcast i8* %44 to i8*
+	%46 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %45, i8* %46, i32 4, i1 false)
+	%47 = load %string, %string* %42
+	%48 = load i32, i32* %41
+	%49 = getelementptr %string, %string* %42, i32 0, i32 1
+	%50 = load i8*, i8** %49
+	%51 = call i32 (i8*, ...) @printf(i8* %50, i32 %48)
 	; end block
 	ret void
 }

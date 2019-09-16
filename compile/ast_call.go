@@ -58,7 +58,7 @@ func (f *FuncDecl) CallExpr(call *ast.CallExpr) value.Value {
 	//	i := s.ElemType.(*types.ArrayType)
 	//	types.NewArray(i.Len,ki)
 	//	slice := f.NewSlice(ki, constant.NewInt(types.I32, 4))
-	//	f.InitArrayValue(si)
+	//	f.InitSliceValue(si)
 	//}
 	//
 	//return slice

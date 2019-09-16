@@ -1,37 +1,38 @@
 package core
 
 import (
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
+	"os"
+	"strings"
 )
 
 type Runtime struct {
-	f *ast.File
+	f map[string]*ast.Package
 }
 
-func Init(fileName string) *Runtime {
+func Init(dir string) *Runtime {
 	fSet := token.NewFileSet()
-	bytes, _ := ioutil.ReadFile(fileName)
-	f, err := parser.ParseFile(fSet, "hello.go", bytes, parser.ParseComments)
-	if err != nil {
-		fmt.Print(err) // parse error
-		return nil
-	}
-	//ast.Print(fSet, f)
-	return &Runtime{f: f}
+	pkgs, _ := parser.ParseDir(fSet, dir, func(info os.FileInfo) bool {
+		return strings.HasSuffix(info.Name(), ".go")
+	}, parser.ParseComments)
+	return &Runtime{f: pkgs}
 
 }
 
 func (r *Runtime) GetFunc(name string) *ast.FuncDecl {
-	for _, value := range r.f.Decls {
-		switch value.(type) {
-		case *ast.FuncDecl:
-			if value.(*ast.FuncDecl).Name.Name == name {
-				return value.(*ast.FuncDecl)
+	for _, v := range r.f {
+		for _, d := range v.Files {
+			for _, value := range d.Decls {
+				switch value.(type) {
+				case *ast.FuncDecl:
+					if value.(*ast.FuncDecl).Name.Name == name {
+						return value.(*ast.FuncDecl)
+					}
+				}
 			}
+
 		}
 	}
 	return nil
@@ -39,10 +40,15 @@ func (r *Runtime) GetFunc(name string) *ast.FuncDecl {
 
 func (r *Runtime) GenAll() []*ast.GenDecl {
 	var temp []*ast.GenDecl
-	for _, value := range r.f.Decls {
-		switch value.(type) {
-		case *ast.GenDecl:
-			temp = append(temp, value.(*ast.GenDecl))
+	for _, v := range r.f {
+		for _, d := range v.Files {
+			for _, value := range d.Decls {
+				switch value.(type) {
+				case *ast.GenDecl:
+					temp = append(temp, value.(*ast.GenDecl))
+				}
+			}
+
 		}
 	}
 	return temp

@@ -1,7 +1,7 @@
 package test
 
 func main() {
-	stringRange()
+	stringBase()
 }
 
 //
@@ -24,10 +24,13 @@ func main() {
 //	}
 //}
 
-func stringRange() {
-	var ssss string
-	ssss = "shangzebei"
-	for _, value := range ssss {
-		print("%d ", value)
+func stringBase() {
+	a := "shangzebei"
+	print("%s\n", a)
+	print("%d\n", len(a))
+	print("%c\n", a[1])
+	for key, value := range a {
+		print("%d==%c\n", key, value)
 	}
+	print("%s\n", a[3:5])
 }

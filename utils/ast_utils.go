@@ -137,3 +137,11 @@ func GetRandNum(size int) string {
 	}
 	return a + strconv.Itoa(int(time.Now().Unix()))
 }
+
+func GetBaseType(v types.Type) types.Type {
+	if p, ok := v.(*types.PointerType); ok {
+		return GetBaseType(p.ElemType)
+	} else {
+		return v
+	}
+}
