@@ -51,17 +51,8 @@ func (f *FuncDecl) CallExpr(call *ast.CallExpr) value.Value {
 		return f.doSelector(params, fexpr, "call")
 	case *ast.Ident:
 		return f.doCallFunc(params, call.Fun.(*ast.Ident))
-	//case *ast.ArrayType:
-	//arrayType := call.Fun.(*ast.ArrayType)
-	//ki := f.GetTypeFromName(GetIdentName(arrayType.Elt.(*ast.Ident)))
-	//if s, ok := params[0].(*constant.ExprGetElementPtr); ok {
-	//	i := s.ElemType.(*types.ArrayType)
-	//	types.NewArray(i.Len,ki)
-	//	slice := f.NewSlice(ki, constant.NewInt(types.I32, 4))
-	//	f.InitSliceValue(si)
-	//}
-	//
-	//return slice
+	case *ast.ArrayType:
+		return f.CallRuntime("stringToBytes", f.GetSrcPtr(params[0]))
 	default:
 		fmt.Println("CallExpr call.Fun")
 	}

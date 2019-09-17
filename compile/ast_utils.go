@@ -106,8 +106,8 @@ func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) valu
 		ptr.InBounds = true
 		/////
 		i := len(fromString.X)
-		newString := f.NewString(constant.NewInt(types.I32, int64(i)))
-		f.InitStringValue(newString, types.NewArray(uint64(i), types.I8), ptr)
+		newString := f.NewString(constant.NewInt(types.I32, int64(i-1)))
+		f.InitStringValue(newString, ptr)
 		return f.GetCurrentBlock().NewLoad(newString)
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)

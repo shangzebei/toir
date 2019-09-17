@@ -147,7 +147,7 @@ func (f *FuncDecl) FunType(funcTyp *ast.FuncType) ([]*ir.Param, *types.FuncType)
 		case *ast.StarExpr:
 			ty = append(ty, f.StartExpr(value.Type.(*ast.StarExpr), "type").Type())
 		case *ast.ArrayType:
-			ty = append(ty, f.ArrayType(value.Type.(*ast.ArrayType)))
+			ty = append(ty, types.NewPointer(f.ArrayType(value.Type.(*ast.ArrayType))))
 		default:
 			logrus.Error("not known type")
 		}
@@ -294,6 +294,10 @@ func (f *FuncDecl) DoFunDecl(pkg string, funDecl *ast.FuncDecl) *ir.Func {
 	//deal struct
 	if structTyp != nil {
 		funName = f.mPackage + "." + utils.GetBaseType(structTyp).Name() + "." + funDecl.Name.Name
+	} else {
+		if pkg != "" {
+			funName = pkg + "." + funName
+		}
 	}
 	//func type
 	params, funTyp := f.FunType(funDecl.Type)
@@ -708,7 +712,7 @@ func (f *FuncDecl) SliceExpr(expr *ast.SliceExpr) value.Value {
 	if expr.Low == nil && expr.High == nil {
 		return variable
 	}
-	decl := f.DoFunDecl("runtime", f.r.GetFunc("rangeSlice"))
+	decl := f.DoFunDecl("runtime", f.r.GetFunc("rangePtr"))
 	switch {
 	case f.IsString(variable.Type()):
 		utils.NewComment(f.GetCurrentBlock(), "start string range[]")

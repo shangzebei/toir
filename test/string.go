@@ -2,27 +2,26 @@ package test
 
 func main() {
 	stringBase()
+	stringJoin()
+	string2bytes()
 }
 
-//
-//
-//
-//func sadd() {
-//	a := "asdfasdfsdfsd"
-//	b := a + "hello"
-//	print(b)
-//}
-//
-//func kk()  {
-//	strings.HasPrefix()
-//}
+func stringJoin() {
+	a := "shangzebei"
+	print("%d\n", len(a))
+	b := "hello"
+	print("%d\n", len(b))
+	c := a + b
+	print("%d\n", len(c))
+	print(c)
+}
 
-//func string2bytes() {
-//	var kk = []byte("shangzebei")
-//	for _, value := range kk {
-//		print("%d", value)
-//	}
-//}
+func string2bytes() {
+	b := []byte("shangzebei")
+	for _, value := range b {
+		print("%d ", value)
+	}
+}
 
 func stringBase() {
 	a := "shangzebei"

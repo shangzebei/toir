@@ -4,11 +4,10 @@ import (
 	"testing"
 )
 
-type AAAA struct {
-	B string
-	C string
-}
-
 func TestName(t *testing.T) {
 
+}
+
+func show() []byte {
+	return []byte("asdfasdfsd")
 }

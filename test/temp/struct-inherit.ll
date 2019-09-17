@@ -8,7 +8,7 @@
 
 declare i8* @malloc(i32)
 
-define %string* @newString(i32 %size) {
+define %string* @runtime.newString(i32 %size) {
 ; <label>:0
 	; block start
 	%1 = alloca i32
@@ -34,13 +34,13 @@ define %string* @newString(i32 %size) {
 	br label %11
 
 ; <label>:11
-	%12 = load i32, i32* %1
-	%13 = sub i32 %12, 1
-	%14 = load %string*, %string** %4
-	%15 = getelementptr %string, %string* %14, i32 0, i32 0
-	%16 = load i32, i32* %15
-	store i32 %13, i32* %15
-	%17 = load i32, i32* %1
+	%12 = load %string*, %string** %4
+	%13 = getelementptr %string, %string* %12, i32 0, i32 0
+	%14 = load i32, i32* %13
+	%15 = load i32, i32* %1
+	store i32 %15, i32* %13
+	%16 = load i32, i32* %1
+	%17 = add i32 %16, 1
 	%18 = call i8* @malloc(i32 %17)
 	%19 = load %string*, %string** %4
 	%20 = getelementptr %string, %string* %19, i32 0, i32 1
@@ -67,33 +67,39 @@ define void @main() {
 	%6 = getelementptr %ListNode, %ListNode* %5, i32 0, i32 0
 	%7 = load i32, i32* %6
 	store i32 89, i32* %6
-	%8 = call %string* @newString(i32 4)
+	%8 = call %string* @runtime.newString(i32 3)
 	%9 = getelementptr %string, %string* %8, i32 0, i32 1
 	%10 = load i8*, i8** %9
 	%11 = bitcast i8* %10 to i8*
 	%12 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %11, i8* %12, i32 4, i1 false)
-	%13 = load %string, %string* %8
-	%14 = getelementptr %CircularListNode, %CircularListNode* %4, i32 0, i32 0
-	%15 = load %ListNode, %ListNode* %14
-	%16 = getelementptr %ListNode, %ListNode* %14, i32 0, i32 0
-	%17 = load i32, i32* %16
-	%18 = getelementptr %string, %string* %8, i32 0, i32 1
-	%19 = load i8*, i8** %18
-	%20 = call i32 (i8*, ...) @printf(i8* %19, i32 %17)
-	%21 = call %string* @newString(i32 4)
-	%22 = getelementptr %string, %string* %21, i32 0, i32 1
-	%23 = load i8*, i8** %22
-	%24 = bitcast i8* %23 to i8*
-	%25 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.1, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %24, i8* %25, i32 4, i1 false)
-	%26 = load %string, %string* %21
-	%27 = getelementptr %CircularListNode, %CircularListNode* %4, i32 0, i32 0
-	%28 = getelementptr %ListNode, %ListNode* %27, i32 0, i32 0
-	%29 = load i32, i32* %28
-	%30 = getelementptr %string, %string* %21, i32 0, i32 1
-	%31 = load i8*, i8** %30
-	%32 = call i32 (i8*, ...) @printf(i8* %31, i32 %29)
+	%13 = getelementptr %string, %string* %8, i32 0, i32 0
+	%14 = load i32, i32* %13
+	%15 = add i32 %14, 1
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %11, i8* %12, i32 %15, i1 false)
+	%16 = load %string, %string* %8
+	%17 = getelementptr %CircularListNode, %CircularListNode* %4, i32 0, i32 0
+	%18 = load %ListNode, %ListNode* %17
+	%19 = getelementptr %ListNode, %ListNode* %17, i32 0, i32 0
+	%20 = load i32, i32* %19
+	%21 = getelementptr %string, %string* %8, i32 0, i32 1
+	%22 = load i8*, i8** %21
+	%23 = call i32 (i8*, ...) @printf(i8* %22, i32 %20)
+	%24 = call %string* @runtime.newString(i32 3)
+	%25 = getelementptr %string, %string* %24, i32 0, i32 1
+	%26 = load i8*, i8** %25
+	%27 = bitcast i8* %26 to i8*
+	%28 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.1, i64 0, i64 0) to i8*
+	%29 = getelementptr %string, %string* %24, i32 0, i32 0
+	%30 = load i32, i32* %29
+	%31 = add i32 %30, 1
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %27, i8* %28, i32 %31, i1 false)
+	%32 = load %string, %string* %24
+	%33 = getelementptr %CircularListNode, %CircularListNode* %4, i32 0, i32 0
+	%34 = getelementptr %ListNode, %ListNode* %33, i32 0, i32 0
+	%35 = load i32, i32* %34
+	%36 = getelementptr %string, %string* %24, i32 0, i32 1
+	%37 = load i8*, i8** %36
+	%38 = call i32 (i8*, ...) @printf(i8* %37, i32 %35)
 	; end block
 	ret void
 }

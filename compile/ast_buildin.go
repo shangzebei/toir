@@ -71,8 +71,7 @@ func (f *FuncDecl) Len(value2 value.Value) value.Value {
 	case f.IsSlice(value2):
 		return f.GetLen(f.GetSrcPtr(value2))
 	case f.IsString(value2.Type()):
-		decl := f.DoFunDecl(f.mPackage, f.r.GetFunc("getStringLen"))
-		return f.GetCurrentBlock().NewCall(decl, value2)
+		return f.CallRuntime("getStringLen", value2)
 	default:
 		return nil
 	}

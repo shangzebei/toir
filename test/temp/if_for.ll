@@ -1,11 +1,11 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 
 @str.0 = constant [6 x i8] c"hello\00"
 
 declare i8* @malloc(i32)
 
-define %string* @newString(i32 %size) {
+define %string* @runtime.newString(i32 %size) {
 ; <label>:0
 	; block start
 	%1 = alloca i32
@@ -31,13 +31,13 @@ define %string* @newString(i32 %size) {
 	br label %11
 
 ; <label>:11
-	%12 = load i32, i32* %1
-	%13 = sub i32 %12, 1
-	%14 = load %string*, %string** %4
-	%15 = getelementptr %string, %string* %14, i32 0, i32 0
-	%16 = load i32, i32* %15
-	store i32 %13, i32* %15
-	%17 = load i32, i32* %1
+	%12 = load %string*, %string** %4
+	%13 = getelementptr %string, %string* %12, i32 0, i32 0
+	%14 = load i32, i32* %13
+	%15 = load i32, i32* %1
+	store i32 %15, i32* %13
+	%16 = load i32, i32* %1
+	%17 = add i32 %16, 1
 	%18 = call i8* @malloc(i32 %17)
 	%19 = load %string*, %string** %4
 	%20 = getelementptr %string, %string* %19, i32 0, i32 1
@@ -62,7 +62,7 @@ define void @main() {
 ; <label>:2
 	%3 = load i32, i32* %1
 	%4 = icmp sgt i32 %3, 50
-	br i1 %4, label %5, label %21
+	br i1 %4, label %5, label %24
 
 ; <label>:5
 	; block start
@@ -71,34 +71,37 @@ define void @main() {
 ; <label>:6
 	%7 = load i32, i32* %1
 	%8 = icmp sgt i32 %7, 60
-	br i1 %8, label %9, label %19
+	br i1 %8, label %9, label %22
 
 ; <label>:9
 	; block start
-	%10 = call %string* @newString(i32 6)
+	%10 = call %string* @runtime.newString(i32 5)
 	%11 = getelementptr %string, %string* %10, i32 0, i32 1
 	%12 = load i8*, i8** %11
 	%13 = bitcast i8* %12 to i8*
 	%14 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.0, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %13, i8* %14, i32 6, i1 false)
-	%15 = load %string, %string* %10
-	%16 = getelementptr %string, %string* %10, i32 0, i32 1
-	%17 = load i8*, i8** %16
-	%18 = call i32 (i8*, ...) @printf(i8* %17)
+	%15 = getelementptr %string, %string* %10, i32 0, i32 0
+	%16 = load i32, i32* %15
+	%17 = add i32 %16, 1
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %13, i8* %14, i32 %17, i1 false)
+	%18 = load %string, %string* %10
+	%19 = getelementptr %string, %string* %10, i32 0, i32 1
+	%20 = load i8*, i8** %19
+	%21 = call i32 (i8*, ...) @printf(i8* %20)
 	; end block
-	br label %20
+	br label %23
 
-; <label>:19
-	br label %20
+; <label>:22
+	br label %23
 
-; <label>:20
+; <label>:23
 	; end block
 	ret void
 
-; <label>:21
-	br label %22
+; <label>:24
+	br label %25
 
-; <label>:22
+; <label>:25
 	; end block
 	ret void
 }

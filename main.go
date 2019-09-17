@@ -67,7 +67,7 @@ func Build(file string, outputPath string) {
 		doFunc.DoFunDecl(f.Name.Name, value)
 	}
 	//main
-	doFunc.DoFunDecl(f.Name.Name, mainF.(*ast.FuncDecl))
+	doFunc.DoFunDecl("", mainF.(*ast.FuncDecl))
 
 	ioutil.WriteFile(outputPath+".ll", []byte(m.String()), 0644)
 

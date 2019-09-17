@@ -56,3 +56,7 @@ func (c *Call) ArrayPtr(src value.Value /* i8* */, bytes value.Value, index valu
 func (c *Call) PointerToI8p(pointer value.Value) value.Value {
 	return c.Block.NewBitCast(pointer, types.I8Ptr)
 }
+
+func (c *Call) SlicePtr(slice value.Value) value.Value {
+	return utils.IndexStructValue(c.Block, slice, 3)
+}

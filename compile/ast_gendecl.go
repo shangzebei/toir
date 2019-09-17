@@ -105,14 +105,13 @@ func (f *FuncDecl) InitSliceValue(slice value.Value, array *types.ArrayType, con
 	)
 }
 
-func (f *FuncDecl) InitStringValue(string value.Value, array *types.ArrayType, constv value.Value) {
-	bytes := GetSliceBytes(array)
+func (f *FuncDecl) InitStringValue(string value.Value, constv value.Value) {
 	pString := f.GetPString(string)
 	f.StdCall(
 		llvm.Mencpy,
 		f.GetCurrentBlock().NewBitCast(f.GetCurrentBlock().NewLoad(pString), types.I8Ptr),
 		f.GetCurrentBlock().NewBitCast(constv, types.I8Ptr),
-		constant.NewInt(types.I32, bytes),
+		f.GetCurrentBlock().NewAdd(f.GetLen(string), constant.NewInt(types.I32, 1)),
 		constant.NewBool(false),
 	)
 }

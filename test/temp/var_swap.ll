@@ -5,7 +5,7 @@
 
 declare i8* @malloc(i32)
 
-define %string* @newString(i32 %size) {
+define %string* @runtime.newString(i32 %size) {
 ; <label>:0
 	; block start
 	%1 = alloca i32
@@ -31,13 +31,13 @@ define %string* @newString(i32 %size) {
 	br label %11
 
 ; <label>:11
-	%12 = load i32, i32* %1
-	%13 = sub i32 %12, 1
-	%14 = load %string*, %string** %4
-	%15 = getelementptr %string, %string* %14, i32 0, i32 0
-	%16 = load i32, i32* %15
-	store i32 %13, i32* %15
-	%17 = load i32, i32* %1
+	%12 = load %string*, %string** %4
+	%13 = getelementptr %string, %string* %12, i32 0, i32 0
+	%14 = load i32, i32* %13
+	%15 = load i32, i32* %1
+	store i32 %15, i32* %13
+	%16 = load i32, i32* %1
+	%17 = add i32 %16, 1
 	%18 = call i8* @malloc(i32 %17)
 	%19 = load %string*, %string** %4
 	%20 = getelementptr %string, %string* %19, i32 0, i32 1
@@ -59,18 +59,21 @@ define void @main() {
 	store i32 5, i32* %1
 	%2 = alloca i32
 	store i32 6, i32* %2
-	%3 = call %string* @newString(i32 7)
+	%3 = call %string* @runtime.newString(i32 6)
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
 	%7 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.0, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 7, i1 false)
-	%8 = load %string, %string* %3
-	%9 = load i32, i32* %1
-	%10 = load i32, i32* %2
-	%11 = getelementptr %string, %string* %3, i32 0, i32 1
-	%12 = load i8*, i8** %11
-	%13 = call i32 (i8*, ...) @printf(i8* %12, i32 %9, i32 %10)
+	%8 = getelementptr %string, %string* %3, i32 0, i32 0
+	%9 = load i32, i32* %8
+	%10 = add i32 %9, 1
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 %10, i1 false)
+	%11 = load %string, %string* %3
+	%12 = load i32, i32* %1
+	%13 = load i32, i32* %2
+	%14 = getelementptr %string, %string* %3, i32 0, i32 1
+	%15 = load i8*, i8** %14
+	%16 = call i32 (i8*, ...) @printf(i8* %15, i32 %12, i32 %13)
 	; end block
 	ret void
 }

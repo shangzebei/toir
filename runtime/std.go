@@ -19,7 +19,7 @@ func checkGrow(ptr def.I8p, len int, cap int, bytes int, insert int) (def.I8p, i
 }
 
 //i8* rangeSlice(i8* ptr,int low ,int high,int bytes)
-func rangeSlice(ptr def.I8p, low int, high int, bytes int) def.I8p {
+func rangePtr(ptr def.I8p, low int, high int, bytes int) def.I8p {
 	//fmt.Printf("rangeSlice bytes=%d\n", bytes)
 	l := high - low
 	i2 := l * bytes

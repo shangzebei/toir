@@ -40,7 +40,11 @@ func (f *FuncDecl) BinaryExpr(expr *ast.BinaryExpr) value.Value {
 	//get ops
 	switch expr.Op {
 	case token.ADD: // +
-		return block.NewAdd(x, y)
+		if f.IsString(x.Type()) && f.IsString(y.Type()) {
+			return f.GetCurrentBlock().NewLoad(f.CallRuntime("stringJoin", f.GetSrcPtr(x), f.GetSrcPtr(y)))
+		} else {
+			return block.NewAdd(x, y)
+		}
 	case token.SUB: // -
 		return block.NewSub(x, y)
 	case token.MUL: // x

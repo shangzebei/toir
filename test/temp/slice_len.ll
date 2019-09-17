@@ -27,7 +27,7 @@ define void @init_slice_i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i1)
 
-define %return.3.0 @checkGrow(i8* %ptr, i32 %len, i32 %cap, i32 %bytes, i32 %insert) {
+define %return.3.0 @runtime.checkGrow(i8* %ptr, i32 %len, i32 %cap, i32 %bytes, i32 %insert) {
 ; <label>:0
 	; block start
 	%1 = alloca i32
@@ -92,7 +92,7 @@ define %return.3.0 @checkGrow(i8* %ptr, i32 %len, i32 %cap, i32 %bytes, i32 %ins
 	ret %return.3.0 %36
 }
 
-define %string* @newString(i32 %size) {
+define %string* @runtime.newString(i32 %size) {
 ; <label>:0
 	; block start
 	%1 = alloca i32
@@ -118,13 +118,13 @@ define %string* @newString(i32 %size) {
 	br label %11
 
 ; <label>:11
-	%12 = load i32, i32* %1
-	%13 = sub i32 %12, 1
-	%14 = load %string*, %string** %4
-	%15 = getelementptr %string, %string* %14, i32 0, i32 0
-	%16 = load i32, i32* %15
-	store i32 %13, i32* %15
-	%17 = load i32, i32* %1
+	%12 = load %string*, %string** %4
+	%13 = getelementptr %string, %string* %12, i32 0, i32 0
+	%14 = load i32, i32* %13
+	%15 = load i32, i32* %1
+	store i32 %15, i32* %13
+	%16 = load i32, i32* %1
+	%17 = add i32 %16, 1
 	%18 = call i8* @malloc(i32 %17)
 	%19 = load %string*, %string** %4
 	%20 = getelementptr %string, %string* %19, i32 0, i32 1
@@ -161,7 +161,7 @@ define void @main() {
 	%15 = load i32, i32* %14
 	%16 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 2
 	%17 = load i32, i32* %16
-	%18 = call %return.3.0 @checkGrow(i8* %11, i32 %13, i32 %15, i32 %17, i32 1)
+	%18 = call %return.3.0 @runtime.checkGrow(i8* %11, i32 %13, i32 %15, i32 %17, i32 1)
 	%19 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	%20 = load i32, i32* %19
 	; copy and new slice
@@ -198,17 +198,20 @@ define void @main() {
 	%40 = load i32, i32* %39
 	%41 = alloca i32
 	store i32 %40, i32* %41
-	%42 = call %string* @newString(i32 4)
+	%42 = call %string* @runtime.newString(i32 3)
 	%43 = getelementptr %string, %string* %42, i32 0, i32 1
 	%44 = load i8*, i8** %43
 	%45 = bitcast i8* %44 to i8*
 	%46 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %45, i8* %46, i32 4, i1 false)
-	%47 = load %string, %string* %42
-	%48 = load i32, i32* %41
-	%49 = getelementptr %string, %string* %42, i32 0, i32 1
-	%50 = load i8*, i8** %49
-	%51 = call i32 (i8*, ...) @printf(i8* %50, i32 %48)
+	%47 = getelementptr %string, %string* %42, i32 0, i32 0
+	%48 = load i32, i32* %47
+	%49 = add i32 %48, 1
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %45, i8* %46, i32 %49, i1 false)
+	%50 = load %string, %string* %42
+	%51 = load i32, i32* %41
+	%52 = getelementptr %string, %string* %42, i32 0, i32 1
+	%53 = load i8*, i8** %52
+	%54 = call i32 (i8*, ...) @printf(i8* %53, i32 %51)
 	; end block
 	ret void
 }
