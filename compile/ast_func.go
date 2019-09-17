@@ -58,6 +58,8 @@ type FuncDecl struct {
 	//slice
 	sliceInits map[types.Type]*ir.Func
 	sliceTypes []types.Type
+	//swith v
+	swiV *ast.Ident
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
@@ -190,6 +192,8 @@ func (f *FuncDecl) UnaryExpr(unaryExpr *ast.UnaryExpr) value.Value {
 		return f.GetSrcPtr(variable)
 	case token.RANGE:
 		return f.Ident(unaryExpr.X.(*ast.Ident))
+	case token.SUB:
+		return f.GetCurrentBlock().NewMul(f.BasicLit(unaryExpr.X.(*ast.BasicLit)), constant.NewInt(types.I32, -1))
 	default:
 		fmt.Println("UnaryExpr not impl")
 	}

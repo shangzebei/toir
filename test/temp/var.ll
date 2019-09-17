@@ -1,5 +1,5 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 
 @tt = global i32 0
 @str.0 = constant [10 x i8] c"%d-%d=%d\0A\00"
@@ -64,6 +64,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13

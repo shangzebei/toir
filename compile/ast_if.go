@@ -92,6 +92,7 @@ func (f *FuncDecl) IfStmt(expr *ast.IfStmt) (start *ir.Block, end *ir.Block) {
 		if ifBodyBlock.Term == nil || elseBlock.Term == nil {
 			f.popBlock() //Close main
 			newBlock := f.newBlock()
+			utils.NewComment(f.GetCurrentBlock(), "IF NEW BLOCK")
 			if ifBodyBlock.Term == nil {
 				ifBodyBlock.NewBr(newBlock)
 			}

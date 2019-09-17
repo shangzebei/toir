@@ -32,6 +32,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13
@@ -93,6 +94,7 @@ define void @test.for1con() {
 	br label %14
 
 ; <label>:14
+	; IF NEW BLOCK
 	%15 = call %string* @runtime.newString(i32 14)
 	%16 = getelementptr %string, %string* %15, i32 0, i32 1
 	%17 = load i8*, i8** %16

@@ -1,5 +1,5 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 
 @test.sliceRange.0 = constant [12 x i32] [i32 9, i32 7, i32 3, i32 5, i32 5, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8]
 @str.0 = constant [21 x i8] c"len=%d cap=%d %d-%d\0A\00"
@@ -94,6 +94,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13

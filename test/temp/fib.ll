@@ -1,5 +1,5 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 
 @str.0 = constant [10 x i8] c"fib = %d\0A\00"
 
@@ -25,6 +25,7 @@ define i32 @test.fib(i32 %num) {
 	br label %8
 
 ; <label>:8
+	; IF NEW BLOCK
 	%9 = load i32, i32* %1
 	%10 = sub i32 %9, 2
 	%11 = call i32 @test.fib(i32 %10)
@@ -64,6 +65,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13

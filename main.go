@@ -28,7 +28,7 @@ func Build(file string, outputPath string) {
 		fmt.Print(err) // parse error
 		return
 	}
-	//ast.Print(fset, f)
+	ast.Print(fset, f)
 	m := ir.NewModule()
 
 	//init runtime

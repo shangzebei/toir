@@ -36,6 +36,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13
@@ -146,6 +147,7 @@ define void @test.for2break() {
 	br label %46
 
 ; <label>:46
+	; IF NEW BLOCK
 	; end block
 	br label %10
 
@@ -241,6 +243,7 @@ define void @test.for1break() {
 	br label %38
 
 ; <label>:38
+	; IF NEW BLOCK
 	; end block
 	br label %2
 

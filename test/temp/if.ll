@@ -44,6 +44,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13
@@ -106,6 +107,7 @@ define void @test.f2() {
 	br label %23
 
 ; <label>:23
+	; IF NEW BLOCK
 	; end block
 	ret void
 }
@@ -144,6 +146,7 @@ define void @test.if1(i32 %a) {
 	br label %19
 
 ; <label>:19
+	; IF NEW BLOCK
 	; end block
 	ret void
 }
@@ -197,6 +200,7 @@ define void @test.if1else(i32 %a) {
 	br label %31
 
 ; <label>:31
+	; IF NEW BLOCK
 	; end block
 	ret void
 }
@@ -281,12 +285,15 @@ define void @test.ifelseif() {
 	br label %51
 
 ; <label>:51
+	; IF NEW BLOCK
 	ret void
 
 ; <label>:52
+	; IF NEW BLOCK
 	ret void
 
 ; <label>:53
+	; IF NEW BLOCK
 	; end block
 	ret void
 }
@@ -339,6 +346,7 @@ define void @test.if3() {
 	br label %27
 
 ; <label>:27
+	; IF NEW BLOCK
 	; end block
 	ret void
 }
@@ -391,6 +399,7 @@ define void @test.if4And() {
 	br label %27
 
 ; <label>:27
+	; IF NEW BLOCK
 	; end block
 	ret void
 }
@@ -430,6 +439,7 @@ define void @test.if5() {
 	br label %20
 
 ; <label>:20
+	; IF NEW BLOCK
 	; end block
 	ret void
 }
@@ -496,6 +506,7 @@ define void @test.if1234() {
 	br label %43
 
 ; <label>:43
+	; IF NEW BLOCK
 	%44 = call %string* @runtime.newString(i32 17)
 	%45 = getelementptr %string, %string* %44, i32 0, i32 1
 	%46 = load i8*, i8** %45

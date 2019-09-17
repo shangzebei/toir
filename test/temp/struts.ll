@@ -37,6 +37,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13
@@ -56,7 +57,7 @@ define %string* @runtime.newString(i32 %size) {
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i1)
 
-define void @init.Person.71561568706523(%Person*) {
+define void @init.Person.71561568718748(%Person*) {
 ; <label>:1
 	%2 = getelementptr %Person, %Person* %0, i32 0, i32 1
 	%3 = call %string* @runtime.newString(i32 3)
@@ -84,7 +85,7 @@ define void @test.initS() {
 	; end param
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %Person*
-	call void @init.Person.71561568706523(%Person* %2)
+	call void @init.Person.71561568718748(%Person* %2)
 	%3 = load %Person, %Person* %2
 	%4 = getelementptr %Person, %Person* %2, i32 0, i32 2
 	%5 = load i32, i32* %4
@@ -116,7 +117,7 @@ define void @test.initS() {
 	ret void
 }
 
-define void @init.Person.30431568706523(%Person*) {
+define void @init.Person.30431568718748(%Person*) {
 ; <label>:1
 	%2 = getelementptr %Person, %Person* %0, i32 0, i32 1
 	%3 = call %string* @runtime.newString(i32 3)
@@ -185,7 +186,7 @@ define void @test.sFunc() {
 	; end param
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %Person*
-	call void @init.Person.30431568706523(%Person* %2)
+	call void @init.Person.30431568718748(%Person* %2)
 	%3 = load %Person, %Person* %2
 	%4 = call %string* @runtime.newString(i32 3)
 	%5 = getelementptr %string, %string* %4, i32 0, i32 1

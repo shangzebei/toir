@@ -35,6 +35,7 @@ define %string* @runtime.newString(i32 %size) {
 	br label %11
 
 ; <label>:11
+	; IF NEW BLOCK
 	%12 = load %string*, %string** %4
 	%13 = getelementptr %string, %string* %12, i32 0, i32 0
 	%14 = load i32, i32* %13
@@ -136,6 +137,7 @@ define i32 @test.forr() {
 	br label %51
 
 ; <label>:51
+	; IF NEW BLOCK
 	; end block
 	br label %14
 
@@ -179,6 +181,7 @@ define i32 @test.ifrr() {
 	br label %19
 
 ; <label>:19
+	; IF NEW BLOCK
 	; end block
 	ret i32 0
 }
