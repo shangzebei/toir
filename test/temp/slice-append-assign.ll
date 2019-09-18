@@ -1,8 +1,8 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 %return.5.0 = type { i8*, i32 }
 
-@main.0 = constant [3 x i32] [i32 1, i32 2, i32 8]
+@main.main.0 = constant [3 x i32] [i32 1, i32 2, i32 8]
 @str.0 = constant [30 x i8] c"a = len(%d) cap(%d) %d %d %d\0A\00"
 @str.1 = constant [33 x i8] c"a = len(%d) cap(%d) %d %d %d %d\0A\00"
 @str.2 = constant [36 x i8] c"a = len(%d) cap(%d) %d %d %d %d %d\0A\00"
@@ -12,7 +12,7 @@
 
 declare i8* @malloc(i32)
 
-define void @init_slice_i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
+define void @slice.init.i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %ptr, i32 0, i32 2
@@ -148,13 +148,13 @@ define void @main() {
 	; block start
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %2, i32 3)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 3)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 3, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
 	%5 = load i32*, i32** %4
 	%6 = bitcast i32* %5 to i8*
-	%7 = bitcast [3 x i32]* @main.0 to i8*
+	%7 = bitcast [3 x i32]* @main.main.0 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 12, i1 false)
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	%9 = call %string* @runtime.newString(i32 29)
@@ -207,7 +207,7 @@ define void @main() {
 	%50 = load i32, i32* %49
 	%51 = call i8* @malloc(i32 20)
 	%52 = bitcast i8* %51 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %52, i32 %50)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %52, i32 %50)
 	%53 = bitcast { i32, i32, i32, i32* }* %52 to i8*
 	%54 = bitcast { i32, i32, i32, i32* }* %2 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %53, i8* %54, i32 20, i1 false)
@@ -287,7 +287,7 @@ define void @main() {
 	%112 = load i32, i32* %111
 	%113 = call i8* @malloc(i32 20)
 	%114 = bitcast i8* %113 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %114, i32 %112)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %114, i32 %112)
 	%115 = bitcast { i32, i32, i32, i32* }* %114 to i8*
 	%116 = bitcast { i32, i32, i32, i32* }* %2 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %115, i8* %116, i32 20, i1 false)
@@ -372,7 +372,7 @@ define void @main() {
 	%178 = load i32, i32* %177
 	%179 = call i8* @malloc(i32 20)
 	%180 = bitcast i8* %179 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %180, i32 %178)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %180, i32 %178)
 	%181 = bitcast { i32, i32, i32, i32* }* %180 to i8*
 	%182 = bitcast { i32, i32, i32, i32* }* %2 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %181, i8* %182, i32 20, i1 false)
@@ -461,7 +461,7 @@ define void @main() {
 	%248 = load i32, i32* %247
 	%249 = call i8* @malloc(i32 20)
 	%250 = bitcast i8* %249 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %250, i32 %248)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %250, i32 %248)
 	%251 = bitcast { i32, i32, i32, i32* }* %250 to i8*
 	%252 = bitcast { i32, i32, i32, i32* }* %2 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %251, i8* %252, i32 20, i1 false)
@@ -551,7 +551,7 @@ define void @main() {
 	%318 = load i32, i32* %317
 	%319 = call i8* @malloc(i32 20)
 	%320 = bitcast i8* %319 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %320, i32 %318)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %320, i32 %318)
 	%321 = bitcast { i32, i32, i32, i32* }* %320 to i8*
 	%322 = bitcast { i32, i32, i32, i32* }* %180 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %321, i8* %322, i32 20, i1 false)

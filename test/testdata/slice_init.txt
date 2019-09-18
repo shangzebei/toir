@@ -1,0 +1,4 @@
+index0 --[asdfasdf]--len 8
+index1 --[bbbbbbbbb]--len 9
+index2 --[cccccccccc]--len 10
+index3 --[endendend]--len 9

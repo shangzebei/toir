@@ -61,7 +61,7 @@ define void @main() {
 	; block start
 	%1 = alloca %CircularListNode
 	%2 = load %CircularListNode, %CircularListNode* %1
-	%3 = call i8* @malloc(i32 16)
+	%3 = call i8* @malloc(i32 20)
 	%4 = bitcast i8* %3 to %CircularListNode*
 	store %CircularListNode %2, %CircularListNode* %4
 	%5 = getelementptr %CircularListNode, %CircularListNode* %4, i32 0, i32 0

@@ -1,5 +1,5 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 
 @str.0 = constant [15 x i8] c"asdfsadfsdfsd\0A\00"
 

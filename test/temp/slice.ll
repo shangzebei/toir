@@ -1,19 +1,20 @@
 %mapStruct = type {}
 %string = type { i32, i8* }
+%PP = type { i32 }
 
-@test.sliceRange.0 = constant [12 x i32] [i32 9, i32 7, i32 3, i32 5, i32 5, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8]
+@main.test.sliceRange.0 = constant [12 x i32] [i32 9, i32 7, i32 3, i32 5, i32 5, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8]
 @str.0 = constant [21 x i8] c"len=%d cap=%d %d-%d\0A\00"
-@test.slicecp.2 = constant [5 x i32] [i32 9, i32 7, i32 3, i32 5, i32 5]
-@test.slicecp.3 = constant [4 x i32] [i32 9, i32 7, i32 3, i32 9]
+@main.test.slicecp.2 = constant [5 x i32] [i32 9, i32 7, i32 3, i32 5, i32 5]
+@main.test.slicecp.3 = constant [4 x i32] [i32 9, i32 7, i32 3, i32 9]
 @str.1 = constant [7 x i8] c"%d-%d\0A\00"
 @str.2 = constant [4 x i8] c"%d\0A\00"
 @str.3 = constant [4 x i8] c"%s\0A\00"
-@test.sliceslice.7 = constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5]
+@main.test.sliceslice.7 = constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5]
 @str.4 = constant [4 x i8] c"%d\0A\00"
 
 declare i8* @malloc(i32)
 
-define void @init_slice_i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
+define void @slice.init.i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %ptr, i32 0, i32 2
@@ -119,13 +120,13 @@ define void @test.sliceRange() {
 	; block start
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %2, i32 12)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 12)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 12, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
 	%5 = load i32*, i32** %4
 	%6 = bitcast i32* %5 to i8*
-	%7 = bitcast [12 x i32]* @test.sliceRange.0 to i8*
+	%7 = bitcast [12 x i32]* @main.test.sliceRange.0 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 48, i1 false)
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	; start slice[]
@@ -140,7 +141,7 @@ define void @test.sliceRange() {
 	%16 = load i32, i32* %15
 	%17 = call i8* @malloc(i32 20)
 	%18 = bitcast i8* %17 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %18, i32 %16)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %18, i32 %16)
 	%19 = bitcast { i32, i32, i32, i32* }* %18 to i8*
 	%20 = bitcast { i32, i32, i32, i32* }* %2 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %19, i8* %20, i32 20, i1 false)
@@ -191,24 +192,24 @@ define void @test.slicecp() {
 	; block start
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %2, i32 5)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 5, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
 	%5 = load i32*, i32** %4
 	%6 = bitcast i32* %5 to i8*
-	%7 = bitcast [5 x i32]* @test.slicecp.2 to i8*
+	%7 = bitcast [5 x i32]* @main.test.slicecp.2 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 20, i1 false)
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	%9 = call i8* @malloc(i32 20)
 	%10 = bitcast i8* %9 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %10, i32 4)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %10, i32 4)
 	%11 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0
 	store i32 4, i32* %11
 	%12 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 3
 	%13 = load i32*, i32** %12
 	%14 = bitcast i32* %13 to i8*
-	%15 = bitcast [4 x i32]* @test.slicecp.3 to i8*
+	%15 = bitcast [4 x i32]* @main.test.slicecp.3 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %14, i8* %15, i32 16, i1 false)
 	%16 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10
 	store { i32, i32, i32, i32* } %16, { i32, i32, i32, i32* }* %2
@@ -239,7 +240,7 @@ define void @test.slicet() {
 	%1 = alloca i32
 	%2 = call i8* @malloc(i32 20)
 	%3 = bitcast i8* %2 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %3, i32 4)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %3, i32 4)
 	; get slice index
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %3, i32 0, i32 3
 	%5 = load i32*, i32** %4
@@ -298,12 +299,12 @@ define void @test.slicet() {
 	ret void
 }
 
-define void @"init_slice_{ i32, i32, i32, i32* }"({ i32, i32, i32, { i32, i32, i32, i32* }* }* %ptr, i32 %len) {
+define void @"slice.init.{ i32, i32, i32, i32* }"({ i32, i32, i32, { i32, i32, i32, i32* }* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, { i32, i32, i32, i32* }* }, { i32, i32, i32, { i32, i32, i32, i32* }* }* %ptr, i32 0, i32 2
-	store i32 8, i32* %1
-	%2 = mul i32 %len, 8
+	store i32 20, i32* %1
+	%2 = mul i32 %len, 20
 	%3 = call i8* @malloc(i32 %2)
 	%4 = getelementptr { i32, i32, i32, { i32, i32, i32, i32* }* }, { i32, i32, i32, { i32, i32, i32, i32* }* }* %ptr, i32 0, i32 3
 	%5 = bitcast i8* %3 to { i32, i32, i32, i32* }*
@@ -321,16 +322,16 @@ define void @test.sliceslice() {
 	; block start
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to { i32, i32, i32, { i32, i32, i32, i32* }* }*
-	call void @"init_slice_{ i32, i32, i32, i32* }"({ i32, i32, i32, { i32, i32, i32, i32* }* }* %2, i32 1)
+	call void @"slice.init.{ i32, i32, i32, i32* }"({ i32, i32, i32, { i32, i32, i32, i32* }* }* %2, i32 1)
 	%3 = call i8* @malloc(i32 20)
 	%4 = bitcast i8* %3 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %4, i32 5)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %4, i32 5)
 	%5 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %4, i32 0, i32 0
 	store i32 5, i32* %5
 	%6 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %4, i32 0, i32 3
 	%7 = load i32*, i32** %6
 	%8 = bitcast i32* %7 to i8*
-	%9 = bitcast [5 x i32]* @test.sliceslice.7 to i8*
+	%9 = bitcast [5 x i32]* @main.test.sliceslice.7 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %8, i8* %9, i32 20, i1 false)
 	%10 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %4
 	; get slice index
@@ -409,6 +410,103 @@ define { i32, i32, i32, { i32, i32, i32, i32* }* }* @test.kkp({ i32, i32, i32, {
 	%3 = load { i32, i32, i32, { i32, i32, i32, i32* }* }, { i32, i32, i32, { i32, i32, i32, i32* }* }* %2
 	; end block
 	ret { i32, i32, i32, { i32, i32, i32, i32* }* }* %2
+}
+
+define void @slice.init.string({ i32, i32, i32, %string* }* %ptr, i32 %len) {
+; <label>:0
+	; init slice...............
+	%1 = getelementptr { i32, i32, i32, %string* }, { i32, i32, i32, %string* }* %ptr, i32 0, i32 2
+	store i32 12, i32* %1
+	%2 = mul i32 %len, 12
+	%3 = call i8* @malloc(i32 %2)
+	%4 = getelementptr { i32, i32, i32, %string* }, { i32, i32, i32, %string* }* %ptr, i32 0, i32 3
+	%5 = bitcast i8* %3 to %string*
+	store %string* %5, %string** %4
+	%6 = getelementptr { i32, i32, i32, %string* }, { i32, i32, i32, %string* }* %ptr, i32 0, i32 1
+	store i32 %len, i32* %6
+	%7 = getelementptr { i32, i32, i32, %string* }, { i32, i32, i32, %string* }* %ptr, i32 0, i32 0
+	store i32 %len, i32* %7
+	; end init slice.................
+	ret void
+}
+
+define void @slice.init.i8({ i32, i32, i32, i8* }* %ptr, i32 %len) {
+; <label>:0
+	; init slice...............
+	%1 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 2
+	store i32 1, i32* %1
+	%2 = mul i32 %len, 1
+	%3 = call i8* @malloc(i32 %2)
+	%4 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 3
+	%5 = bitcast i8* %3 to i8*
+	store i8* %5, i8** %4
+	%6 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 1
+	store i32 %len, i32* %6
+	%7 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 0
+	store i32 %len, i32* %7
+	; end init slice.................
+	ret void
+}
+
+define void @slice.init.float({ i32, i32, i32, float* }* %ptr, i32 %len) {
+; <label>:0
+	; init slice...............
+	%1 = getelementptr { i32, i32, i32, float* }, { i32, i32, i32, float* }* %ptr, i32 0, i32 2
+	store i32 8, i32* %1
+	%2 = mul i32 %len, 8
+	%3 = call i8* @malloc(i32 %2)
+	%4 = getelementptr { i32, i32, i32, float* }, { i32, i32, i32, float* }* %ptr, i32 0, i32 3
+	%5 = bitcast i8* %3 to float*
+	store float* %5, float** %4
+	%6 = getelementptr { i32, i32, i32, float* }, { i32, i32, i32, float* }* %ptr, i32 0, i32 1
+	store i32 %len, i32* %6
+	%7 = getelementptr { i32, i32, i32, float* }, { i32, i32, i32, float* }* %ptr, i32 0, i32 0
+	store i32 %len, i32* %7
+	; end init slice.................
+	ret void
+}
+
+define void @slice.init.PP({ i32, i32, i32, %PP* }* %ptr, i32 %len) {
+; <label>:0
+	; init slice...............
+	%1 = getelementptr { i32, i32, i32, %PP* }, { i32, i32, i32, %PP* }* %ptr, i32 0, i32 2
+	store i32 4, i32* %1
+	%2 = mul i32 %len, 4
+	%3 = call i8* @malloc(i32 %2)
+	%4 = getelementptr { i32, i32, i32, %PP* }, { i32, i32, i32, %PP* }* %ptr, i32 0, i32 3
+	%5 = bitcast i8* %3 to %PP*
+	store %PP* %5, %PP** %4
+	%6 = getelementptr { i32, i32, i32, %PP* }, { i32, i32, i32, %PP* }* %ptr, i32 0, i32 1
+	store i32 %len, i32* %6
+	%7 = getelementptr { i32, i32, i32, %PP* }, { i32, i32, i32, %PP* }* %ptr, i32 0, i32 0
+	store i32 %len, i32* %7
+	; end init slice.................
+	ret void
+}
+
+define void @test.BaseSlice() {
+; <label>:0
+	; block start
+	%1 = call i8* @malloc(i32 20)
+	%2 = bitcast i8* %1 to { i32, i32, i32, %string* }*
+	call void @slice.init.string({ i32, i32, i32, %string* }* %2, i32 0)
+	%3 = call i8* @malloc(i32 20)
+	%4 = bitcast i8* %3 to { i32, i32, i32, i32* }*
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %4, i32 0)
+	%5 = call i8* @malloc(i32 20)
+	%6 = bitcast i8* %5 to { i32, i32, i32, i8* }*
+	call void @slice.init.i8({ i32, i32, i32, i8* }* %6, i32 0)
+	%7 = call i8* @malloc(i32 20)
+	%8 = bitcast i8* %7 to { i32, i32, i32, float* }*
+	call void @slice.init.float({ i32, i32, i32, float* }* %8, i32 0)
+	%9 = call i8* @malloc(i32 20)
+	%10 = bitcast i8* %9 to { i32, i32, i32, float* }*
+	call void @slice.init.float({ i32, i32, i32, float* }* %10, i32 0)
+	%11 = call i8* @malloc(i32 20)
+	%12 = bitcast i8* %11 to { i32, i32, i32, %PP* }*
+	call void @slice.init.PP({ i32, i32, i32, %PP* }* %12, i32 0)
+	; end block
+	ret void
 }
 
 define void @main() {

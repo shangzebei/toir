@@ -1,9 +1,9 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 %Per = type { %string }
 
-@test.copyt.0 = constant [3 x i32] [i32 1, i32 2, i32 3]
-@test.copyt.1 = constant [6 x i32] [i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
+@main.test.copyt.0 = constant [3 x i32] [i32 1, i32 2, i32 3]
+@main.test.copyt.1 = constant [6 x i32] [i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 @str.0 = constant [19 x i8] c"%d-%d-%d-%d-%d-%d\0A\00"
 @str.1 = constant [6 x i8] c"see@ \00"
 @str.2 = constant [19 x i8] c"%s len=%d cap=%d \0A\00"
@@ -13,7 +13,7 @@
 
 declare i8* @malloc(i32)
 
-define void @init_slice_i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
+define void @slice.init.i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %ptr, i32 0, i32 2
@@ -84,24 +84,24 @@ define void @test.copyt() {
 	; block start
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %2, i32 3)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 3)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 3, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
 	%5 = load i32*, i32** %4
 	%6 = bitcast i32* %5 to i8*
-	%7 = bitcast [3 x i32]* @test.copyt.0 to i8*
+	%7 = bitcast [3 x i32]* @main.test.copyt.0 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 12, i1 false)
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	%9 = call i8* @malloc(i32 20)
 	%10 = bitcast i8* %9 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %10, i32 6)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %10, i32 6)
 	%11 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0
 	store i32 6, i32* %11
 	%12 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 3
 	%13 = load i32*, i32** %12
 	%14 = bitcast i32* %13 to i8*
-	%15 = bitcast [6 x i32]* @test.copyt.1 to i8*
+	%15 = bitcast [6 x i32]* @main.test.copyt.1 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %14, i8* %15, i32 24, i1 false)
 	%16 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10
 	; copy ptr..........start
@@ -203,7 +203,7 @@ define void @test.make1() {
 	; block start
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @init_slice_i32({ i32, i32, i32, i32* }* %2, i32 3)
+	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 3)
 	%3 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	%4 = call %string* @runtime.newString(i32 5)
 	%5 = getelementptr %string, %string* %4, i32 0, i32 1
@@ -286,7 +286,7 @@ define void @test.make1() {
 define void @test.newF() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 8)
+	%1 = call i8* @malloc(i32 12)
 	%2 = bitcast i8* %1 to %Per*
 	%3 = alloca %Per*
 	store %Per* %2, %Per** %3

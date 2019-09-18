@@ -77,7 +77,7 @@ declare i32 @printf(i8*, ...)
 define void @test.do(%A %a) {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 8)
+	%1 = call i8* @malloc(i32 12)
 	%2 = bitcast i8* %1 to %A*
 	store %A %a, %A* %2
 	%3 = call %string* @runtime.newString(i32 3)
@@ -101,7 +101,7 @@ define void @test.do(%A %a) {
 	ret void
 }
 
-define void @init.A.17791568774671(%A*) {
+define void @init.A.17791568799333(%A*) {
 ; <label>:1
 	%2 = getelementptr %A, %A* %0, i32 0, i32 0
 	%3 = call %string* @runtime.newString(i32 5)
@@ -143,11 +143,11 @@ define void @main() {
 	%16 = call i32 (i8*, ...) @printf(i8* %15, i32 %12, i32 %13)
 	; init param
 	; end param
-	%17 = call i8* @malloc(i32 8)
+	%17 = call i8* @malloc(i32 12)
 	%18 = bitcast i8* %17 to %A*
-	call void @init.A.17791568774671(%A* %18)
+	call void @init.A.17791568799333(%A* %18)
 	%19 = load %A, %A* %18
-	%20 = call i8* @malloc(i32 8)
+	%20 = call i8* @malloc(i32 12)
 	%21 = bitcast i8* %20 to %A*
 	store %A %19, %A* %21
 	%22 = load %A, %A* %21

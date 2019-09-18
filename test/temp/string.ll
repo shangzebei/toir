@@ -1,5 +1,5 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 
 @str.0 = constant [11 x i8] c"shangzebei\00"
 @str.1 = constant [4 x i8] c"%d\0A\00"
@@ -192,7 +192,7 @@ define void @test.stringJoin() {
 	ret void
 }
 
-define void @init_slice_i8({ i32, i32, i32, i8* }* %ptr, i32 %len) {
+define void @slice.init.i8({ i32, i32, i32, i8* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 2
@@ -217,7 +217,7 @@ define { i32, i32, i32, i8* }* @runtime.stringToBytes(%string* %a) {
 	%2 = load i32, i32* %1
 	%3 = call i8* @malloc(i32 20)
 	%4 = bitcast i8* %3 to { i32, i32, i32, i8* }*
-	call void @init_slice_i8({ i32, i32, i32, i8* }* %4, i32 %2)
+	call void @slice.init.i8({ i32, i32, i32, i8* }* %4, i32 %2)
 	%5 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %4
 	%6 = extractvalue { i32, i32, i32, i8* } %5, 3
 	%7 = getelementptr %string, %string* %a, i32 0, i32 1
