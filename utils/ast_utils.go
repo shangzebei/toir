@@ -124,6 +124,9 @@ func StdCall(m *ir.Module, b *ir.Block, v value.Value, args ...value.Value) valu
 }
 
 func LoadValue(block *ir.Block, v value.Value) value.Value {
+	if !types.IsPointer(v.Type()) {
+		return v
+	}
 	if v, ok := v.(*ir.InstLoad); ok {
 		return v
 	}

@@ -35,7 +35,8 @@ func (f *FuncDecl) FuncSlice(em types.Type, st *types.StructType) *ir.Func {
 	}
 	arrayLen := ir.NewParam("len", types.I32)
 	ptr := ir.NewParam("ptr", types.NewPointer(st))
-	newFunc := ir.NewFunc("init_slice_"+em.String(), types.Void, ptr, arrayLen)
+	s := "slice.init." + strings.ReplaceAll(em.String(), "%", "")
+	newFunc := ir.NewFunc(s, types.Void, ptr, arrayLen)
 	f.pushFunc(newFunc)
 	f.newBlock()
 	utils.NewComment(f.GetCurrentBlock(), "init slice...............")

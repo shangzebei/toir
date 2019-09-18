@@ -204,7 +204,8 @@ func GetBytes(typ types.Type) int {
 		arrayType := typ.(*types.ArrayType)
 		l = int(GetSliceBytes(arrayType))
 	case *types.StructType:
-		l = 8
+		arrayType := typ.(*types.StructType)
+		l = GetStructBytes(arrayType)
 	default:
 		fmt.Println("unkonw types size")
 	}
@@ -271,6 +272,9 @@ func IsIgnore(i *ast.Ident) bool {
 func (f *FuncDecl) NewStore(src, dst value.Value) {
 	if types.IsInt(src.Type()) && types.IsInt(utils.GetBaseType(dst.Type())) {
 		src = f.IntType(src, utils.GetBaseType(dst.Type()))
+	}
+	if types.IsInt(utils.GetBaseType(src.Type())) && types.IsFloat(utils.GetBaseType(dst.Type())) {
+		src = f.Float32(src)
 	}
 	f.GetCurrentBlock().NewStore(src, dst)
 

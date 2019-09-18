@@ -14,7 +14,7 @@ func (f *FuncDecl) IntType(value2 value.Value, typ types.Type) value.Value {
 	switch value2.Type() {
 	case types.Float:
 		return f.GetCurrentBlock().NewFPToSI(value2, types.I32)
-	case types.I8, types.I16, types.I32, types.I64:
+	case types.I1, types.I8, types.I16, types.I32, types.I64:
 		intType := value2.Type().(*types.IntType)
 		intType1 := typ.(*types.IntType)
 		if intType.BitSize == intType1.BitSize {
@@ -55,7 +55,7 @@ func (f *FuncDecl) Int8(value2 value.Value) value.Value {
 }
 
 func (f *FuncDecl) Float32(value2 value.Value) value.Value {
-	if _, ok := value2.(constant.Constant); ok {
+	if types.IsFloat(value2.Type()) {
 		return value2
 	}
 	return f.GetCurrentBlock().NewSIToFP(value2, types.Float)
@@ -71,7 +71,7 @@ func (f *FuncDecl) Len(value2 value.Value) value.Value {
 	case f.IsSlice(value2):
 		return f.GetLen(f.GetSrcPtr(value2))
 	case f.IsString(value2.Type()):
-		return f.CallRuntime("getStringLen", value2)
+		return f.CallRuntime("getStringLen", f.GetSrcPtr(value2))
 	default:
 		return nil
 	}

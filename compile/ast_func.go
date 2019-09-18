@@ -412,20 +412,52 @@ func (f *FuncDecl) IncDecStmt(decl *ast.IncDecStmt) value.Value {
 func (f *FuncDecl) DeclStmt(decl *ast.DeclStmt) {
 	utils.GCCall(f, decl.Decl)
 }
+func (f *FuncDecl) sliceInit(lit *ast.CompositeLit) value.Value {
+	isConstant := false
+	for _, value := range lit.Elts {
+		if b, ok := value.(*ast.BasicLit); ok && b.Kind != token.STRING {
+			isConstant = true
+			break
+		}
+		if t, ok := value.(*ast.Ident); ok && (t.Name == "true" || t.Name == "false") {
+			isConstant = true
+		}
+	}
+	if isConstant {
+		var c []constant.Constant
+		for _, v := range lit.Elts {
+			i := utils.GCCall(f, v)[0]
+			c = append(c, i.(constant.Constant))
+		}
+		name := f.GetCurrent().Name()
+		array := constant.NewArray(c...)
+		def := f.m.NewGlobalDef(f.mPackage+"."+name+"."+strconv.Itoa(len(f.m.Globals)), array)
+		def.Immutable = true
+		return f.InitConstantValue(array.Type(), def)
+	} else {
+		var dSlice value.Value
+		arry := lit.Type.(*ast.ArrayType)
+		typ := f.GetTypeFromName(GetIdentName(arry.Elt.(*ast.Ident)))
+		dSlice = f.NewType(types.NewArray(uint64(len(lit.Elts)), typ))
+		slice := f.GetVSlice(dSlice)
+		for index, v := range lit.Elts {
+			utils.NewComment(f.GetCurrentBlock(), "init slice "+strconv.Itoa(index))
+			ptr := f.GetCurrentBlock().NewGetElementPtr(slice, constant.NewInt(types.I32, int64(index)))
+			call := utils.GCCall(f, v)[0].(value.Value)
+			loadValue := utils.LoadValue(f.GetCurrentBlock(), call)
+			f.NewStore(loadValue, ptr)
+		}
+		utils.NewComment(f.GetCurrentBlock(), "end init slice")
+		return dSlice
+	}
+}
 
+//TODO struct init
 //only for array and struts init return value
 func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 	switch lit.Type.(type) {
 	case *ast.ArrayType: //array
-		var c []constant.Constant
-		for _, v := range lit.Elts {
-			c = append(c, utils.GCCall(f, v)[0].(constant.Constant))
-		}
-		name := f.GetCurrent().Name()
-		array := constant.NewArray(c...)
-		def := f.m.NewGlobalDef(name+"."+strconv.Itoa(len(f.m.Globals)), array)
-		def.Immutable = true
-		return f.InitConstantValue(array.Type(), def)
+		return f.sliceInit(lit)
 	case *ast.Ident: //struct
 		name := GetIdentName(lit.Type.(*ast.Ident))
 		structType, ok := f.GlobDef[name]
@@ -812,11 +844,7 @@ func (f *FuncDecl) Ident(ident *ast.Ident) value.Value {
 		if IsKeyWord(identName) {
 			if identName == "true" || identName == "false" {
 				parseBool, _ := strconv.ParseBool(identName)
-				if parseBool {
-					return constant.NewInt(types.I1, 1)
-				} else {
-					return constant.NewInt(types.I1, 0)
-				}
+				return constant.NewBool(parseBool)
 			} else {
 				return ir.NewParam("", f.GetTypeFromName(identName))
 			}

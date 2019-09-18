@@ -1,7 +1,5 @@
 package test
 
-import "fmt"
-
 // %len|%cap|%offset|%backing
 func main() {
 	sliceRange()
@@ -42,7 +40,6 @@ func slicet() {
 	//b = a[2+1]
 	//ff(a[2])
 
-
 	//	//var b int = a[0]
 	print("%s\n", a[0])
 	//show(a[1])
@@ -60,3 +57,15 @@ func kkp(kk [][]int) [][]int {
 	return kk
 }
 
+type PP struct {
+	Age int
+}
+
+func BaseSlice() {
+	var aa1 []string
+	var aa2 []int
+	var aa3 []byte
+	var aa4 []float32
+	var aa5 []float64
+	var aa6 []PP
+}
