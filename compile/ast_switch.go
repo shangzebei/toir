@@ -16,7 +16,9 @@ func (f *FuncDecl) SwitchStmt(swi *ast.SwitchStmt) {
 	newType := f.NewType(types.I1)
 	f.GetCurrentBlock().NewStore(constant.NewBool(false), newType)
 	f.tempVariables[0]["switchv"] = newType
-	f.swiV = swi.Tag.(*ast.Ident)
+	if swi.Tag != nil {
+		f.swiV = swi.Tag.(*ast.Ident)
+	}
 	f.OpenTempVariable()
 	temp := f.GetCurrentBlock()
 	start, end := f.BlockStmt(swi.Body)
@@ -30,9 +32,6 @@ func (f *FuncDecl) SwitchStmt(swi *ast.SwitchStmt) {
 }
 
 func (f *FuncDecl) CaseClause(cas *ast.CaseClause) {
-	expr, _ := parser.ParseExpr("a==1")
-	binaryExpr := expr.(*ast.BinaryExpr)
-	binaryExpr.X = f.swiV
 	stmt := &ast.AssignStmt{
 		Lhs: []ast.Expr{
 			&ast.Ident{
@@ -77,15 +76,28 @@ func (f *FuncDecl) CaseClause(cas *ast.CaseClause) {
 		}
 		f.IfStmt(&stmt)
 	} else {
+
+		var con ast.Expr
 		var sm []ast.Stmt
 		sm = append(sm, stmt)
-		sm = append(sm, cas.Body...)
+		if cas.Body != nil {
+			sm = append(sm, cas.Body...)
+		}
 		v := cas.List[0]
-		binaryExpr.Y = v
+		switch v.(type) {
+		case *ast.BinaryExpr:
+			con = v
+		case *ast.BasicLit:
+			t, _ := parser.ParseExpr("a==1")
+			binaryExpr := t.(*ast.BinaryExpr)
+			binaryExpr.X = f.swiV
+			binaryExpr.Y = v
+			con = binaryExpr
+		}
 		stmt := ast.IfStmt{
 			If:   0,
 			Init: nil,
-			Cond: expr,
+			Cond: con,
 			Body: &ast.BlockStmt{
 				Lbrace: 0,
 				List:   sm,

@@ -1,5 +1,5 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 
 @str.0 = constant [7 x i8] c"%d-%d\0A\00"
 

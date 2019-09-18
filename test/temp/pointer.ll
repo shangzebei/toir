@@ -101,7 +101,7 @@ define void @test.do(%A %a) {
 	ret void
 }
 
-define void @init.A.17791568718746(%A*) {
+define void @init.A.17791568773735(%A*) {
 ; <label>:1
 	%2 = getelementptr %A, %A* %0, i32 0, i32 0
 	%3 = call %string* @runtime.newString(i32 5)
@@ -145,7 +145,7 @@ define void @main() {
 	; end param
 	%17 = call i8* @malloc(i32 8)
 	%18 = bitcast i8* %17 to %A*
-	call void @init.A.17791568718746(%A* %18)
+	call void @init.A.17791568773735(%A* %18)
 	%19 = load %A, %A* %18
 	%20 = call i8* @malloc(i32 8)
 	%21 = bitcast i8* %20 to %A*
