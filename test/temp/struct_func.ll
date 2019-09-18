@@ -81,7 +81,7 @@ define void @main.Hello.Show(%Hello %h) {
 	ret void
 }
 
-define void @init.Hello.18501568773736(%Hello*) {
+define void @init.Hello.18501568774672(%Hello*) {
 ; <label>:1
 	%2 = getelementptr %Hello, %Hello* %0, i32 0, i32 0
 	%3 = call %string* @runtime.newString(i32 5)
@@ -107,7 +107,7 @@ define void @main() {
 	; end param
 	%1 = call i8* @malloc(i32 12)
 	%2 = bitcast i8* %1 to %Hello*
-	call void @init.Hello.18501568773736(%Hello* %2)
+	call void @init.Hello.18501568774672(%Hello* %2)
 	%3 = load %Hello, %Hello* %2
 	%4 = call i8* @malloc(i32 12)
 	%5 = bitcast i8* %4 to %Hello*

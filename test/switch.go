@@ -1,6 +1,7 @@
 package test
 
 func main() {
+	sw()
 	sw1()
 	sw2()
 	sw3()
@@ -55,4 +56,15 @@ func sw3() {
 
 func show(a int) {
 	print("%d\n", a)
+}
+
+func sw() {
+	switch co() {
+	case 3:
+		print("ok\n")
+	}
+}
+
+func co() int {
+	return 3
 }

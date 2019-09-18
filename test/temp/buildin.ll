@@ -1,5 +1,5 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 %Per = type { %string }
 
 @test.copyt.0 = constant [3 x i32] [i32 1, i32 2, i32 3]

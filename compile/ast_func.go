@@ -59,7 +59,7 @@ type FuncDecl struct {
 	sliceInits map[types.Type]*ir.Func
 	sliceTypes []types.Type
 	//swith v
-	swiV *ast.Ident
+	swiV *ast.Expr
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {

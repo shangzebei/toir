@@ -1,5 +1,5 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 %return.5.0 = type { i8*, i32 }
 
 @test.sli1.0 = constant [1 x i32] [i32 100]

@@ -17,11 +17,12 @@ func (f *FuncDecl) SwitchStmt(swi *ast.SwitchStmt) {
 	f.GetCurrentBlock().NewStore(constant.NewBool(false), newType)
 	f.tempVariables[0]["switchv"] = newType
 	if swi.Tag != nil {
-		f.swiV = swi.Tag.(*ast.Ident)
+		f.swiV = &swi.Tag
 	}
 	f.OpenTempVariable()
 	temp := f.GetCurrentBlock()
 	start, end := f.BlockStmt(swi.Body)
+	f.swiV = nil
 	temp.NewBr(start)
 	f.popBlock() //close main
 	block := f.newBlock()
@@ -90,20 +91,18 @@ func (f *FuncDecl) CaseClause(cas *ast.CaseClause) {
 		case *ast.BasicLit:
 			t, _ := parser.ParseExpr("a==1")
 			binaryExpr := t.(*ast.BinaryExpr)
-			binaryExpr.X = f.swiV
+			binaryExpr.X = *f.swiV
 			binaryExpr.Y = v
 			con = binaryExpr
 		}
 		stmt := ast.IfStmt{
 			If:   0,
-			Init: nil,
 			Cond: con,
 			Body: &ast.BlockStmt{
 				Lbrace: 0,
 				List:   sm,
 				Rbrace: 0,
 			},
-			Else: nil,
 		}
 		f.IfStmt(&stmt)
 	}
