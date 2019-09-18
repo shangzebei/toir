@@ -1,1 +1,15 @@
-[x] if  
+- [x] int
+- [x] string
+- [x] struct
+- [x] array
+- [x] slice
+- [x] if (if else)
+- [x] range
+- [x] switch
+- [x] func
+- [ ] map
+- [ ] struct string init
+- [ ] package init
+- [ ] defer
+- [ ] interface
+
