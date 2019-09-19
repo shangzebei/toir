@@ -252,10 +252,11 @@ func GetStructBytes(v types.Type) int {
 	if t, ok := utils.GetBaseType(v).(*types.StructType); ok {
 		for _, value := range t.Fields {
 			bytes := GetBytes(value)
-			a += bytes
-			if a%bytes != 0 {
-				a += bytes
+			i := a % bytes
+			if i != 0 {
+				a += bytes - i
 			}
+			a += bytes
 		}
 	}
 	return a

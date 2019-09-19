@@ -22,7 +22,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 20)
+	%2 = call i8* @malloc(i32 16)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -215,7 +215,7 @@ define { i32, i32, i32, i8* }* @runtime.stringToBytes(%string* %a) {
 	; block start
 	%1 = getelementptr %string, %string* %a, i32 0, i32 0
 	%2 = load i32, i32* %1
-	%3 = call i8* @malloc(i32 28)
+	%3 = call i8* @malloc(i32 24)
 	%4 = bitcast i8* %3 to { i32, i32, i32, i8* }*
 	call void @slice.init.i8({ i32, i32, i32, i8* }* %4, i32 %2)
 	%5 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %4

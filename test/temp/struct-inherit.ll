@@ -16,7 +16,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 20)
+	%2 = call i8* @malloc(i32 16)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -60,13 +60,13 @@ declare i32 @printf(i8*, ...)
 define void @main() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 36)
+	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to %CircularListNode*
 	%3 = bitcast %CircularListNode* %2 to i8*
 	%4 = bitcast %CircularListNode* @CircularListNode.0 to i8*
-	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %3, i8* %4, i32 28, i1 false)
+	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %3, i8* %4, i32 24, i1 false)
 	%5 = load %CircularListNode, %CircularListNode* %2
-	%6 = call i8* @malloc(i32 36)
+	%6 = call i8* @malloc(i32 24)
 	%7 = bitcast i8* %6 to %CircularListNode*
 	store %CircularListNode %5, %CircularListNode* %7
 	%8 = getelementptr %CircularListNode, %CircularListNode* %7, i32 0, i32 0

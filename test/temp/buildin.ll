@@ -38,7 +38,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 20)
+	%2 = call i8* @malloc(i32 16)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -82,7 +82,7 @@ declare i32 @printf(i8*, ...)
 define void @test.copyt() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 28)
+	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 3)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
@@ -93,7 +93,7 @@ define void @test.copyt() {
 	%7 = bitcast [3 x i32]* @main.test.copyt.0 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 12, i1 false)
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
-	%9 = call i8* @malloc(i32 28)
+	%9 = call i8* @malloc(i32 24)
 	%10 = bitcast i8* %9 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %10, i32 6)
 	%11 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0
@@ -170,7 +170,7 @@ define void @printSlice(%string %s, { i32, i32, i32, i32* } %x) {
 	; block start
 	%1 = call %string* @runtime.newString(i32 0)
 	store %string %s, %string* %1
-	%2 = call i8* @malloc(i32 28)
+	%2 = call i8* @malloc(i32 24)
 	%3 = bitcast i8* %2 to { i32, i32, i32, i32* }*
 	store { i32, i32, i32, i32* } %x, { i32, i32, i32, i32* }* %3
 	%4 = call %string* @runtime.newString(i32 18)
@@ -201,7 +201,7 @@ define void @printSlice(%string %s, { i32, i32, i32, i32* } %x) {
 define void @test.make1() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 28)
+	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 3)
 	%3 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
@@ -286,7 +286,7 @@ define void @test.make1() {
 define void @test.newF() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 20)
+	%1 = call i8* @malloc(i32 16)
 	%2 = bitcast i8* %1 to %Per*
 	%3 = alloca %Per*
 	store %Per* %2, %Per** %3

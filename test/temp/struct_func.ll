@@ -13,7 +13,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 20)
+	%2 = call i8* @malloc(i32 16)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -59,7 +59,7 @@ declare i32 @printf(i8*, ...)
 define void @main.Hello.Show(%Hello %h) {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 24)
+	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %Hello*
 	store %Hello %h, %Hello* %2
 	%3 = call %string* @runtime.newString(i32 3)
@@ -81,7 +81,7 @@ define void @main.Hello.Show(%Hello %h) {
 	ret void
 }
 
-define void @init.Hello.60411568864788(%Hello*) {
+define void @init.Hello.29841568866025(%Hello*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -108,11 +108,11 @@ define void @main() {
 	; block start
 	; init param
 	; end param
-	%1 = call i8* @malloc(i32 24)
+	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %Hello*
-	call void @init.Hello.60411568864788(%Hello* %2)
+	call void @init.Hello.29841568866025(%Hello* %2)
 	%3 = load %Hello, %Hello* %2
-	%4 = call i8* @malloc(i32 24)
+	%4 = call i8* @malloc(i32 20)
 	%5 = bitcast i8* %4 to %Hello*
 	store %Hello %3, %Hello* %5
 	%6 = load %Hello, %Hello* %5

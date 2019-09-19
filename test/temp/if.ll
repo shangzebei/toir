@@ -1,5 +1,5 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 
 @str.0 = constant [14 x i8] c"this is true\0A\00"
 @str.1 = constant [8 x i8] c"f2 yes\0A\00"
@@ -23,7 +23,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 20)
+	%2 = call i8* @malloc(i32 16)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
