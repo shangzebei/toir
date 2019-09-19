@@ -3,30 +3,30 @@
 
 @main.test.arr1.0 = constant [4 x i32] [i32 3, i32 0, i32 8, i32 4]
 @main.test.arr1.1 = constant [4 x i32] [i32 2, i32 4, i32 5, i32 7]
-@str.0 = constant [4 x i8] c"%d \00"
-@str.1 = constant [2 x i8] c"\0A\00"
+@main.str.0 = constant [4 x i8] c"%d \00"
+@main.str.1 = constant [2 x i8] c"\0A\00"
 @main.test.arr2.4 = constant [4 x i32] [i32 3, i32 0, i32 8, i32 4]
 @main.test.arr2.5 = constant [4 x i32] [i32 2, i32 4, i32 5, i32 7]
 @main.test.arr2.6 = constant [4 x i32] [i32 9, i32 2, i32 6, i32 3]
 @main.test.arr2.7 = constant [4 x i32] [i32 0, i32 3, i32 1, i32 0]
-@str.2 = constant [4 x i8] c"%d\0A\00"
+@main.str.2 = constant [4 x i8] c"%d\0A\00"
 @main.test.arr3.9 = constant [4 x i32] [i32 1, i32 2, i32 3, i32 4]
 @main.test.arr3.10 = constant [4 x i32] [i32 5, i32 6, i32 7, i32 8]
 @main.test.arr3.11 = constant [4 x i32] [i32 9, i32 10, i32 11, i32 12]
 @main.test.arr3.12 = constant [4 x i32] [i32 13, i32 14, i32 15, i32 16]
 @main.test.arr3.13 = constant [4 x i32] [i32 17, i32 18, i32 19, i32 20]
 @main.test.arr3.14 = constant [4 x i32] [i32 21, i32 22, i32 23, i32 24]
-@str.3 = constant [4 x i8] c"%d\0A\00"
-@str.4 = constant [6 x i8] c"aaaaa\00"
-@str.5 = constant [6 x i8] c"aaaaa\00"
-@str.6 = constant [7 x i8] c"bbbbbb\00"
-@str.7 = constant [6 x i8] c"vvvvv\00"
-@str.8 = constant [6 x i8] c"fffff\00"
-@str.9 = constant [6 x i8] c"fffff\00"
-@str.10 = constant [7 x i8] c"rrrrrr\00"
-@str.11 = constant [6 x i8] c"ggggg\00"
-@str.12 = constant [4 x i8] c"%s \00"
-@str.13 = constant [2 x i8] c"\0A\00"
+@main.str.3 = constant [4 x i8] c"%d\0A\00"
+@main.str.4 = constant [6 x i8] c"aaaaa\00"
+@main.str.5 = constant [6 x i8] c"aaaaa\00"
+@main.str.6 = constant [7 x i8] c"bbbbbb\00"
+@main.str.7 = constant [6 x i8] c"vvvvv\00"
+@main.str.8 = constant [6 x i8] c"fffff\00"
+@main.str.9 = constant [6 x i8] c"fffff\00"
+@main.str.10 = constant [7 x i8] c"rrrrrr\00"
+@main.str.11 = constant [6 x i8] c"ggggg\00"
+@main.str.12 = constant [4 x i8] c"%s \00"
+@main.str.13 = constant [2 x i8] c"\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -222,7 +222,7 @@ define void @test.arr1() {
 	%57 = getelementptr %string, %string* %56, i32 0, i32 1
 	%58 = load i8*, i8** %57
 	%59 = bitcast i8* %58 to i8*
-	%60 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%60 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%61 = getelementptr %string, %string* %56, i32 0, i32 0
 	%62 = load i32, i32* %61
 	%63 = add i32 %62, 1
@@ -241,7 +241,7 @@ define void @test.arr1() {
 	%71 = getelementptr %string, %string* %70, i32 0, i32 1
 	%72 = load i8*, i8** %71
 	%73 = bitcast i8* %72 to i8*
-	%74 = bitcast i8* getelementptr inbounds ([2 x i8], [2 x i8]* @str.1, i64 0, i64 0) to i8*
+	%74 = bitcast i8* getelementptr inbounds ([2 x i8], [2 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%75 = getelementptr %string, %string* %70, i32 0, i32 0
 	%76 = load i32, i32* %75
 	%77 = add i32 %76, 1
@@ -328,7 +328,7 @@ define void @test.arr2() {
 	%42 = getelementptr %string, %string* %41, i32 0, i32 1
 	%43 = load i8*, i8** %42
 	%44 = bitcast i8* %43 to i8*
-	%45 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
+	%45 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%46 = getelementptr %string, %string* %41, i32 0, i32 0
 	%47 = load i32, i32* %46
 	%48 = add i32 %47, 1
@@ -496,7 +496,7 @@ define void @test.arr3() {
 	%78 = getelementptr %string, %string* %77, i32 0, i32 1
 	%79 = load i8*, i8** %78
 	%80 = bitcast i8* %79 to i8*
-	%81 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.3, i64 0, i64 0) to i8*
+	%81 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.3, i64 0, i64 0) to i8*
 	%82 = getelementptr %string, %string* %77, i32 0, i32 0
 	%83 = load i32, i32* %82
 	%84 = add i32 %83, 1
@@ -574,7 +574,7 @@ define void @test.arr4() {
 	%7 = getelementptr %string, %string* %6, i32 0, i32 1
 	%8 = load i8*, i8** %7
 	%9 = bitcast i8* %8 to i8*
-	%10 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.4, i64 0, i64 0) to i8*
+	%10 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.4, i64 0, i64 0) to i8*
 	%11 = getelementptr %string, %string* %6, i32 0, i32 0
 	%12 = load i32, i32* %11
 	%13 = add i32 %12, 1
@@ -591,7 +591,7 @@ define void @test.arr4() {
 	%21 = getelementptr %string, %string* %20, i32 0, i32 1
 	%22 = load i8*, i8** %21
 	%23 = bitcast i8* %22 to i8*
-	%24 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.5, i64 0, i64 0) to i8*
+	%24 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.5, i64 0, i64 0) to i8*
 	%25 = getelementptr %string, %string* %20, i32 0, i32 0
 	%26 = load i32, i32* %25
 	%27 = add i32 %26, 1
@@ -604,7 +604,7 @@ define void @test.arr4() {
 	%31 = getelementptr %string, %string* %30, i32 0, i32 1
 	%32 = load i8*, i8** %31
 	%33 = bitcast i8* %32 to i8*
-	%34 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.6, i64 0, i64 0) to i8*
+	%34 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.6, i64 0, i64 0) to i8*
 	%35 = getelementptr %string, %string* %30, i32 0, i32 0
 	%36 = load i32, i32* %35
 	%37 = add i32 %36, 1
@@ -617,7 +617,7 @@ define void @test.arr4() {
 	%41 = getelementptr %string, %string* %40, i32 0, i32 1
 	%42 = load i8*, i8** %41
 	%43 = bitcast i8* %42 to i8*
-	%44 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.7, i64 0, i64 0) to i8*
+	%44 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.7, i64 0, i64 0) to i8*
 	%45 = getelementptr %string, %string* %40, i32 0, i32 0
 	%46 = load i32, i32* %45
 	%47 = add i32 %46, 1
@@ -633,7 +633,7 @@ define void @test.arr4() {
 	%52 = getelementptr %string, %string* %51, i32 0, i32 1
 	%53 = load i8*, i8** %52
 	%54 = bitcast i8* %53 to i8*
-	%55 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.8, i64 0, i64 0) to i8*
+	%55 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.8, i64 0, i64 0) to i8*
 	%56 = getelementptr %string, %string* %51, i32 0, i32 0
 	%57 = load i32, i32* %56
 	%58 = add i32 %57, 1
@@ -650,7 +650,7 @@ define void @test.arr4() {
 	%66 = getelementptr %string, %string* %65, i32 0, i32 1
 	%67 = load i8*, i8** %66
 	%68 = bitcast i8* %67 to i8*
-	%69 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.9, i64 0, i64 0) to i8*
+	%69 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.9, i64 0, i64 0) to i8*
 	%70 = getelementptr %string, %string* %65, i32 0, i32 0
 	%71 = load i32, i32* %70
 	%72 = add i32 %71, 1
@@ -663,7 +663,7 @@ define void @test.arr4() {
 	%76 = getelementptr %string, %string* %75, i32 0, i32 1
 	%77 = load i8*, i8** %76
 	%78 = bitcast i8* %77 to i8*
-	%79 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.10, i64 0, i64 0) to i8*
+	%79 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.10, i64 0, i64 0) to i8*
 	%80 = getelementptr %string, %string* %75, i32 0, i32 0
 	%81 = load i32, i32* %80
 	%82 = add i32 %81, 1
@@ -676,7 +676,7 @@ define void @test.arr4() {
 	%86 = getelementptr %string, %string* %85, i32 0, i32 1
 	%87 = load i8*, i8** %86
 	%88 = bitcast i8* %87 to i8*
-	%89 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.11, i64 0, i64 0) to i8*
+	%89 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.11, i64 0, i64 0) to i8*
 	%90 = getelementptr %string, %string* %85, i32 0, i32 0
 	%91 = load i32, i32* %90
 	%92 = add i32 %91, 1
@@ -758,7 +758,7 @@ define void @test.arr4() {
 	%129 = getelementptr %string, %string* %128, i32 0, i32 1
 	%130 = load i8*, i8** %129
 	%131 = bitcast i8* %130 to i8*
-	%132 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.12, i64 0, i64 0) to i8*
+	%132 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.12, i64 0, i64 0) to i8*
 	%133 = getelementptr %string, %string* %128, i32 0, i32 0
 	%134 = load i32, i32* %133
 	%135 = add i32 %134, 1
@@ -779,7 +779,7 @@ define void @test.arr4() {
 	%145 = getelementptr %string, %string* %144, i32 0, i32 1
 	%146 = load i8*, i8** %145
 	%147 = bitcast i8* %146 to i8*
-	%148 = bitcast i8* getelementptr inbounds ([2 x i8], [2 x i8]* @str.13, i64 0, i64 0) to i8*
+	%148 = bitcast i8* getelementptr inbounds ([2 x i8], [2 x i8]* @main.str.13, i64 0, i64 0) to i8*
 	%149 = getelementptr %string, %string* %144, i32 0, i32 0
 	%150 = load i32, i32* %149
 	%151 = add i32 %150, 1

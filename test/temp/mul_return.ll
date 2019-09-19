@@ -2,7 +2,7 @@
 %string = type { i32, i8* }
 %return.0.0 = type { i32, i32 }
 
-@str.0 = constant [8 x i8] c"%d--%d\0A\00"
+@main.str.0 = constant [8 x i8] c"%d--%d\0A\00"
 
 define i32 @k() {
 ; <label>:0
@@ -91,7 +91,7 @@ define void @main() {
 	%7 = getelementptr %string, %string* %6, i32 0, i32 1
 	%8 = load i8*, i8** %7
 	%9 = bitcast i8* %8 to i8*
-	%10 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @str.0, i64 0, i64 0) to i8*
+	%10 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%11 = getelementptr %string, %string* %6, i32 0, i32 0
 	%12 = load i32, i32* %11
 	%13 = add i32 %12, 1

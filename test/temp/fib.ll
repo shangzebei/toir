@@ -1,7 +1,7 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 
-@str.0 = constant [10 x i8] c"fib = %d\0A\00"
+@main.str.0 = constant [10 x i8] c"fib = %d\0A\00"
 
 define i32 @test.fib(i32 %num) {
 ; <label>:0
@@ -94,7 +94,7 @@ define void @main() {
 	%2 = getelementptr %string, %string* %1, i32 0, i32 1
 	%3 = load i8*, i8** %2
 	%4 = bitcast i8* %3 to i8*
-	%5 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @str.0, i64 0, i64 0) to i8*
+	%5 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%6 = getelementptr %string, %string* %1, i32 0, i32 0
 	%7 = load i32, i32* %6
 	%8 = add i32 %7, 1

@@ -3,14 +3,14 @@
 %PP = type { i32 }
 
 @main.test.sliceRange.0 = constant [12 x i32] [i32 9, i32 7, i32 3, i32 5, i32 5, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8]
-@str.0 = constant [21 x i8] c"len=%d cap=%d %d-%d\0A\00"
+@main.str.0 = constant [21 x i8] c"len=%d cap=%d %d-%d\0A\00"
 @main.test.slicecp.2 = constant [5 x i32] [i32 9, i32 7, i32 3, i32 5, i32 5]
 @main.test.slicecp.3 = constant [4 x i32] [i32 9, i32 7, i32 3, i32 9]
-@str.1 = constant [7 x i8] c"%d-%d\0A\00"
-@str.2 = constant [4 x i8] c"%d\0A\00"
-@str.3 = constant [4 x i8] c"%s\0A\00"
+@main.str.1 = constant [7 x i8] c"%d-%d\0A\00"
+@main.str.2 = constant [4 x i8] c"%d\0A\00"
+@main.str.3 = constant [4 x i8] c"%s\0A\00"
 @main.test.sliceslice.7 = constant [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5]
-@str.4 = constant [4 x i8] c"%d\0A\00"
+@main.str.4 = constant [4 x i8] c"%d\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -160,7 +160,7 @@ define void @test.sliceRange() {
 	%28 = getelementptr %string, %string* %27, i32 0, i32 1
 	%29 = load i8*, i8** %28
 	%30 = bitcast i8* %29 to i8*
-	%31 = bitcast i8* getelementptr inbounds ([21 x i8], [21 x i8]* @str.0, i64 0, i64 0) to i8*
+	%31 = bitcast i8* getelementptr inbounds ([21 x i8], [21 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%32 = getelementptr %string, %string* %27, i32 0, i32 0
 	%33 = load i32, i32* %32
 	%34 = add i32 %33, 1
@@ -217,7 +217,7 @@ define void @test.slicecp() {
 	%18 = getelementptr %string, %string* %17, i32 0, i32 1
 	%19 = load i8*, i8** %18
 	%20 = bitcast i8* %19 to i8*
-	%21 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.1, i64 0, i64 0) to i8*
+	%21 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%22 = getelementptr %string, %string* %17, i32 0, i32 0
 	%23 = load i32, i32* %22
 	%24 = add i32 %23, 1
@@ -263,7 +263,7 @@ define void @test.slicet() {
 	%17 = getelementptr %string, %string* %16, i32 0, i32 1
 	%18 = load i8*, i8** %17
 	%19 = bitcast i8* %18 to i8*
-	%20 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
+	%20 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%21 = getelementptr %string, %string* %16, i32 0, i32 0
 	%22 = load i32, i32* %21
 	%23 = add i32 %22, 1
@@ -281,7 +281,7 @@ define void @test.slicet() {
 	%33 = getelementptr %string, %string* %32, i32 0, i32 1
 	%34 = load i8*, i8** %33
 	%35 = bitcast i8* %34 to i8*
-	%36 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.3, i64 0, i64 0) to i8*
+	%36 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.3, i64 0, i64 0) to i8*
 	%37 = getelementptr %string, %string* %32, i32 0, i32 0
 	%38 = load i32, i32* %37
 	%39 = add i32 %38, 1
@@ -382,7 +382,7 @@ define void @test.sliceslice() {
 	%36 = getelementptr %string, %string* %35, i32 0, i32 1
 	%37 = load i8*, i8** %36
 	%38 = bitcast i8* %37 to i8*
-	%39 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.4, i64 0, i64 0) to i8*
+	%39 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.4, i64 0, i64 0) to i8*
 	%40 = getelementptr %string, %string* %35, i32 0, i32 0
 	%41 = load i32, i32* %40
 	%42 = add i32 %41, 1

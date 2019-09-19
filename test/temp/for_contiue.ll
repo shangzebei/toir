@@ -1,8 +1,8 @@
 %mapStruct = type {}
 %string = type { i32, i8* }
 
-@str.0 = constant [15 x i8] c"okkkkkkkkkkkk\0A\00"
-@str.1 = constant [19 x i8] c"bbbbbbbbbbbbbbbbb\0A\00"
+@main.str.0 = constant [15 x i8] c"okkkkkkkkkkkk\0A\00"
+@main.str.1 = constant [19 x i8] c"bbbbbbbbbbbbbbbbb\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -99,7 +99,7 @@ define void @test.for1con() {
 	%16 = getelementptr %string, %string* %15, i32 0, i32 1
 	%17 = load i8*, i8** %16
 	%18 = bitcast i8* %17 to i8*
-	%19 = bitcast i8* getelementptr inbounds ([15 x i8], [15 x i8]* @str.0, i64 0, i64 0) to i8*
+	%19 = bitcast i8* getelementptr inbounds ([15 x i8], [15 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%20 = getelementptr %string, %string* %15, i32 0, i32 0
 	%21 = load i32, i32* %20
 	%22 = add i32 %21, 1
@@ -117,7 +117,7 @@ define void @test.for1con() {
 	%29 = getelementptr %string, %string* %28, i32 0, i32 1
 	%30 = load i8*, i8** %29
 	%31 = bitcast i8* %30 to i8*
-	%32 = bitcast i8* getelementptr inbounds ([19 x i8], [19 x i8]* @str.1, i64 0, i64 0) to i8*
+	%32 = bitcast i8* getelementptr inbounds ([19 x i8], [19 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%33 = getelementptr %string, %string* %28, i32 0, i32 0
 	%34 = load i32, i32* %33
 	%35 = add i32 %34, 1

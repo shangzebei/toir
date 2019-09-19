@@ -1,13 +1,13 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 %Person = type { %string, %string, i32 }
 
-@str.0 = constant [4 x i8] c"man\00"
-@str.1 = constant [10 x i8] c"%s-%s-%d\0A\00"
-@str.2 = constant [4 x i8] c"man\00"
-@str.3 = constant [4 x i8] c"%s\0A\00"
-@str.4 = constant [4 x i8] c"%d\0A\00"
-@str.5 = constant [18 x i8] c"tttttttttttttttt\0A\00"
+@main.str.0 = constant [4 x i8] c"man\00"
+@main.str.1 = constant [10 x i8] c"%s-%s-%d\0A\00"
+@main.str.2 = constant [4 x i8] c"man\00"
+@main.str.3 = constant [4 x i8] c"%s\0A\00"
+@main.str.4 = constant [4 x i8] c"%d\0A\00"
+@main.str.5 = constant [18 x i8] c"tttttttttttttttt\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -57,7 +57,7 @@ define %string* @runtime.newString(i32 %size) {
 
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8*, i8*, i32, i1)
 
-define void @init.Person.71561568885502(%Person*) {
+define void @init.Person.71561568887016(%Person*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -66,7 +66,7 @@ define void @init.Person.71561568885502(%Person*) {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -91,7 +91,7 @@ define void @test.initS() {
 	; end param
 	%1 = call i8* @malloc(i32 36)
 	%2 = bitcast i8* %1 to %Person*
-	call void @init.Person.71561568885502(%Person* %2)
+	call void @init.Person.71561568887016(%Person* %2)
 	%3 = load %Person, %Person* %2
 	%4 = getelementptr %Person, %Person* %2, i32 0, i32 2
 	%5 = load i32, i32* %4
@@ -100,7 +100,7 @@ define void @test.initS() {
 	%7 = getelementptr %string, %string* %6, i32 0, i32 1
 	%8 = load i8*, i8** %7
 	%9 = bitcast i8* %8 to i8*
-	%10 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @str.1, i64 0, i64 0) to i8*
+	%10 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%11 = getelementptr %string, %string* %6, i32 0, i32 0
 	%12 = load i32, i32* %11
 	%13 = add i32 %12, 1
@@ -123,7 +123,7 @@ define void @test.initS() {
 	ret void
 }
 
-define void @init.Person.30431568885502(%Person*) {
+define void @init.Person.30431568887016(%Person*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -132,7 +132,7 @@ define void @init.Person.30431568885502(%Person*) {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -157,7 +157,7 @@ define void @show(i32 %a) {
 	%3 = getelementptr %string, %string* %2, i32 0, i32 1
 	%4 = load i8*, i8** %3
 	%5 = bitcast i8* %4 to i8*
-	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.4, i64 0, i64 0) to i8*
+	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.4, i64 0, i64 0) to i8*
 	%7 = getelementptr %string, %string* %2, i32 0, i32 0
 	%8 = load i32, i32* %7
 	%9 = add i32 %8, 1
@@ -178,7 +178,7 @@ define void @main.Person.Show(%Person* %p) {
 	%2 = getelementptr %string, %string* %1, i32 0, i32 1
 	%3 = load i8*, i8** %2
 	%4 = bitcast i8* %3 to i8*
-	%5 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @str.5, i64 0, i64 0) to i8*
+	%5 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @main.str.5, i64 0, i64 0) to i8*
 	%6 = getelementptr %string, %string* %1, i32 0, i32 0
 	%7 = load i32, i32* %6
 	%8 = add i32 %7, 1
@@ -198,13 +198,13 @@ define void @test.sFunc() {
 	; end param
 	%1 = call i8* @malloc(i32 36)
 	%2 = bitcast i8* %1 to %Person*
-	call void @init.Person.30431568885502(%Person* %2)
+	call void @init.Person.30431568887016(%Person* %2)
 	%3 = load %Person, %Person* %2
 	%4 = call %string* @runtime.newString(i32 3)
 	%5 = getelementptr %string, %string* %4, i32 0, i32 1
 	%6 = load i8*, i8** %5
 	%7 = bitcast i8* %6 to i8*
-	%8 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.3, i64 0, i64 0) to i8*
+	%8 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.3, i64 0, i64 0) to i8*
 	%9 = getelementptr %string, %string* %4, i32 0, i32 0
 	%10 = load i32, i32* %9
 	%11 = add i32 %10, 1

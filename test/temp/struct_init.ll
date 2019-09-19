@@ -1,5 +1,5 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 %ListNode = type { i32, %KK* }
 %KK = type { i32, i32, i32 }
 %AA = type { i32, %AA* }
@@ -9,65 +9,65 @@
 %struct.8 = type { i32, i32, i32 }
 %struct.9 = type { %AA }
 
-@str.0 = constant [7 x i8] c"22-%d\0A\00"
-@str.1 = constant [7 x i8] c"11-%d\0A\00"
-@str.2 = constant [7 x i8] c"19-%d\0A\00"
+@main.str.0 = constant [7 x i8] c"22-%d\0A\00"
+@main.str.1 = constant [7 x i8] c"11-%d\0A\00"
+@main.str.2 = constant [7 x i8] c"19-%d\0A\00"
 @KK.3 = constant %KK { i32 11, i32 22, i32 99 }
-@str.3 = constant [7 x i8] c"99-%d\0A\00"
-@str.4 = constant [7 x i8] c"22-%d\0A\00"
-@str.5 = constant [7 x i8] c"11-%d\0A\00"
-@str.6 = constant [7 x i8] c"11-%d\0A\00"
+@main.str.3 = constant [7 x i8] c"99-%d\0A\00"
+@main.str.4 = constant [7 x i8] c"22-%d\0A\00"
+@main.str.5 = constant [7 x i8] c"11-%d\0A\00"
+@main.str.6 = constant [7 x i8] c"11-%d\0A\00"
 @Bar.8 = constant %Bar { i64 400 }
 @Bar.9 = constant %Bar { i64 200 }
-@str.7 = constant [17 x i8] c"foo.bar.num: %d\0A\00"
-@str.8 = constant [13 x i8] c"foo.num: %d\0A\00"
-@str.9 = constant [17 x i8] c"foo.bar.num: %d\0A\00"
-@str.10 = constant [13 x i8] c"foo.num: %d\0A\00"
-@str.11 = constant [18 x i8] c"foo2.bar.num: %d\0A\00"
-@str.12 = constant [14 x i8] c"foo2.num: %d\0A\00"
-@str.13 = constant [18 x i8] c"foo2.bar.num: %d\0A\00"
-@str.14 = constant [14 x i8] c"foo2.num: %d\0A\00"
+@main.str.7 = constant [17 x i8] c"foo.bar.num: %d\0A\00"
+@main.str.8 = constant [13 x i8] c"foo.num: %d\0A\00"
+@main.str.9 = constant [17 x i8] c"foo.bar.num: %d\0A\00"
+@main.str.10 = constant [13 x i8] c"foo.num: %d\0A\00"
+@main.str.11 = constant [18 x i8] c"foo2.bar.num: %d\0A\00"
+@main.str.12 = constant [14 x i8] c"foo2.num: %d\0A\00"
+@main.str.13 = constant [18 x i8] c"foo2.bar.num: %d\0A\00"
+@main.str.14 = constant [14 x i8] c"foo2.num: %d\0A\00"
 
 declare i8* @malloc(i32)
 
-define void @init.KK.29841568885501(%struct.8*, %KK*) {
+define void @init.KK.29841568887016(%struct.8*, %KK*) {
 ; <label>:2
 	; <inject var
-	%3 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 1
+	%3 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 2
 	%4 = load i32, i32* %3
-	%5 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 2
+	%5 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 0
 	%6 = load i32, i32* %5
-	%7 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 0
+	%7 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 1
 	%8 = load i32, i32* %7
 	; inject var>
 	%9 = getelementptr %KK, %KK* %1, i32 0, i32 0
 	store i32 19, i32* %9
 	%10 = getelementptr %KK, %KK* %1, i32 0, i32 1
-	store i32 %4, i32* %10
+	store i32 %8, i32* %10
 	%11 = getelementptr %KK, %KK* %1, i32 0, i32 2
-	store i32 %6, i32* %11
+	store i32 %4, i32* %11
 	; <init string>
 	ret void
 }
 
-define void @init.ListNode.60411568885501(%struct.8*, %ListNode*) {
+define void @init.ListNode.60411568887016(%struct.8*, %ListNode*) {
 ; <label>:2
 	; <inject var
-	%3 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 1
+	%3 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 0
 	%4 = load i32, i32* %3
-	%5 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 2
+	%5 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 1
 	%6 = load i32, i32* %5
-	%7 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 0
+	%7 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 2
 	%8 = load i32, i32* %7
 	; inject var>
 	%9 = getelementptr %ListNode, %ListNode* %1, i32 0, i32 0
-	store i32 %8, i32* %9
+	store i32 %4, i32* %9
 	%10 = getelementptr %ListNode, %ListNode* %1, i32 0, i32 1
 	; init param
 	; end param
 	%11 = call i8* @malloc(i32 12)
 	%12 = bitcast i8* %11 to %KK*
-	call void @init.KK.29841568885501(%struct.8* %0, %KK* %12)
+	call void @init.KK.29841568887016(%struct.8* %0, %KK* %12)
 	%13 = load %KK, %KK* %12
 	store %KK* %12, %KK** %10
 	; <init string>
@@ -146,7 +146,7 @@ define void @test.init1() {
 	; end param
 	%12 = call i8* @malloc(i32 16)
 	%13 = bitcast i8* %12 to %ListNode*
-	call void @init.ListNode.60411568885501(%struct.8* %8, %ListNode* %13)
+	call void @init.ListNode.60411568887016(%struct.8* %8, %ListNode* %13)
 	%14 = load %ListNode, %ListNode* %13
 	%15 = call i8* @malloc(i32 16)
 	%16 = bitcast i8* %15 to %ListNode*
@@ -155,7 +155,7 @@ define void @test.init1() {
 	%18 = getelementptr %string, %string* %17, i32 0, i32 1
 	%19 = load i8*, i8** %18
 	%20 = bitcast i8* %19 to i8*
-	%21 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.0, i64 0, i64 0) to i8*
+	%21 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%22 = getelementptr %string, %string* %17, i32 0, i32 0
 	%23 = load i32, i32* %22
 	%24 = add i32 %23, 1
@@ -172,7 +172,7 @@ define void @test.init1() {
 	%34 = getelementptr %string, %string* %33, i32 0, i32 1
 	%35 = load i8*, i8** %34
 	%36 = bitcast i8* %35 to i8*
-	%37 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.1, i64 0, i64 0) to i8*
+	%37 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%38 = getelementptr %string, %string* %33, i32 0, i32 0
 	%39 = load i32, i32* %38
 	%40 = add i32 %39, 1
@@ -189,7 +189,7 @@ define void @test.init1() {
 	%50 = getelementptr %string, %string* %49, i32 0, i32 1
 	%51 = load i8*, i8** %50
 	%52 = bitcast i8* %51 to i8*
-	%53 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.2, i64 0, i64 0) to i8*
+	%53 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%54 = getelementptr %string, %string* %49, i32 0, i32 0
 	%55 = load i32, i32* %54
 	%56 = add i32 %55, 1
@@ -206,7 +206,7 @@ define void @test.init1() {
 	ret void
 }
 
-define void @init.ListNode.15761568885501(%ListNode*) {
+define void @init.ListNode.15761568887016(%ListNode*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -231,7 +231,7 @@ define void @test.init2() {
 	; end param
 	%1 = call i8* @malloc(i32 16)
 	%2 = bitcast i8* %1 to %ListNode*
-	call void @init.ListNode.15761568885501(%ListNode* %2)
+	call void @init.ListNode.15761568887016(%ListNode* %2)
 	%3 = load %ListNode, %ListNode* %2
 	%4 = call i8* @malloc(i32 16)
 	%5 = bitcast i8* %4 to %ListNode*
@@ -240,7 +240,7 @@ define void @test.init2() {
 	%7 = getelementptr %string, %string* %6, i32 0, i32 1
 	%8 = load i8*, i8** %7
 	%9 = bitcast i8* %8 to i8*
-	%10 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.3, i64 0, i64 0) to i8*
+	%10 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.3, i64 0, i64 0) to i8*
 	%11 = getelementptr %string, %string* %6, i32 0, i32 0
 	%12 = load i32, i32* %11
 	%13 = add i32 %12, 1
@@ -257,7 +257,7 @@ define void @test.init2() {
 	%23 = getelementptr %string, %string* %22, i32 0, i32 1
 	%24 = load i8*, i8** %23
 	%25 = bitcast i8* %24 to i8*
-	%26 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.4, i64 0, i64 0) to i8*
+	%26 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.4, i64 0, i64 0) to i8*
 	%27 = getelementptr %string, %string* %22, i32 0, i32 0
 	%28 = load i32, i32* %27
 	%29 = add i32 %28, 1
@@ -274,7 +274,7 @@ define void @test.init2() {
 	%39 = getelementptr %string, %string* %38, i32 0, i32 1
 	%40 = load i8*, i8** %39
 	%41 = bitcast i8* %40 to i8*
-	%42 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.5, i64 0, i64 0) to i8*
+	%42 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.5, i64 0, i64 0) to i8*
 	%43 = getelementptr %string, %string* %38, i32 0, i32 0
 	%44 = load i32, i32* %43
 	%45 = add i32 %44, 1
@@ -291,7 +291,7 @@ define void @test.init2() {
 	ret void
 }
 
-define void @init.AA.56881568885501(%AA*) {
+define void @init.AA.56881568887016(%AA*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -303,7 +303,7 @@ define void @init.AA.56881568885501(%AA*) {
 	ret void
 }
 
-define void @init.B.77781568885501(%struct.9*, %B*) {
+define void @init.B.77781568887016(%struct.9*, %B*) {
 ; <label>:2
 	; <inject var
 	%3 = getelementptr %struct.9, %struct.9* %0, i32 0, i32 0
@@ -324,7 +324,7 @@ define void @test.init3() {
 	; end param
 	%1 = call i8* @malloc(i32 16)
 	%2 = bitcast i8* %1 to %AA*
-	call void @init.AA.56881568885501(%AA* %2)
+	call void @init.AA.56881568887016(%AA* %2)
 	%3 = load %AA, %AA* %2
 	%4 = call i8* @malloc(i32 16)
 	%5 = bitcast i8* %4 to %AA*
@@ -338,7 +338,7 @@ define void @test.init3() {
 	; end param
 	%10 = call i8* @malloc(i32 16)
 	%11 = bitcast i8* %10 to %B*
-	call void @init.B.77781568885501(%struct.9* %8, %B* %11)
+	call void @init.B.77781568887016(%struct.9* %8, %B* %11)
 	%12 = load %B, %B* %11
 	%13 = call i8* @malloc(i32 16)
 	%14 = bitcast i8* %13 to %B*
@@ -347,7 +347,7 @@ define void @test.init3() {
 	%16 = getelementptr %string, %string* %15, i32 0, i32 1
 	%17 = load i8*, i8** %16
 	%18 = bitcast i8* %17 to i8*
-	%19 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.6, i64 0, i64 0) to i8*
+	%19 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.6, i64 0, i64 0) to i8*
 	%20 = getelementptr %string, %string* %15, i32 0, i32 0
 	%21 = load i32, i32* %20
 	%22 = add i32 %21, 1
@@ -364,7 +364,7 @@ define void @test.init3() {
 	ret void
 }
 
-define void @init.Foo.05181568885501(%Foo*) {
+define void @init.Foo.05181568887016(%Foo*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -390,7 +390,7 @@ define %Foo* @test.GetFooPtr() {
 	; end param
 	%1 = call i8* @malloc(i32 16)
 	%2 = bitcast i8* %1 to %Foo*
-	call void @init.Foo.05181568885501(%Foo* %2)
+	call void @init.Foo.05181568887016(%Foo* %2)
 	%3 = load %Foo, %Foo* %2
 	%4 = call i8* @malloc(i32 16)
 	%5 = bitcast i8* %4 to %Foo*
@@ -400,7 +400,7 @@ define %Foo* @test.GetFooPtr() {
 	ret %Foo* %5
 }
 
-define void @init.Foo.71961568885501(%Foo*) {
+define void @init.Foo.71961568887016(%Foo*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -426,7 +426,7 @@ define void @test.inin4() {
 	; end param
 	%1 = call i8* @malloc(i32 16)
 	%2 = bitcast i8* %1 to %Foo*
-	call void @init.Foo.71961568885501(%Foo* %2)
+	call void @init.Foo.71961568887016(%Foo* %2)
 	%3 = load %Foo, %Foo* %2
 	%4 = alloca %Foo*
 	store %Foo* %2, %Foo** %4
@@ -434,7 +434,7 @@ define void @test.inin4() {
 	%6 = getelementptr %string, %string* %5, i32 0, i32 1
 	%7 = load i8*, i8** %6
 	%8 = bitcast i8* %7 to i8*
-	%9 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @str.7, i64 0, i64 0) to i8*
+	%9 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @main.str.7, i64 0, i64 0) to i8*
 	%10 = getelementptr %string, %string* %5, i32 0, i32 0
 	%11 = load i32, i32* %10
 	%12 = add i32 %11, 1
@@ -452,7 +452,7 @@ define void @test.inin4() {
 	%23 = getelementptr %string, %string* %22, i32 0, i32 1
 	%24 = load i8*, i8** %23
 	%25 = bitcast i8* %24 to i8*
-	%26 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @str.8, i64 0, i64 0) to i8*
+	%26 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @main.str.8, i64 0, i64 0) to i8*
 	%27 = getelementptr %string, %string* %22, i32 0, i32 0
 	%28 = load i32, i32* %27
 	%29 = add i32 %28, 1
@@ -468,7 +468,7 @@ define void @test.inin4() {
 	%38 = getelementptr %string, %string* %37, i32 0, i32 1
 	%39 = load i8*, i8** %38
 	%40 = bitcast i8* %39 to i8*
-	%41 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @str.9, i64 0, i64 0) to i8*
+	%41 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @main.str.9, i64 0, i64 0) to i8*
 	%42 = getelementptr %string, %string* %37, i32 0, i32 0
 	%43 = load i32, i32* %42
 	%44 = add i32 %43, 1
@@ -486,7 +486,7 @@ define void @test.inin4() {
 	%55 = getelementptr %string, %string* %54, i32 0, i32 1
 	%56 = load i8*, i8** %55
 	%57 = bitcast i8* %56 to i8*
-	%58 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @str.10, i64 0, i64 0) to i8*
+	%58 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @main.str.10, i64 0, i64 0) to i8*
 	%59 = getelementptr %string, %string* %54, i32 0, i32 0
 	%60 = load i32, i32* %59
 	%61 = add i32 %60, 1
@@ -505,7 +505,7 @@ define void @test.inin4() {
 	%72 = getelementptr %string, %string* %71, i32 0, i32 1
 	%73 = load i8*, i8** %72
 	%74 = bitcast i8* %73 to i8*
-	%75 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @str.11, i64 0, i64 0) to i8*
+	%75 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @main.str.11, i64 0, i64 0) to i8*
 	%76 = getelementptr %string, %string* %71, i32 0, i32 0
 	%77 = load i32, i32* %76
 	%78 = add i32 %77, 1
@@ -523,7 +523,7 @@ define void @test.inin4() {
 	%89 = getelementptr %string, %string* %88, i32 0, i32 1
 	%90 = load i8*, i8** %89
 	%91 = bitcast i8* %90 to i8*
-	%92 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @str.12, i64 0, i64 0) to i8*
+	%92 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @main.str.12, i64 0, i64 0) to i8*
 	%93 = getelementptr %string, %string* %88, i32 0, i32 0
 	%94 = load i32, i32* %93
 	%95 = add i32 %94, 1
@@ -539,7 +539,7 @@ define void @test.inin4() {
 	%104 = getelementptr %string, %string* %103, i32 0, i32 1
 	%105 = load i8*, i8** %104
 	%106 = bitcast i8* %105 to i8*
-	%107 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @str.13, i64 0, i64 0) to i8*
+	%107 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @main.str.13, i64 0, i64 0) to i8*
 	%108 = getelementptr %string, %string* %103, i32 0, i32 0
 	%109 = load i32, i32* %108
 	%110 = add i32 %109, 1
@@ -557,7 +557,7 @@ define void @test.inin4() {
 	%121 = getelementptr %string, %string* %120, i32 0, i32 1
 	%122 = load i8*, i8** %121
 	%123 = bitcast i8* %122 to i8*
-	%124 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @str.14, i64 0, i64 0) to i8*
+	%124 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @main.str.14, i64 0, i64 0) to i8*
 	%125 = getelementptr %string, %string* %120, i32 0, i32 0
 	%126 = load i32, i32* %125
 	%127 = add i32 %126, 1

@@ -4,12 +4,12 @@
 
 @main.test.copyt.0 = constant [3 x i32] [i32 1, i32 2, i32 3]
 @main.test.copyt.1 = constant [6 x i32] [i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
-@str.0 = constant [19 x i8] c"%d-%d-%d-%d-%d-%d\0A\00"
-@str.1 = constant [6 x i8] c"see@ \00"
-@str.2 = constant [19 x i8] c"%s len=%d cap=%d \0A\00"
-@str.3 = constant [4 x i8] c"%d\0A\00"
-@str.4 = constant [12 x i8] c"asdfasdfasd\00"
-@str.5 = constant [4 x i8] c"%s\0A\00"
+@main.str.0 = constant [19 x i8] c"%d-%d-%d-%d-%d-%d\0A\00"
+@main.str.1 = constant [6 x i8] c"see@ \00"
+@main.str.2 = constant [19 x i8] c"%s len=%d cap=%d \0A\00"
+@main.str.3 = constant [4 x i8] c"%d\0A\00"
+@main.str.4 = constant [12 x i8] c"asdfasdfasd\00"
+@main.str.5 = constant [4 x i8] c"%s\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -122,7 +122,7 @@ define void @test.copyt() {
 	%29 = getelementptr %string, %string* %28, i32 0, i32 1
 	%30 = load i8*, i8** %29
 	%31 = bitcast i8* %30 to i8*
-	%32 = bitcast i8* getelementptr inbounds ([19 x i8], [19 x i8]* @str.0, i64 0, i64 0) to i8*
+	%32 = bitcast i8* getelementptr inbounds ([19 x i8], [19 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%33 = getelementptr %string, %string* %28, i32 0, i32 0
 	%34 = load i32, i32* %33
 	%35 = add i32 %34, 1
@@ -177,7 +177,7 @@ define void @printSlice(%string %s, { i32, i32, i32, i32* } %x) {
 	%5 = getelementptr %string, %string* %4, i32 0, i32 1
 	%6 = load i8*, i8** %5
 	%7 = bitcast i8* %6 to i8*
-	%8 = bitcast i8* getelementptr inbounds ([19 x i8], [19 x i8]* @str.2, i64 0, i64 0) to i8*
+	%8 = bitcast i8* getelementptr inbounds ([19 x i8], [19 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%9 = getelementptr %string, %string* %4, i32 0, i32 0
 	%10 = load i32, i32* %9
 	%11 = add i32 %10, 1
@@ -209,7 +209,7 @@ define void @test.make1() {
 	%5 = getelementptr %string, %string* %4, i32 0, i32 1
 	%6 = load i8*, i8** %5
 	%7 = bitcast i8* %6 to i8*
-	%8 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.1, i64 0, i64 0) to i8*
+	%8 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%9 = getelementptr %string, %string* %4, i32 0, i32 0
 	%10 = load i32, i32* %9
 	%11 = add i32 %10, 1
@@ -259,7 +259,7 @@ define void @test.make1() {
 	%34 = getelementptr %string, %string* %33, i32 0, i32 1
 	%35 = load i8*, i8** %34
 	%36 = bitcast i8* %35 to i8*
-	%37 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.3, i64 0, i64 0) to i8*
+	%37 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.3, i64 0, i64 0) to i8*
 	%38 = getelementptr %string, %string* %33, i32 0, i32 0
 	%39 = load i32, i32* %38
 	%40 = add i32 %39, 1
@@ -294,7 +294,7 @@ define void @test.newF() {
 	%5 = getelementptr %string, %string* %4, i32 0, i32 1
 	%6 = load i8*, i8** %5
 	%7 = bitcast i8* %6 to i8*
-	%8 = bitcast i8* getelementptr inbounds ([12 x i8], [12 x i8]* @str.4, i64 0, i64 0) to i8*
+	%8 = bitcast i8* getelementptr inbounds ([12 x i8], [12 x i8]* @main.str.4, i64 0, i64 0) to i8*
 	%9 = getelementptr %string, %string* %4, i32 0, i32 0
 	%10 = load i32, i32* %9
 	%11 = add i32 %10, 1
@@ -308,7 +308,7 @@ define void @test.newF() {
 	%17 = getelementptr %string, %string* %16, i32 0, i32 1
 	%18 = load i8*, i8** %17
 	%19 = bitcast i8* %18 to i8*
-	%20 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.5, i64 0, i64 0) to i8*
+	%20 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.5, i64 0, i64 0) to i8*
 	%21 = getelementptr %string, %string* %16, i32 0, i32 0
 	%22 = load i32, i32* %21
 	%23 = add i32 %22, 1

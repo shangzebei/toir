@@ -1,10 +1,10 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 %return.5.1 = type { i32, i32 }
 
-@str.0 = constant [7 x i8] c"%d %d\0A\00"
-@str.1 = constant [10 x i8] c"%d %d %d\0A\00"
-@str.2 = constant [8 x i8] c"%d--%d\0A\00"
+@main.str.0 = constant [7 x i8] c"%d %d\0A\00"
+@main.str.1 = constant [10 x i8] c"%d %d %d\0A\00"
+@main.str.2 = constant [8 x i8] c"%d--%d\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -67,7 +67,7 @@ define void @test.mulVar() {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.0, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -88,7 +88,7 @@ define void @test.mulVar() {
 	%21 = getelementptr %string, %string* %20, i32 0, i32 1
 	%22 = load i8*, i8** %21
 	%23 = bitcast i8* %22 to i8*
-	%24 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @str.1, i64 0, i64 0) to i8*
+	%24 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%25 = getelementptr %string, %string* %20, i32 0, i32 0
 	%26 = load i32, i32* %25
 	%27 = add i32 %26, 1
@@ -133,7 +133,7 @@ define void @main() {
 	%7 = getelementptr %string, %string* %6, i32 0, i32 1
 	%8 = load i8*, i8** %7
 	%9 = bitcast i8* %8 to i8*
-	%10 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @str.2, i64 0, i64 0) to i8*
+	%10 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%11 = getelementptr %string, %string* %6, i32 0, i32 0
 	%12 = load i32, i32* %11
 	%13 = add i32 %12, 1

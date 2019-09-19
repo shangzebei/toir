@@ -3,7 +3,7 @@
 %One = type {}
 %Two = type {}
 
-@str.0 = constant [10 x i8] c"aaaaaaaa\0A\00"
+@main.str.0 = constant [10 x i8] c"aaaaaaaa\0A\00"
 
 define void @a2() {
 ; <label>:0
@@ -71,7 +71,7 @@ define void @test.a1() {
 	%2 = getelementptr %string, %string* %1, i32 0, i32 1
 	%3 = load i8*, i8** %2
 	%4 = bitcast i8* %3 to i8*
-	%5 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @str.0, i64 0, i64 0) to i8*
+	%5 = bitcast i8* getelementptr inbounds ([10 x i8], [10 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%6 = getelementptr %string, %string* %1, i32 0, i32 0
 	%7 = load i32, i32* %6
 	%8 = add i32 %7, 1

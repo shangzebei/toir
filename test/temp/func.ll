@@ -1,7 +1,7 @@
 %mapStruct = type {}
 %string = type { i32, i8* }
 
-@str.0 = constant [4 x i8] c"%d\0A\00"
+@main.str.0 = constant [4 x i8] c"%d\0A\00"
 
 define i32 @test.add(i32 %a, i32 %b) {
 ; <label>:0
@@ -103,7 +103,7 @@ define void @main() {
 	%8 = getelementptr %string, %string* %7, i32 0, i32 1
 	%9 = load i8*, i8** %8
 	%10 = bitcast i8* %9 to i8*
-	%11 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%11 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%12 = getelementptr %string, %string* %7, i32 0, i32 0
 	%13 = load i32, i32* %12
 	%14 = add i32 %13, 1

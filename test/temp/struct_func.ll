@@ -2,9 +2,9 @@
 %string = type { i32, i8* }
 %Hello = type { %string, i32 }
 
-@str.0 = constant [4 x i8] c"%d\0A\00"
-@str.1 = constant [6 x i8] c"shang\00"
-@str.2 = constant [4 x i8] c"%s\0A\00"
+@main.str.0 = constant [4 x i8] c"%d\0A\00"
+@main.str.1 = constant [6 x i8] c"shang\00"
+@main.str.2 = constant [4 x i8] c"%s\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -66,7 +66,7 @@ define void @main.Hello.Show(%Hello %h) {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -81,7 +81,7 @@ define void @main.Hello.Show(%Hello %h) {
 	ret void
 }
 
-define void @init.Hello.18501568885501(%Hello*) {
+define void @init.Hello.18501568887016(%Hello*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -90,7 +90,7 @@ define void @init.Hello.18501568885501(%Hello*) {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.1, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -110,7 +110,7 @@ define void @main() {
 	; end param
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %Hello*
-	call void @init.Hello.18501568885501(%Hello* %2)
+	call void @init.Hello.18501568887016(%Hello* %2)
 	%3 = load %Hello, %Hello* %2
 	%4 = call i8* @malloc(i32 20)
 	%5 = bitcast i8* %4 to %Hello*
@@ -121,7 +121,7 @@ define void @main() {
 	%8 = getelementptr %string, %string* %7, i32 0, i32 1
 	%9 = load i8*, i8** %8
 	%10 = bitcast i8* %9 to i8*
-	%11 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
+	%11 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%12 = getelementptr %string, %string* %7, i32 0, i32 0
 	%13 = load i32, i32* %12
 	%14 = add i32 %13, 1

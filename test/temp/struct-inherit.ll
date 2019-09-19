@@ -1,11 +1,11 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 %ListNode = type { i32, %ListNode* }
 %CircularListNode = type { %ListNode, %CircularListNode* }
 
 @CircularListNode.0 = constant %CircularListNode { %ListNode { i32 0, %ListNode* null }, %CircularListNode* null }
-@str.0 = constant [4 x i8] c"%d\0A\00"
-@str.1 = constant [4 x i8] c"%d\0A\00"
+@main.str.0 = constant [4 x i8] c"%d\0A\00"
+@main.str.1 = constant [4 x i8] c"%d\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -77,7 +77,7 @@ define void @main() {
 	%12 = getelementptr %string, %string* %11, i32 0, i32 1
 	%13 = load i8*, i8** %12
 	%14 = bitcast i8* %13 to i8*
-	%15 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%15 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%16 = getelementptr %string, %string* %11, i32 0, i32 0
 	%17 = load i32, i32* %16
 	%18 = add i32 %17, 1
@@ -94,7 +94,7 @@ define void @main() {
 	%28 = getelementptr %string, %string* %27, i32 0, i32 1
 	%29 = load i8*, i8** %28
 	%30 = bitcast i8* %29 to i8*
-	%31 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.1, i64 0, i64 0) to i8*
+	%31 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%32 = getelementptr %string, %string* %27, i32 0, i32 0
 	%33 = load i32, i32* %32
 	%34 = add i32 %33, 1

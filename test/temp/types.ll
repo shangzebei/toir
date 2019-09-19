@@ -1,9 +1,9 @@
 %mapStruct = type {}
 %string = type { i32, i8* }
 
-@str.0 = constant [4 x i8] c"%d\0A\00"
-@str.1 = constant [4 x i8] c"%d\0A\00"
-@str.2 = constant [4 x i8] c"%f\0A\00"
+@main.str.0 = constant [4 x i8] c"%d\0A\00"
+@main.str.1 = constant [4 x i8] c"%d\0A\00"
+@main.str.2 = constant [4 x i8] c"%f\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -64,7 +64,7 @@ define void @test.t(i32 %a) {
 	%3 = getelementptr %string, %string* %2, i32 0, i32 1
 	%4 = load i8*, i8** %3
 	%5 = bitcast i8* %4 to i8*
-	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%7 = getelementptr %string, %string* %2, i32 0, i32 0
 	%8 = load i32, i32* %7
 	%9 = add i32 %8, 1
@@ -87,7 +87,7 @@ define void @test.tt(i64 %a) {
 	%3 = getelementptr %string, %string* %2, i32 0, i32 1
 	%4 = load i8*, i8** %3
 	%5 = bitcast i8* %4 to i8*
-	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.1, i64 0, i64 0) to i8*
+	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%7 = getelementptr %string, %string* %2, i32 0, i32 0
 	%8 = load i32, i32* %7
 	%9 = add i32 %8, 1
@@ -110,7 +110,7 @@ define void @test.ff(float %float322) {
 	%3 = getelementptr %string, %string* %2, i32 0, i32 1
 	%4 = load i8*, i8** %3
 	%5 = bitcast i8* %4 to i8*
-	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
+	%6 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%7 = getelementptr %string, %string* %2, i32 0, i32 0
 	%8 = load i32, i32* %7
 	%9 = add i32 %8, 1

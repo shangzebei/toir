@@ -1,15 +1,15 @@
 %mapStruct = type {}
 %string = type { i32, i8* }
 
-@str.0 = constant [13 x i8] c"aaaaaaaaaaa\0A\00"
-@str.1 = constant [14 x i8] c"bbbbbbbbbbbb\0A\00"
-@str.2 = constant [4 x i8] c"%d\0A\00"
-@str.3 = constant [16 x i8] c"ggggggggggggggg\00"
-@str.4 = constant [4 x i8] c"%d\0A\00"
-@str.5 = constant [18 x i8] c"asdfasdfasd%d-%d\0A\00"
-@str.6 = constant [14 x i8] c"bbbbbbbbbbbb\0A\00"
-@str.7 = constant [13 x i8] c"aaaaaaaaaaa\0A\00"
-@str.8 = constant [17 x i8] c"cccccccccccc %d\0A\00"
+@main.str.0 = constant [13 x i8] c"aaaaaaaaaaa\0A\00"
+@main.str.1 = constant [14 x i8] c"bbbbbbbbbbbb\0A\00"
+@main.str.2 = constant [4 x i8] c"%d\0A\00"
+@main.str.3 = constant [16 x i8] c"ggggggggggggggg\00"
+@main.str.4 = constant [4 x i8] c"%d\0A\00"
+@main.str.5 = constant [18 x i8] c"asdfasdfasd%d-%d\0A\00"
+@main.str.6 = constant [14 x i8] c"bbbbbbbbbbbb\0A\00"
+@main.str.7 = constant [13 x i8] c"aaaaaaaaaaa\0A\00"
+@main.str.8 = constant [17 x i8] c"cccccccccccc %d\0A\00"
 
 define i32 @test.max() {
 ; <label>:0
@@ -97,7 +97,7 @@ define void @test.for1() {
 	%11 = getelementptr %string, %string* %10, i32 0, i32 1
 	%12 = load i8*, i8** %11
 	%13 = bitcast i8* %12 to i8*
-	%14 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @str.0, i64 0, i64 0) to i8*
+	%14 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%15 = getelementptr %string, %string* %10, i32 0, i32 0
 	%16 = load i32, i32* %15
 	%17 = add i32 %16, 1
@@ -115,7 +115,7 @@ define void @test.for1() {
 	%24 = getelementptr %string, %string* %23, i32 0, i32 1
 	%25 = load i8*, i8** %24
 	%26 = bitcast i8* %25 to i8*
-	%27 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @str.1, i64 0, i64 0) to i8*
+	%27 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%28 = getelementptr %string, %string* %23, i32 0, i32 0
 	%29 = load i32, i32* %28
 	%30 = add i32 %29, 1
@@ -149,7 +149,7 @@ define void @test.for1() {
 	%44 = getelementptr %string, %string* %43, i32 0, i32 1
 	%45 = load i8*, i8** %44
 	%46 = bitcast i8* %45 to i8*
-	%47 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.2, i64 0, i64 0) to i8*
+	%47 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%48 = getelementptr %string, %string* %43, i32 0, i32 0
 	%49 = load i32, i32* %48
 	%50 = add i32 %49, 1
@@ -168,7 +168,7 @@ define void @test.for1() {
 	%58 = getelementptr %string, %string* %57, i32 0, i32 1
 	%59 = load i8*, i8** %58
 	%60 = bitcast i8* %59 to i8*
-	%61 = bitcast i8* getelementptr inbounds ([16 x i8], [16 x i8]* @str.3, i64 0, i64 0) to i8*
+	%61 = bitcast i8* getelementptr inbounds ([16 x i8], [16 x i8]* @main.str.3, i64 0, i64 0) to i8*
 	%62 = getelementptr %string, %string* %57, i32 0, i32 0
 	%63 = load i32, i32* %62
 	%64 = add i32 %63, 1
@@ -209,7 +209,7 @@ define void @test.for2() {
 	%10 = getelementptr %string, %string* %9, i32 0, i32 1
 	%11 = load i8*, i8** %10
 	%12 = bitcast i8* %11 to i8*
-	%13 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.4, i64 0, i64 0) to i8*
+	%13 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.4, i64 0, i64 0) to i8*
 	%14 = getelementptr %string, %string* %9, i32 0, i32 0
 	%15 = load i32, i32* %14
 	%16 = add i32 %15, 1
@@ -277,7 +277,7 @@ define i32 @test.for23() {
 	%18 = getelementptr %string, %string* %17, i32 0, i32 1
 	%19 = load i8*, i8** %18
 	%20 = bitcast i8* %19 to i8*
-	%21 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @str.5, i64 0, i64 0) to i8*
+	%21 = bitcast i8* getelementptr inbounds ([18 x i8], [18 x i8]* @main.str.5, i64 0, i64 0) to i8*
 	%22 = getelementptr %string, %string* %17, i32 0, i32 0
 	%23 = load i32, i32* %22
 	%24 = add i32 %23, 1
@@ -332,7 +332,7 @@ define void @test.for4() {
 	%11 = getelementptr %string, %string* %10, i32 0, i32 1
 	%12 = load i8*, i8** %11
 	%13 = bitcast i8* %12 to i8*
-	%14 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @str.6, i64 0, i64 0) to i8*
+	%14 = bitcast i8* getelementptr inbounds ([14 x i8], [14 x i8]* @main.str.6, i64 0, i64 0) to i8*
 	%15 = getelementptr %string, %string* %10, i32 0, i32 0
 	%16 = load i32, i32* %15
 	%17 = add i32 %16, 1
@@ -366,7 +366,7 @@ define void @test.for4() {
 	%31 = getelementptr %string, %string* %30, i32 0, i32 1
 	%32 = load i8*, i8** %31
 	%33 = bitcast i8* %32 to i8*
-	%34 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @str.7, i64 0, i64 0) to i8*
+	%34 = bitcast i8* getelementptr inbounds ([13 x i8], [13 x i8]* @main.str.7, i64 0, i64 0) to i8*
 	%35 = getelementptr %string, %string* %30, i32 0, i32 0
 	%36 = load i32, i32* %35
 	%37 = add i32 %36, 1
@@ -389,7 +389,7 @@ define void @test.for4() {
 	%45 = getelementptr %string, %string* %44, i32 0, i32 1
 	%46 = load i8*, i8** %45
 	%47 = bitcast i8* %46 to i8*
-	%48 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @str.8, i64 0, i64 0) to i8*
+	%48 = bitcast i8* getelementptr inbounds ([17 x i8], [17 x i8]* @main.str.8, i64 0, i64 0) to i8*
 	%49 = getelementptr %string, %string* %44, i32 0, i32 0
 	%50 = load i32, i32* %49
 	%51 = add i32 %50, 1

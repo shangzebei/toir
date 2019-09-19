@@ -98,7 +98,7 @@ func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) valu
 		itoa := strconv.Itoa(len(f.Constants))
 		str, _ := strconv.Unquote(base.Value)
 		fromString := constant.NewCharArrayFromString(str + "\x00")
-		globalDef := f.m.NewGlobalDef("str."+itoa, fromString)
+		globalDef := f.m.NewGlobalDef(f.mPackage+"."+"str."+itoa, fromString)
 		globalDef.Immutable = true
 		f.Constants = append(f.Constants, globalDef)
 		ptr := constant.NewGetElementPtr(globalDef, constant.NewInt(types.I64, 0), constant.NewInt(types.I64, 0))
@@ -106,9 +106,15 @@ func (f *FuncDecl) BasicLitType(base *ast.BasicLit, intType *types.IntType) valu
 		ptr.InBounds = true
 		/////
 		i := len(fromString.X)
-		newString := f.NewString(constant.NewInt(types.I32, int64(i-1)))
-		f.InitStringValue(newString, ptr)
-		return f.GetCurrentBlock().NewLoad(newString)
+		if f.GetCurrent() == nil {
+			newStruct := constant.NewStruct(constant.NewInt(types.I32, int64(i-1)), ptr)
+			newStruct.Typ = f.StringType()
+			return newStruct
+		} else {
+			newString := f.NewString(constant.NewInt(types.I32, int64(i-1)))
+			f.InitStringValue(newString, ptr)
+			return f.GetCurrentBlock().NewLoad(newString)
+		}
 	case token.FLOAT:
 		parseFloat, _ := strconv.ParseFloat(base.Value, 32)
 		return constant.NewFloat(types.Float, parseFloat)
@@ -220,18 +226,6 @@ func (f *FuncDecl) InitZeroConstant(typ types.Type) constant.Constant {
 		return constant.NewInt(types.I32, int64(0))
 	case types.IsFloat(typ):
 		return constant.NewFloat(types.Float, float64(0))
-	//case f.IsString(typ):
-	//	structType := typ.(*types.StructType)
-	//	def := f.m.NewGlobalDef("eof", constant.NewCharArrayFromString("aaaaaaaaaaaaaa\x00"))
-	//	def.Immutable = true
-	//	ptr := constant.NewGetElementPtr(def,
-	//		constant.NewInt(types.I64, 0),
-	//		constant.NewInt(types.I64, 0),
-	//	)
-	//	ptr.InBounds = true
-	//	newStruct := constant.NewStruct(constant.NewInt(types.I32, 8), ptr)
-	//	newStruct.Typ = structType
-	//	return newStruct
 	case types.IsStruct(typ):
 		structType := typ.(*types.StructType)
 		var pp []constant.Constant

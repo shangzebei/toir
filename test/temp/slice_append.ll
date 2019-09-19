@@ -3,19 +3,19 @@
 %return.5.0 = type { i8*, i32 }
 
 @main.test.sli1.0 = constant [1 x i32] [i32 100]
-@str.0 = constant [8 x i8] c"len-%d\0A\00"
-@str.1 = constant [8 x i8] c"len-%d\0A\00"
-@str.2 = constant [8 x i8] c"len-%d\0A\00"
-@str.3 = constant [4 x i8] c"%d\0A\00"
-@str.4 = constant [4 x i8] c"%d\0A\00"
-@str.5 = constant [4 x i8] c"%d\0A\00"
+@main.str.0 = constant [8 x i8] c"len-%d\0A\00"
+@main.str.1 = constant [8 x i8] c"len-%d\0A\00"
+@main.str.2 = constant [8 x i8] c"len-%d\0A\00"
+@main.str.3 = constant [4 x i8] c"%d\0A\00"
+@main.str.4 = constant [4 x i8] c"%d\0A\00"
+@main.str.5 = constant [4 x i8] c"%d\0A\00"
 @main.test.sli2.7 = constant [1 x i32] [i32 100]
-@str.6 = constant [15 x i8] c"len-%d cap-%d\0A\00"
+@main.str.6 = constant [15 x i8] c"len-%d cap-%d\0A\00"
 @main.test.sli3.9 = constant [3 x i32] [i32 1, i32 2, i32 3]
-@str.7 = constant [15 x i8] c"len-%d cap-%d\0A\00"
-@str.8 = constant [4 x i8] c"%d\0A\00"
+@main.str.7 = constant [15 x i8] c"len-%d cap-%d\0A\00"
+@main.str.8 = constant [4 x i8] c"%d\0A\00"
 @main.test.othSli.12 = constant [3 x float] [float 1.0, float 2.0, float 3.0]
-@str.9 = constant [6 x i8] c"%.2g\0A\00"
+@main.str.9 = constant [6 x i8] c"%.2g\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -168,7 +168,7 @@ define void @test.sli1() {
 	%10 = getelementptr %string, %string* %9, i32 0, i32 1
 	%11 = load i8*, i8** %10
 	%12 = bitcast i8* %11 to i8*
-	%13 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @str.0, i64 0, i64 0) to i8*
+	%13 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%14 = getelementptr %string, %string* %9, i32 0, i32 0
 	%15 = load i32, i32* %14
 	%16 = add i32 %15, 1
@@ -226,7 +226,7 @@ define void @test.sli1() {
 	%54 = getelementptr %string, %string* %53, i32 0, i32 1
 	%55 = load i8*, i8** %54
 	%56 = bitcast i8* %55 to i8*
-	%57 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @str.1, i64 0, i64 0) to i8*
+	%57 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%58 = getelementptr %string, %string* %53, i32 0, i32 0
 	%59 = load i32, i32* %58
 	%60 = add i32 %59, 1
@@ -284,7 +284,7 @@ define void @test.sli1() {
 	%98 = getelementptr %string, %string* %97, i32 0, i32 1
 	%99 = load i8*, i8** %98
 	%100 = bitcast i8* %99 to i8*
-	%101 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @str.2, i64 0, i64 0) to i8*
+	%101 = bitcast i8* getelementptr inbounds ([8 x i8], [8 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%102 = getelementptr %string, %string* %97, i32 0, i32 0
 	%103 = load i32, i32* %102
 	%104 = add i32 %103, 1
@@ -299,7 +299,7 @@ define void @test.sli1() {
 	%112 = getelementptr %string, %string* %111, i32 0, i32 1
 	%113 = load i8*, i8** %112
 	%114 = bitcast i8* %113 to i8*
-	%115 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.3, i64 0, i64 0) to i8*
+	%115 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.3, i64 0, i64 0) to i8*
 	%116 = getelementptr %string, %string* %111, i32 0, i32 0
 	%117 = load i32, i32* %116
 	%118 = add i32 %117, 1
@@ -317,7 +317,7 @@ define void @test.sli1() {
 	%128 = getelementptr %string, %string* %127, i32 0, i32 1
 	%129 = load i8*, i8** %128
 	%130 = bitcast i8* %129 to i8*
-	%131 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.4, i64 0, i64 0) to i8*
+	%131 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.4, i64 0, i64 0) to i8*
 	%132 = getelementptr %string, %string* %127, i32 0, i32 0
 	%133 = load i32, i32* %132
 	%134 = add i32 %133, 1
@@ -335,7 +335,7 @@ define void @test.sli1() {
 	%144 = getelementptr %string, %string* %143, i32 0, i32 1
 	%145 = load i8*, i8** %144
 	%146 = bitcast i8* %145 to i8*
-	%147 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.5, i64 0, i64 0) to i8*
+	%147 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.5, i64 0, i64 0) to i8*
 	%148 = getelementptr %string, %string* %143, i32 0, i32 0
 	%149 = load i32, i32* %148
 	%150 = add i32 %149, 1
@@ -436,7 +436,7 @@ define void @test.sli2() {
 	%49 = getelementptr %string, %string* %48, i32 0, i32 1
 	%50 = load i8*, i8** %49
 	%51 = bitcast i8* %50 to i8*
-	%52 = bitcast i8* getelementptr inbounds ([15 x i8], [15 x i8]* @str.6, i64 0, i64 0) to i8*
+	%52 = bitcast i8* getelementptr inbounds ([15 x i8], [15 x i8]* @main.str.6, i64 0, i64 0) to i8*
 	%53 = getelementptr %string, %string* %48, i32 0, i32 0
 	%54 = load i32, i32* %53
 	%55 = add i32 %54, 1
@@ -541,7 +541,7 @@ define void @test.sli3() {
 	%49 = getelementptr %string, %string* %48, i32 0, i32 1
 	%50 = load i8*, i8** %49
 	%51 = bitcast i8* %50 to i8*
-	%52 = bitcast i8* getelementptr inbounds ([15 x i8], [15 x i8]* @str.7, i64 0, i64 0) to i8*
+	%52 = bitcast i8* getelementptr inbounds ([15 x i8], [15 x i8]* @main.str.7, i64 0, i64 0) to i8*
 	%53 = getelementptr %string, %string* %48, i32 0, i32 0
 	%54 = load i32, i32* %53
 	%55 = add i32 %54, 1
@@ -584,7 +584,7 @@ define void @test.sli3() {
 	%74 = getelementptr %string, %string* %73, i32 0, i32 1
 	%75 = load i8*, i8** %74
 	%76 = bitcast i8* %75 to i8*
-	%77 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.8, i64 0, i64 0) to i8*
+	%77 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.8, i64 0, i64 0) to i8*
 	%78 = getelementptr %string, %string* %73, i32 0, i32 0
 	%79 = load i32, i32* %78
 	%80 = add i32 %79, 1
@@ -687,7 +687,7 @@ define void @test.othSli() {
 	%40 = getelementptr %string, %string* %39, i32 0, i32 1
 	%41 = load i8*, i8** %40
 	%42 = bitcast i8* %41 to i8*
-	%43 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.9, i64 0, i64 0) to i8*
+	%43 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.9, i64 0, i64 0) to i8*
 	%44 = getelementptr %string, %string* %39, i32 0, i32 0
 	%45 = load i32, i32* %44
 	%46 = add i32 %45, 1

@@ -2,9 +2,9 @@
 %string = type { i32, i8* }
 %A = type { %string }
 
-@str.0 = constant [4 x i8] c"%s\0A\00"
-@str.1 = constant [7 x i8] c"%d-%d\0A\00"
-@str.2 = constant [6 x i8] c"ttttt\00"
+@main.str.0 = constant [4 x i8] c"%s\0A\00"
+@main.str.1 = constant [7 x i8] c"%d-%d\0A\00"
+@main.str.2 = constant [6 x i8] c"ttttt\00"
 
 define void @test.swap(i32* %a, i32* %b) {
 ; <label>:0
@@ -84,7 +84,7 @@ define void @test.do(%A %a) {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -101,7 +101,7 @@ define void @test.do(%A %a) {
 	ret void
 }
 
-define void @init.A.17791568885500(%A*) {
+define void @init.A.17791568887015(%A*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -110,7 +110,7 @@ define void @init.A.17791568885500(%A*) {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @str.2, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([6 x i8], [6 x i8]* @main.str.2, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -133,7 +133,7 @@ define void @main() {
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
 	%5 = load i8*, i8** %4
 	%6 = bitcast i8* %5 to i8*
-	%7 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @str.1, i64 0, i64 0) to i8*
+	%7 = bitcast i8* getelementptr inbounds ([7 x i8], [7 x i8]* @main.str.1, i64 0, i64 0) to i8*
 	%8 = getelementptr %string, %string* %3, i32 0, i32 0
 	%9 = load i32, i32* %8
 	%10 = add i32 %9, 1
@@ -148,7 +148,7 @@ define void @main() {
 	; end param
 	%17 = call i8* @malloc(i32 16)
 	%18 = bitcast i8* %17 to %A*
-	call void @init.A.17791568885500(%A* %18)
+	call void @init.A.17791568887015(%A* %18)
 	%19 = load %A, %A* %18
 	%20 = call i8* @malloc(i32 16)
 	%21 = bitcast i8* %20 to %A*

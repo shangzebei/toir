@@ -1,9 +1,9 @@
-%mapStruct = type {}
 %string = type { i32, i8* }
+%mapStruct = type {}
 %return.3.0 = type { i8*, i32 }
 
 @main.main.0 = constant [3 x i32] [i32 1, i32 2, i32 3]
-@str.0 = constant [4 x i8] c"%d\0A\00"
+@main.str.0 = constant [4 x i8] c"%d\0A\00"
 
 declare i8* @malloc(i32)
 
@@ -203,7 +203,7 @@ define void @main() {
 	%43 = getelementptr %string, %string* %42, i32 0, i32 1
 	%44 = load i8*, i8** %43
 	%45 = bitcast i8* %44 to i8*
-	%46 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @str.0, i64 0, i64 0) to i8*
+	%46 = bitcast i8* getelementptr inbounds ([4 x i8], [4 x i8]* @main.str.0, i64 0, i64 0) to i8*
 	%47 = getelementptr %string, %string* %42, i32 0, i32 0
 	%48 = load i32, i32* %47
 	%49 = add i32 %48, 1

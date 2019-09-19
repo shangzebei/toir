@@ -73,12 +73,7 @@ func (f *FuncDecl) varSpec(spec *ast.ValueSpec, t token.Token) {
 		////////////////////////////////
 		if f.GetCurrent() == nil {
 			if t == token.VAR || v != nil {
-				var v constant.Constant
-				if v == nil {
-					v = f.InitZeroConstant(kind)
-				} else {
-					v = v.(constant.Constant)
-				}
+				var v = v.(constant.Constant)
 				f.m.NewGlobalDef(name.Name, v)
 			} else {
 				f.m.NewGlobal(name.Name, kind)
