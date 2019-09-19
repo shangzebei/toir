@@ -8,7 +8,6 @@
 - [x] switch
 - [x] func
 - [ ] map
-- [ ] struct string init
 - [ ] package init
 - [ ] defer
 - [ ] interface
