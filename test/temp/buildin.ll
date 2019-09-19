@@ -13,7 +13,7 @@
 
 declare i8* @malloc(i32)
 
-define void @slice.init.i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
+define void @slice.init.aTMy({ i32, i32, i32, i32* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %ptr, i32 0, i32 2
@@ -84,7 +84,7 @@ define void @test.copyt() {
 	; block start
 	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 3)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %2, i32 3)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 3, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
@@ -95,7 +95,7 @@ define void @test.copyt() {
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	%9 = call i8* @malloc(i32 24)
 	%10 = bitcast i8* %9 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %10, i32 6)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %10, i32 6)
 	%11 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0
 	store i32 6, i32* %11
 	%12 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 3
@@ -203,7 +203,7 @@ define void @test.make1() {
 	; block start
 	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 3)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %2, i32 3)
 	%3 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	%4 = call %string* @runtime.newString(i32 5)
 	%5 = getelementptr %string, %string* %4, i32 0, i32 1

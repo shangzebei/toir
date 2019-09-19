@@ -26,7 +26,8 @@ func (f *FuncDecl) RangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bloc
 	utils.NewComment(f.GetCurrentBlock(), "[range start]")
 	var va = utils.GCCall(f, stmt.X)[0].(value.Value)
 	var name = "rangeV"
-	f.tempVariables[0][name] = va
+	alloc := FixAlloc(f.GetCurrentBlock(), va)
+	f.tempVariables[0][name] = alloc
 	var emType types.Type
 	if f.IsString(va.Type()) {
 		emType = types.I8
@@ -34,7 +35,7 @@ func (f *FuncDecl) RangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bloc
 		emType = GetSliceEmType(utils.GetBaseType(va.Type())) //I32*
 	}
 	//init len
-	getLen := f.GetLen(f.GetSrcPtr(va))
+	getLen := f.GetLen(f.GetSrcPtr(alloc))
 	f.tempVariables[0]["zrangzwrLen"] = getLen
 	getFunc := f.r.GetFunc("rangeTemp")
 	//ast.Print(f.fSet, getFunc)
@@ -70,7 +71,7 @@ func (f *FuncDecl) RangeStmt(stmt *ast.RangeStmt) (start *ir.Block, end *ir.Bloc
 		indexExpr.X = &ast.Ident{
 			NamePos: 0,
 			Name:    name,
-			Obj:     nil,
+			Obj:     &ast.Object{Kind: ast.Var},
 		}
 		st = append(st, assgn[1])
 	}

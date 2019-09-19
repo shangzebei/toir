@@ -101,7 +101,7 @@ define void @test.do(%A %a) {
 	ret void
 }
 
-define void @init.A.60411568866024(%A*) {
+define void @init.A.17791568882168(%A*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -148,7 +148,7 @@ define void @main() {
 	; end param
 	%17 = call i8* @malloc(i32 16)
 	%18 = bitcast i8* %17 to %A*
-	call void @init.A.60411568866024(%A* %18)
+	call void @init.A.17791568882168(%A* %18)
 	%19 = load %A, %A* %18
 	%20 = call i8* @malloc(i32 16)
 	%21 = bitcast i8* %20 to %A*

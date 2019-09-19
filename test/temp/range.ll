@@ -17,7 +17,7 @@
 
 declare i8* @malloc(i32)
 
-define void @slice.init.i32({ i32, i32, i32, i32* }* %ptr, i32 %len) {
+define void @slice.init.aTMy({ i32, i32, i32, i32* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %ptr, i32 0, i32 2
@@ -88,7 +88,7 @@ define void @test.range1asdfasdfs() {
 	; block start
 	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 5, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
@@ -153,7 +153,7 @@ define void @test.range2() {
 	; block start
 	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 5, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
@@ -227,7 +227,7 @@ define void @test.range3() {
 	; block start
 	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 5, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
@@ -297,7 +297,7 @@ define void @test.range4() {
 	; block start
 	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 5, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
@@ -362,7 +362,7 @@ define void @test.range5() {
 	; block start
 	%1 = call i8* @malloc(i32 24)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
 	store i32 5, i32* %3
 	%4 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 3
@@ -373,7 +373,7 @@ define void @test.range5() {
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
 	%9 = call i8* @malloc(i32 24)
 	%10 = bitcast i8* %9 to { i32, i32, i32, i32* }*
-	call void @slice.init.i32({ i32, i32, i32, i32* }* %10, i32 5)
+	call void @slice.init.aTMy({ i32, i32, i32, i32* }* %10, i32 5)
 	%11 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0
 	store i32 5, i32* %11
 	%12 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 3

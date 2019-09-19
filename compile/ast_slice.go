@@ -1,6 +1,7 @@
 package compile
 
 import (
+	"encoding/base64"
 	"github.com/llir/llvm/ir"
 	"github.com/llir/llvm/ir/constant"
 	"github.com/llir/llvm/ir/types"
@@ -29,14 +30,14 @@ func (i *SliceValue) Ident() string {
 	return i.p.Ident()
 }
 
-func (f *FuncDecl) FuncSlice(em types.Type, st *types.StructType) *ir.Func {
+func (f *FuncDecl) FuncSlice(em types.Type, st *types.StructType, name string) *ir.Func {
 	if em == nil {
 		panic("error type in NewSlice")
 	}
 	arrayLen := ir.NewParam("len", types.I32)
 	ptr := ir.NewParam("ptr", types.NewPointer(st))
-	s := "slice.init." + strings.ReplaceAll(em.String(), "%", "")
-	newFunc := ir.NewFunc(s, types.Void, ptr, arrayLen)
+
+	newFunc := ir.NewFunc(name, types.Void, ptr, arrayLen)
 	f.pushFunc(newFunc)
 	f.newBlock()
 	utils.NewComment(f.GetCurrentBlock(), "init slice...............")
@@ -71,11 +72,13 @@ func (f *FuncDecl) typeSlice(em types.Type, st *types.StructType, arrayLen value
 	newType := f.GetCurrentBlock().NewBitCast(call, types.NewPointer(st))
 	//newType := f.GetCurrentBlock().NewAlloca(st)
 	var ff *ir.Func
-	if s, ok := f.sliceInits[em]; ok {
+	var encoded = base64.RawStdEncoding.EncodeToString([]byte(strings.ReplaceAll(em.String(), "%", "")))
+	name := "slice.init." + encoded
+	if s, ok := f.sliceInitsFunc[name]; ok {
 		ff = s
 	} else {
-		ff = f.FuncSlice(em, st)
-		f.sliceInits[em] = ff
+		ff = f.FuncSlice(em, st, name)
+		f.sliceInitsFunc[name] = ff
 	}
 	f.StdCall(ff, newType, arrayLen)
 	f.sliceTypes = append(f.sliceTypes, st)
@@ -124,7 +127,7 @@ func (f *FuncDecl) IsSliceType(v types.Type) bool {
 
 func (f *FuncDecl) GetIndex(v value.Value, index value.Value) value.Value {
 
-	var ss value.Value
+	var ss = f.GetSrcPtr(v)
 	utils.NewComment(f.GetCurrentBlock(), "get slice index")
 	//decl := f.DoFunDecl("runtime", f.r.GetFunc("indexSlice"))
 	//return f.GetCurrentBlock().NewLoad(f.GetCurrentBlock().NewBitCast(f.StdCall(decl, v, index), p))

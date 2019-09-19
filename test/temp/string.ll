@@ -192,7 +192,7 @@ define void @test.stringJoin() {
 	ret void
 }
 
-define void @slice.init.i8({ i32, i32, i32, i8* }* %ptr, i32 %len) {
+define void @slice.init.aTg({ i32, i32, i32, i8* }* %ptr, i32 %len) {
 ; <label>:0
 	; init slice...............
 	%1 = getelementptr { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %ptr, i32 0, i32 2
@@ -217,7 +217,7 @@ define { i32, i32, i32, i8* }* @runtime.stringToBytes(%string* %a) {
 	%2 = load i32, i32* %1
 	%3 = call i8* @malloc(i32 24)
 	%4 = bitcast i8* %3 to { i32, i32, i32, i8* }*
-	call void @slice.init.i8({ i32, i32, i32, i8* }* %4, i32 %2)
+	call void @slice.init.aTg({ i32, i32, i32, i8* }* %4, i32 %2)
 	%5 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %4
 	%6 = extractvalue { i32, i32, i32, i8* } %5, 3
 	%7 = getelementptr %string, %string* %a, i32 0, i32 1

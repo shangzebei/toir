@@ -56,31 +56,31 @@ type FuncDecl struct {
 	//*ast.CompositeLit
 	compositeLits map[*ast.CompositeLit]*Composete
 	//slice
-	sliceInits map[types.Type]*ir.Func
-	sliceTypes []types.Type
+	sliceInitsFunc map[string]*ir.Func
+	sliceTypes     []types.Type
 	//swith v
 	swiV *ast.Expr
 }
 
 func DoFunc(m *ir.Module, fset *token.FileSet, pkg string, r *core.Runtime) *FuncDecl {
 	decl := &FuncDecl{
-		m:             m,
-		fSet:          fset,
-		FuncHeap:      new([]*ir.Func),
-		Variables:     make(map[*ir.Block]map[string]value.Value),
-		tempVariables: make([]map[string]value.Value, 10),
-		tempV:         0,
-		blockHeap:     make(map[*ir.Func][]*ir.Block),
-		FuncDecls:     make(map[*ast.FuncDecl]*ir.Func),
-		GlobDef:       make(map[string]types.Type),
-		StructDefs:    make(map[string]map[string]StructDef),
-		mPackage:      pkg,
-		r:             r,
-		typeSpecs:     make(map[*ast.TypeSpec]types.Type),
-		openAlloc:     false,
-		compositeLits: make(map[*ast.CompositeLit]*Composete),
-		PreStrutsFunc: make(map[string]map[string]*ast.FuncDecl),
-		sliceInits:    make(map[types.Type]*ir.Func),
+		m:              m,
+		fSet:           fset,
+		FuncHeap:       new([]*ir.Func),
+		Variables:      make(map[*ir.Block]map[string]value.Value),
+		tempVariables:  make([]map[string]value.Value, 10),
+		tempV:          0,
+		blockHeap:      make(map[*ir.Func][]*ir.Block),
+		FuncDecls:      make(map[*ast.FuncDecl]*ir.Func),
+		GlobDef:        make(map[string]types.Type),
+		StructDefs:     make(map[string]map[string]StructDef),
+		mPackage:       pkg,
+		r:              r,
+		typeSpecs:      make(map[*ast.TypeSpec]types.Type),
+		openAlloc:      false,
+		compositeLits:  make(map[*ast.CompositeLit]*Composete),
+		PreStrutsFunc:  make(map[string]map[string]*ast.FuncDecl),
+		sliceInitsFunc: make(map[string]*ir.Func),
 	}
 	decl.Init()
 	return decl
@@ -412,6 +412,20 @@ func (f *FuncDecl) IncDecStmt(decl *ast.IncDecStmt) value.Value {
 func (f *FuncDecl) DeclStmt(decl *ast.DeclStmt) {
 	utils.GCCall(f, decl.Decl)
 }
+
+func (f *FuncDecl) GetAstArrayEmType(arr *ast.ArrayType) types.Type {
+	switch arr.Elt.(type) {
+	case *ast.Ident:
+		typ := f.GetTypeFromName(GetIdentName(arr.Elt.(*ast.Ident)))
+		return typ
+	case *ast.ArrayType:
+		arrayType := arr.Elt.(*ast.ArrayType)
+		emType := f.GetAstArrayEmType(arrayType)
+		return f.GetNewSliceType(emType)
+	}
+	return nil
+}
+
 func (f *FuncDecl) sliceInit(lit *ast.CompositeLit) value.Value {
 	isConstant := false
 	for _, value := range lit.Elts {
@@ -437,8 +451,8 @@ func (f *FuncDecl) sliceInit(lit *ast.CompositeLit) value.Value {
 	} else {
 		var dSlice value.Value
 		arry := lit.Type.(*ast.ArrayType)
-		typ := f.GetTypeFromName(GetIdentName(arry.Elt.(*ast.Ident)))
-		dSlice = f.NewType(types.NewArray(uint64(len(lit.Elts)), typ))
+		var typ = f.GetAstArrayEmType(arry)
+		dSlice = f.NewSlice(typ, constant.NewInt(types.I32, int64(len(lit.Elts))))
 		slice := f.GetVSlice(dSlice)
 		for index, v := range lit.Elts {
 			utils.NewComment(f.GetCurrentBlock(), "init slice "+strconv.Itoa(index))
@@ -449,12 +463,17 @@ func (f *FuncDecl) sliceInit(lit *ast.CompositeLit) value.Value {
 		}
 		utils.NewComment(f.GetCurrentBlock(), "end init slice")
 		return dSlice
+
 	}
 }
 
 //TODO struct init
 //only for array and struts init return value
 func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
+	//done with type
+	if lit.Type == nil {
+		return f.sliceInit(lit)
+	}
 	switch lit.Type.(type) {
 	case *ast.ArrayType: //array
 		return f.sliceInit(lit)
@@ -537,6 +556,7 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 		}
 	default:
 		fmt.Println("not impl CompositeLit")
+
 	}
 	return nil
 }

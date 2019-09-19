@@ -81,7 +81,7 @@ define void @main.Hello.Show(%Hello %h) {
 	ret void
 }
 
-define void @init.Hello.29841568866025(%Hello*) {
+define void @init.Hello.18501568882170(%Hello*) {
 ; <label>:1
 	; <inject var
 	; inject var>
@@ -110,7 +110,7 @@ define void @main() {
 	; end param
 	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %Hello*
-	call void @init.Hello.29841568866025(%Hello* %2)
+	call void @init.Hello.18501568882170(%Hello* %2)
 	%3 = load %Hello, %Hello* %2
 	%4 = call i8* @malloc(i32 20)
 	%5 = bitcast i8* %4 to %Hello*

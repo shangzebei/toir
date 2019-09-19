@@ -338,20 +338,6 @@ func (f *FuncDecl) IndexExpr(index *ast.IndexExpr) value.Value {
 	if _, ok := kv.Type().(*types.PointerType); ok {
 		kv = f.GetCurrentBlock().NewLoad(kv)
 	}
-	switch index.X.(type) {
-	case *ast.Ident:
-		ident := index.X.(*ast.Ident)
-		variable := f.GetVariable(ident.Name)
-		return f.GetIndex(variable, kv)
-	case *ast.CallExpr:
-		expr := f.CallExpr(index.X.(*ast.CallExpr))
-		return f.GetIndex(expr, kv)
-	case *ast.SliceExpr: //return slice
-		sliceExpr := index.X.(*ast.SliceExpr)
-		expr := f.SliceExpr(sliceExpr)
-		return f.GetIndex(expr, kv)
-	default:
-		logrus.Error("no impl index.X")
-	}
-	return nil
+	i := utils.GCCall(f, index.X)[0].(value.Value)
+	return f.GetIndex(i, kv)
 }
