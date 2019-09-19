@@ -426,6 +426,22 @@ func (f *FuncDecl) GetAstArrayEmType(arr *ast.ArrayType) types.Type {
 	return nil
 }
 
+func (f *FuncDecl) GetNilAstArrayEmType(lit *ast.CompositeLit) types.Type {
+	if lit.Type == nil {
+		switch lit.Elts[0].(type) {
+		case *ast.CompositeLit:
+			return f.GetNewSliceType(f.GetNilAstArrayEmType(lit.Elts[0].(*ast.CompositeLit)))
+		case *ast.BasicLit:
+			return f.BasicLit(lit.Elts[0].(*ast.BasicLit)).Type()
+		default:
+			logrus.Error("GetNilAstArrayEmType not impl")
+		}
+
+	}
+	arrayType := lit.Type.(*ast.ArrayType)
+	return f.GetAstArrayEmType(arrayType)
+}
+
 func (f *FuncDecl) sliceInit(lit *ast.CompositeLit) value.Value {
 	isConstant := false
 	for _, value := range lit.Elts {
@@ -450,8 +466,7 @@ func (f *FuncDecl) sliceInit(lit *ast.CompositeLit) value.Value {
 		return f.InitConstantValue(array.Type(), def)
 	} else {
 		var dSlice value.Value
-		arry := lit.Type.(*ast.ArrayType)
-		var typ = f.GetAstArrayEmType(arry)
+		typ := f.GetNilAstArrayEmType(lit)
 		dSlice = f.NewSlice(typ, constant.NewInt(types.I32, int64(len(lit.Elts))))
 		slice := f.GetVSlice(dSlice)
 		for index, v := range lit.Elts {
