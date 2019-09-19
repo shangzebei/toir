@@ -2,6 +2,8 @@ package runtime
 
 import "toir/runtime/def"
 
+//var eof = ""
+
 type string struct {
 	Len int
 	ptr def.I8p

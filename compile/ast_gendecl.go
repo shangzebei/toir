@@ -75,7 +75,7 @@ func (f *FuncDecl) varSpec(spec *ast.ValueSpec, t token.Token) {
 			if t == token.VAR || v != nil {
 				var v constant.Constant
 				if v == nil {
-					v = InitZeroConstant(kind)
+					v = f.InitZeroConstant(kind)
 				} else {
 					v = v.(constant.Constant)
 				}

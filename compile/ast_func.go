@@ -460,7 +460,7 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 		return f.sliceInit(lit)
 	case *ast.Ident: //struct
 		name := GetIdentName(lit.Type.(*ast.Ident))
-		structType, ok := f.GlobDef[name]
+		structType, _ := f.GlobDef[name]
 		//check types
 		base := true
 		structDefs := f.StructDefs[name]
@@ -482,12 +482,12 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 			}
 		}
 
-		if lit.Elts == nil {
-			if !ok {
-				f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
-			}
-			return FixAlloc(f.GetCurrentBlock(), f.GetCurrentBlock().NewAlloca(structType))
-		}
+		//if lit.Elts == nil {
+		//	if !ok {
+		//		f.typeSpec(lit.Type.(*ast.Ident).Obj.Decl.(*ast.TypeSpec))
+		//	}
+		//	return FixAlloc(f.GetCurrentBlock(), f.NewType(structType))
+		//}
 		getStructFiledType := func(structDefs map[string]StructDef, order int) types.Type {
 			for _, value := range structDefs {
 				if value.Order == order {
@@ -523,7 +523,7 @@ func (f *FuncDecl) CompositeLit(lit *ast.CompositeLit) value.Value {
 			//init
 			for i := 0; i < len(s); i++ {
 				if s[i] == nil {
-					s[i] = InitZeroConstant(getStructFiledType(structDefs, i))
+					s[i] = f.InitZeroConstant(getStructFiledType(structDefs, i))
 				}
 			}
 			newStruct := constant.NewStruct(s...)
@@ -654,16 +654,22 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 		newFunc = ir.NewFunc(fName, types.Void, param)
 	}
 	utils.NewComment(f.GetCurrentBlock(), "end param")
+
 	f.useMalloc()
 	f.pushFunc(newFunc)
 	f.newBlock()
-	//inject ver
+
+	//inject var
+	utils.NewComment(f.GetCurrentBlock(), "<inject var")
 	for key, value := range paramsKV {
 		indexStruct := utils.IndexStruct(f.GetCurrentBlock(), initParam, value)
 		f.PutVariable(key, &Scope{f.GetCurrentBlock().NewLoad(indexStruct), 1, nil})
 	}
+	utils.NewComment(f.GetCurrentBlock(), "inject var>")
 
+	//set value
 	structDefs := f.StructDefs[structType.Name()]
+	record := make(map[int]int)
 	for index, val := range lit.Elts { //
 		switch val.(type) {
 		case *ast.KeyValueExpr:
@@ -671,6 +677,7 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 			identName := GetIdentName(keyValueExpr.Key.(*ast.Ident))
 			structDef, _ := structDefs[identName]
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, structDef.Order)
+			record[structDef.Order] = 1
 			switch keyValueExpr.Value.(type) {
 			case *ast.BasicLit:
 				f.NewStore(f.BasicLit(keyValueExpr.Value.(*ast.BasicLit)), indexStruct)
@@ -693,9 +700,11 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 				logrus.Error("bbbbbb StructInit")
 			}
 		case *ast.BasicLit:
+			record[index] = 0
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
 			f.NewStore(f.BasicLit(val.(*ast.BasicLit)), indexStruct)
 		case *ast.Ident:
+			record[index] = 0
 			var indexStruct value.Value = utils.IndexStruct(f.GetCurrentBlock(), param, index)
 			name := GetIdentName(val.(*ast.Ident))
 			if name == "nil" {
@@ -708,6 +717,16 @@ func (f *FuncDecl) StructInit(lit *ast.CompositeLit, structType types.Type) valu
 
 		default:
 			logrus.Error("aaaaaa StructInit")
+		}
+	}
+	//fix string
+	utils.NewComment(f.GetCurrentBlock(), "<init string>")
+	t := structType.(*types.StructType)
+	for index, typ := range t.Fields {
+		if _, ok := record[index]; f.IsString(typ) && !ok {
+			structValue := utils.IndexStruct(f.GetCurrentBlock(), param, index)
+			indexStruct := utils.IndexStruct(f.GetCurrentBlock(), structValue, 1)
+			f.NewStore(constant.NewNull(types.I8Ptr), indexStruct)
 		}
 	}
 

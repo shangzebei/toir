@@ -42,7 +42,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 12)
+	%2 = call i8* @malloc(i32 20)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -86,7 +86,7 @@ declare i32 @printf(i8*, ...)
 define void @test.range1asdfasdfs() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 20)
+	%1 = call i8* @malloc(i32 28)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
@@ -151,7 +151,7 @@ define void @test.range1asdfasdfs() {
 define void @test.range2() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 20)
+	%1 = call i8* @malloc(i32 28)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
@@ -225,7 +225,7 @@ define void @test.range2() {
 define void @test.range3() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 20)
+	%1 = call i8* @malloc(i32 28)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
@@ -295,7 +295,7 @@ define void @test.range3() {
 define void @test.range4() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 20)
+	%1 = call i8* @malloc(i32 28)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
@@ -360,7 +360,7 @@ define void @test.range4() {
 define void @test.range5() {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 20)
+	%1 = call i8* @malloc(i32 28)
 	%2 = bitcast i8* %1 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %2, i32 5)
 	%3 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2, i32 0, i32 0
@@ -371,7 +371,7 @@ define void @test.range5() {
 	%7 = bitcast [5 x i32]* @main.test.range5.8 to i8*
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 20, i1 false)
 	%8 = load { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %2
-	%9 = call i8* @malloc(i32 20)
+	%9 = call i8* @malloc(i32 28)
 	%10 = bitcast i8* %9 to { i32, i32, i32, i32* }*
 	call void @slice.init.i32({ i32, i32, i32, i32* }* %10, i32 5)
 	%11 = getelementptr { i32, i32, i32, i32* }, { i32, i32, i32, i32* }* %10, i32 0, i32 0

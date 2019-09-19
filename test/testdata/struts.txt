@@ -1,14 +1,4 @@
-Stack dump:
-0.	Program arguments: lli test/temp/struts.ll 
-0  lli                      0x0000000107e14022 llvm::sys::PrintStackTrace(llvm::raw_ostream&) + 37
-1  lli                      0x0000000107e14426 SignalHandler(int) + 200
-2  libsystem_platform.dylib 0x00007fff7144ef5a _sigtramp + 26
-3  libsystem_platform.dylib 0x000000010d54f638 _sigtramp + 2618296056
-4  libsystem_c.dylib        0x00007fff711d4a86 __vfprintf + 4716
-5  libsystem_c.dylib        0x00007fff711fc059 __v2printf + 473
-6  libsystem_c.dylib        0x00007fff711d3742 vfprintf_l + 54
-7  libsystem_c.dylib        0x00007fff711d17cb printf + 187
-8  libsystem_c.dylib        0x0000000108f1412d printf + 2547264029
-9  lli                      0x0000000107adf3c7 llvm::ExecutionEngine::runFunctionAsMain(llvm::Function*, std::__1::vector<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> >, std::__1::allocator<std::__1::basic_string<char, std::__1::char_traits<char>, std::__1::allocator<char> > > > const&, char const* const*) + 1159
-10 lli                      0x00000001077f5d75 main + 8449
-11 libdyld.dylib            0x00007fff71140015 start + 1
+(null)-man-45
+(null)
+12
+tttttttttttttttt

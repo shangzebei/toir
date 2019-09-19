@@ -212,20 +212,37 @@ func GetBytes(typ types.Type) int {
 	return l
 }
 
-func InitZeroConstant(typ types.Type) constant.Constant {
-	switch typ {
-	case types.I8Ptr:
-		return constant.NewNull(types.I8Ptr)
-	case types.I8, types.I32, types.I16, types.I64:
+func (f *FuncDecl) InitZeroConstant(typ types.Type) constant.Constant {
+	switch {
+	case types.IsPointer(typ):
+		return constant.NewNull(typ.(*types.PointerType))
+	case types.IsInt(typ):
 		return constant.NewInt(types.I32, int64(0))
-	case types.Float:
+	case types.IsFloat(typ):
 		return constant.NewFloat(types.Float, float64(0))
-	default:
-		if t, ok := typ.(*types.PointerType); ok {
-			return constant.NewNull(t)
-		} else {
-			fmt.Println("InitZeroValue type not impl")
+	//case f.IsString(typ):
+	//	structType := typ.(*types.StructType)
+	//	def := f.m.NewGlobalDef("eof", constant.NewCharArrayFromString("aaaaaaaaaaaaaa\x00"))
+	//	def.Immutable = true
+	//	ptr := constant.NewGetElementPtr(def,
+	//		constant.NewInt(types.I64, 0),
+	//		constant.NewInt(types.I64, 0),
+	//	)
+	//	ptr.InBounds = true
+	//	newStruct := constant.NewStruct(constant.NewInt(types.I32, 8), ptr)
+	//	newStruct.Typ = structType
+	//	return newStruct
+	case types.IsStruct(typ):
+		structType := typ.(*types.StructType)
+		var pp []constant.Constant
+		for _, value := range structType.Fields {
+			pp = append(pp, f.InitZeroConstant(value))
 		}
+		newStruct := constant.NewStruct(pp...)
+		newStruct.Typ = structType
+		return newStruct
+	default:
+		fmt.Println("InitZeroValue type not impl", typ)
 	}
 	return nil
 }
@@ -234,7 +251,11 @@ func GetStructBytes(v types.Type) int {
 	a := 0
 	if t, ok := utils.GetBaseType(v).(*types.StructType); ok {
 		for _, value := range t.Fields {
-			a += GetBytes(value)
+			bytes := GetBytes(value)
+			a += bytes
+			if a%bytes != 0 {
+				a += bytes
+			}
 		}
 	}
 	return a

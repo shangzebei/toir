@@ -1,5 +1,5 @@
-%string = type { i32, i8* }
 %mapStruct = type {}
+%string = type { i32, i8* }
 
 @str.0 = constant [11 x i8] c"shangzebei\00"
 @str.1 = constant [4 x i8] c"%d\0A\00"
@@ -22,7 +22,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 12)
+	%2 = call i8* @malloc(i32 20)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -215,7 +215,7 @@ define { i32, i32, i32, i8* }* @runtime.stringToBytes(%string* %a) {
 	; block start
 	%1 = getelementptr %string, %string* %a, i32 0, i32 0
 	%2 = load i32, i32* %1
-	%3 = call i8* @malloc(i32 20)
+	%3 = call i8* @malloc(i32 28)
 	%4 = bitcast i8* %3 to { i32, i32, i32, i8* }*
 	call void @slice.init.i8({ i32, i32, i32, i8* }* %4, i32 %2)
 	%5 = load { i32, i32, i32, i8* }, { i32, i32, i32, i8* }* %4

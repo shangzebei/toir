@@ -31,7 +31,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 12)
+	%2 = call i8* @malloc(i32 20)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -77,7 +77,7 @@ declare i32 @printf(i8*, ...)
 define void @test.do(%A %a) {
 ; <label>:0
 	; block start
-	%1 = call i8* @malloc(i32 12)
+	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %A*
 	store %A %a, %A* %2
 	%3 = call %string* @runtime.newString(i32 3)
@@ -101,8 +101,10 @@ define void @test.do(%A %a) {
 	ret void
 }
 
-define void @init.A.17791568799333(%A*) {
+define void @init.A.18501568864787(%A*) {
 ; <label>:1
+	; <inject var
+	; inject var>
 	%2 = getelementptr %A, %A* %0, i32 0, i32 0
 	%3 = call %string* @runtime.newString(i32 5)
 	%4 = getelementptr %string, %string* %3, i32 0, i32 1
@@ -115,6 +117,7 @@ define void @init.A.17791568799333(%A*) {
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 %10, i1 false)
 	%11 = load %string, %string* %3
 	store %string %11, %string* %2
+	; <init string>
 	ret void
 }
 
@@ -143,11 +146,11 @@ define void @main() {
 	%16 = call i32 (i8*, ...) @printf(i8* %15, i32 %12, i32 %13)
 	; init param
 	; end param
-	%17 = call i8* @malloc(i32 12)
+	%17 = call i8* @malloc(i32 20)
 	%18 = bitcast i8* %17 to %A*
-	call void @init.A.17791568799333(%A* %18)
+	call void @init.A.18501568864787(%A* %18)
 	%19 = load %A, %A* %18
-	%20 = call i8* @malloc(i32 12)
+	%20 = call i8* @malloc(i32 20)
 	%21 = bitcast i8* %20 to %A*
 	store %A %19, %A* %21
 	%22 = load %A, %A* %21

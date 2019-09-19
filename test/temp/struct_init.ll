@@ -30,31 +30,36 @@
 
 declare i8* @malloc(i32)
 
-define void @init.KK.29841568799335(%struct.8*, %KK*) {
+define void @init.KK.15761568864788(%struct.8*, %KK*) {
 ; <label>:2
+	; <inject var
 	%3 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 0
 	%4 = load i32, i32* %3
 	%5 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 1
 	%6 = load i32, i32* %5
 	%7 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 2
 	%8 = load i32, i32* %7
+	; inject var>
 	%9 = getelementptr %KK, %KK* %1, i32 0, i32 0
 	store i32 19, i32* %9
 	%10 = getelementptr %KK, %KK* %1, i32 0, i32 1
 	store i32 %6, i32* %10
 	%11 = getelementptr %KK, %KK* %1, i32 0, i32 2
 	store i32 %8, i32* %11
+	; <init string>
 	ret void
 }
 
-define void @init.ListNode.60411568799335(%struct.8*, %ListNode*) {
+define void @init.ListNode.29841568864788(%struct.8*, %ListNode*) {
 ; <label>:2
+	; <inject var
 	%3 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 0
 	%4 = load i32, i32* %3
 	%5 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 1
 	%6 = load i32, i32* %5
 	%7 = getelementptr %struct.8, %struct.8* %0, i32 0, i32 2
 	%8 = load i32, i32* %7
+	; inject var>
 	%9 = getelementptr %ListNode, %ListNode* %1, i32 0, i32 0
 	store i32 %4, i32* %9
 	%10 = getelementptr %ListNode, %ListNode* %1, i32 0, i32 1
@@ -62,9 +67,10 @@ define void @init.ListNode.60411568799335(%struct.8*, %ListNode*) {
 	; end param
 	%11 = call i8* @malloc(i32 12)
 	%12 = bitcast i8* %11 to %KK*
-	call void @init.KK.29841568799335(%struct.8* %0, %KK* %12)
+	call void @init.KK.15761568864788(%struct.8* %0, %KK* %12)
 	%13 = load %KK, %KK* %12
 	store %KK* %12, %KK** %10
+	; <init string>
 	ret void
 }
 
@@ -73,7 +79,7 @@ define %string* @runtime.newString(i32 %size) {
 	; block start
 	%1 = alloca i32
 	store i32 %size, i32* %1
-	%2 = call i8* @malloc(i32 12)
+	%2 = call i8* @malloc(i32 20)
 	%3 = bitcast i8* %2 to %string*
 	%4 = alloca %string*
 	store %string* %3, %string** %4
@@ -138,11 +144,11 @@ define void @test.init1() {
 	%11 = getelementptr %struct.8, %struct.8* %8, i32 0, i32 2
 	store i32 %6, i32* %11
 	; end param
-	%12 = call i8* @malloc(i32 12)
+	%12 = call i8* @malloc(i32 20)
 	%13 = bitcast i8* %12 to %ListNode*
-	call void @init.ListNode.60411568799335(%struct.8* %8, %ListNode* %13)
+	call void @init.ListNode.29841568864788(%struct.8* %8, %ListNode* %13)
 	%14 = load %ListNode, %ListNode* %13
-	%15 = call i8* @malloc(i32 12)
+	%15 = call i8* @malloc(i32 20)
 	%16 = bitcast i8* %15 to %ListNode*
 	store %ListNode %14, %ListNode* %16
 	%17 = call %string* @runtime.newString(i32 6)
@@ -200,8 +206,10 @@ define void @test.init1() {
 	ret void
 }
 
-define void @init.ListNode.15761568799335(%ListNode*) {
+define void @init.ListNode.56881568864788(%ListNode*) {
 ; <label>:1
+	; <inject var
+	; inject var>
 	%2 = getelementptr %ListNode, %ListNode* %0, i32 0, i32 0
 	store i32 111, i32* %2
 	%3 = getelementptr %ListNode, %ListNode* %0, i32 0, i32 1
@@ -212,6 +220,7 @@ define void @init.ListNode.15761568799335(%ListNode*) {
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %6, i8* %7, i32 12, i1 false)
 	%8 = load %KK, %KK* %5
 	store %KK* %5, %KK** %3
+	; <init string>
 	ret void
 }
 
@@ -220,11 +229,11 @@ define void @test.init2() {
 	; block start
 	; init param
 	; end param
-	%1 = call i8* @malloc(i32 12)
+	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %ListNode*
-	call void @init.ListNode.15761568799335(%ListNode* %2)
+	call void @init.ListNode.56881568864788(%ListNode* %2)
 	%3 = load %ListNode, %ListNode* %2
-	%4 = call i8* @malloc(i32 12)
+	%4 = call i8* @malloc(i32 20)
 	%5 = bitcast i8* %4 to %ListNode*
 	store %ListNode %3, %ListNode* %5
 	%6 = call %string* @runtime.newString(i32 6)
@@ -282,23 +291,29 @@ define void @test.init2() {
 	ret void
 }
 
-define void @init.AA.56881568799335(%AA*) {
+define void @init.AA.77781568864788(%AA*) {
 ; <label>:1
+	; <inject var
+	; inject var>
 	%2 = getelementptr %AA, %AA* %0, i32 0, i32 0
 	store i32 11, i32* %2
 	%3 = getelementptr %AA, %AA* %0, i32 0, i32 1
 	store %AA* null, %AA** %3
+	; <init string>
 	ret void
 }
 
-define void @init.B.77781568799335(%struct.9*, %B*) {
+define void @init.B.05181568864788(%struct.9*, %B*) {
 ; <label>:2
+	; <inject var
 	%3 = getelementptr %struct.9, %struct.9* %0, i32 0, i32 0
 	%4 = load %AA, %AA* %3
+	; inject var>
 	%5 = getelementptr %B, %B* %1, i32 0, i32 0
 	store %AA* %3, %AA** %5
 	%6 = getelementptr %B, %B* %1, i32 0, i32 1
 	store %B* null, %B** %6
+	; <init string>
 	ret void
 }
 
@@ -307,23 +322,23 @@ define void @test.init3() {
 	; block start
 	; init param
 	; end param
-	%1 = call i8* @malloc(i32 12)
+	%1 = call i8* @malloc(i32 20)
 	%2 = bitcast i8* %1 to %AA*
-	call void @init.AA.56881568799335(%AA* %2)
+	call void @init.AA.77781568864788(%AA* %2)
 	%3 = load %AA, %AA* %2
-	%4 = call i8* @malloc(i32 12)
+	%4 = call i8* @malloc(i32 20)
 	%5 = bitcast i8* %4 to %AA*
 	store %AA %3, %AA* %5
 	; init param
 	%6 = load %AA, %AA* %5
-	%7 = call i8* @malloc(i32 12)
+	%7 = call i8* @malloc(i32 20)
 	%8 = bitcast i8* %7 to %struct.9*
 	%9 = getelementptr %struct.9, %struct.9* %8, i32 0, i32 0
 	store %AA %6, %AA* %9
 	; end param
 	%10 = call i8* @malloc(i32 16)
 	%11 = bitcast i8* %10 to %B*
-	call void @init.B.77781568799335(%struct.9* %8, %B* %11)
+	call void @init.B.05181568864788(%struct.9* %8, %B* %11)
 	%12 = load %B, %B* %11
 	%13 = call i8* @malloc(i32 16)
 	%14 = bitcast i8* %13 to %B*
@@ -349,8 +364,10 @@ define void @test.init3() {
 	ret void
 }
 
-define void @init.Foo.05181568799335(%Foo*) {
+define void @init.Foo.71961568864788(%Foo*) {
 ; <label>:1
+	; <inject var
+	; inject var>
 	%2 = getelementptr %Foo, %Foo* %0, i32 0, i32 0
 	%3 = sext i32 300 to i64
 	store i64 %3, i64* %2
@@ -362,6 +379,7 @@ define void @init.Foo.05181568799335(%Foo*) {
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %7, i8* %8, i32 8, i1 false)
 	%9 = load %Bar, %Bar* %6
 	store %Bar* %6, %Bar** %4
+	; <init string>
 	ret void
 }
 
@@ -372,7 +390,7 @@ define %Foo* @test.GetFooPtr() {
 	; end param
 	%1 = call i8* @malloc(i32 16)
 	%2 = bitcast i8* %1 to %Foo*
-	call void @init.Foo.05181568799335(%Foo* %2)
+	call void @init.Foo.71961568864788(%Foo* %2)
 	%3 = load %Foo, %Foo* %2
 	%4 = call i8* @malloc(i32 16)
 	%5 = bitcast i8* %4 to %Foo*
@@ -382,8 +400,10 @@ define %Foo* @test.GetFooPtr() {
 	ret %Foo* %5
 }
 
-define void @init.Foo.71961568799335(%Foo*) {
+define void @init.Foo.71561568864788(%Foo*) {
 ; <label>:1
+	; <inject var
+	; inject var>
 	%2 = getelementptr %Foo, %Foo* %0, i32 0, i32 0
 	%3 = sext i32 100 to i64
 	store i64 %3, i64* %2
@@ -395,6 +415,7 @@ define void @init.Foo.71961568799335(%Foo*) {
 	call void @llvm.memcpy.p0i8.p0i8.i32(i8* %7, i8* %8, i32 8, i1 false)
 	%9 = load %Bar, %Bar* %6
 	store %Bar* %6, %Bar** %4
+	; <init string>
 	ret void
 }
 
@@ -405,7 +426,7 @@ define void @test.inin4() {
 	; end param
 	%1 = call i8* @malloc(i32 16)
 	%2 = bitcast i8* %1 to %Foo*
-	call void @init.Foo.71961568799335(%Foo* %2)
+	call void @init.Foo.71561568864788(%Foo* %2)
 	%3 = load %Foo, %Foo* %2
 	%4 = alloca %Foo*
 	store %Foo* %2, %Foo** %4
